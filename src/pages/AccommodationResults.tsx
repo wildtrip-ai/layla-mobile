@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -7,6 +7,7 @@ import {
   Star, 
   SlidersHorizontal, 
   Map, 
+  List,
   ArrowUpDown,
   ChevronDown,
   Plus,
@@ -16,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
+import { AccommodationMap } from "@/components/trip/AccommodationMap";
 import { sampleTrip, type Accommodation } from "@/data/tripData";
 
 // Extended accommodation data for the results page
@@ -221,6 +223,7 @@ function AccommodationResultCard({
 export default function AccommodationResults() {
   const { id } = useParams();
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [showMap, setShowMap] = useState(false);
 
   const toggleFilter = (filter: string) => {
     setSelectedFilters(prev => 
@@ -276,7 +279,11 @@ export default function AccommodationResults() {
                 Sort: Our Top Picks
                 <ChevronDown className="h-4 w-4" />
               </Button>
-              <Button variant="secondary" className="gap-2">
+              <Button 
+                variant={showMap ? "default" : "secondary"} 
+                className="gap-2"
+                onClick={() => setShowMap(true)}
+              >
                 <Map className="h-4 w-4" />
                 View Map
               </Button>
@@ -340,6 +347,16 @@ export default function AccommodationResults() {
           </div>
         </div>
       </main>
+
+      {/* Map View */}
+      <AnimatePresence>
+        {showMap && (
+          <AccommodationMap 
+            accommodations={moreAccommodations} 
+            onClose={() => setShowMap(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
