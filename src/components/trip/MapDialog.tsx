@@ -101,25 +101,6 @@ const LeafletMap = ({
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
-      // Helper to animate polyline drawing
-      const animatePolyline = (polyline: any, duration: number, delay: number = 0) => {
-        const path = polyline.getElement();
-        if (!path) return;
-        
-        const length = path.getTotalLength();
-        path.style.strokeDasharray = `${length}`;
-        path.style.strokeDashoffset = `${length}`;
-        path.style.transition = 'none';
-        
-        // Force reflow
-        path.getBoundingClientRect();
-        
-        setTimeout(() => {
-          path.style.transition = `stroke-dashoffset ${duration}ms ease-out`;
-          path.style.strokeDashoffset = '0';
-        }, delay);
-      };
-
       // Flight route (Berlin to Amman) - curved polyline
       const flightRoute: [number, number][] = [
         cityCoordinates.Berlin,
@@ -127,7 +108,7 @@ const LeafletMap = ({
         cityCoordinates.Amman,
       ];
 
-      const flightPolyline = L.polyline(flightRoute, {
+      L.polyline(flightRoute, {
         color: "#dc2626",
         weight: 3,
         dashArray: "10, 10",
@@ -135,17 +116,11 @@ const LeafletMap = ({
       }).addTo(map);
 
       // Ground route between Jordan cities
-      const groundPolyline = L.polyline(routeCoordinates, {
+      L.polyline(routeCoordinates, {
         color: "#2563eb",
         weight: 4,
         opacity: 0.9,
       }).addTo(map);
-
-      // Animate routes after map renders
-      setTimeout(() => {
-        animatePolyline(flightPolyline, 1500, 300);
-        animatePolyline(groundPolyline, 1200, 1500);
-      }, 100);
 
       // Create numbered marker icon
       const createNumberedIcon = (number: number, color: string = "#1a1a2e") => {
