@@ -32,7 +32,7 @@ function parseDayDate(dateString: string): number {
 }
 
 export default function TripDetails() {
-  const { tripData, removeFlights, addCity, applyBudgetChanges } = useTripData();
+  const { tripData, removeFlights, addCity, applyBudgetChanges, undo, canUndo } = useTripData();
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [premiumDrawerOpen, setPremiumDrawerOpen] = useState(false);
@@ -191,6 +191,8 @@ export default function TripDetails() {
                 onRemoveFlights={removeFlights}
                 onAddCity={addCity}
                 onApplyBudgetChanges={applyBudgetChanges}
+                onUndo={undo}
+                canUndo={canUndo}
               />
             </div>
 
