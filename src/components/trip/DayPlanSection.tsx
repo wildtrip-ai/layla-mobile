@@ -12,6 +12,7 @@ interface DayPlanSectionProps {
   currentCityIndex?: number;
   onNextCity?: () => void;
   cityName?: string;
+  tripId?: string;
 }
 
 export function DayPlanSection({ 
@@ -21,7 +22,8 @@ export function DayPlanSection({
   cityStops = [],
   currentCityIndex = 0,
   onNextCity,
-  cityName
+  cityName,
+  tripId
 }: DayPlanSectionProps) {
   const hasNextCity = currentCityIndex < cityStops.length - 1;
   const nextCity = hasNextCity ? cityStops[currentCityIndex + 1] : null;
@@ -96,7 +98,7 @@ export function DayPlanSection({
               {/* Activities */}
               <div className="space-y-2">
                 {day.items.map((item, index) => (
-                  <ActivityItem key={item.id} activity={item} index={index} />
+                  <ActivityItem key={item.id} activity={item} index={index} tripId={tripId} />
                 ))}
               </div>
 

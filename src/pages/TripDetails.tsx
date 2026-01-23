@@ -252,6 +252,7 @@ export default function TripDetails() {
                 currentCityIndex={currentCityIndex}
                 onNextCity={handleNextCity}
                 cityName={currentCityName}
+                tripId={tripData.id}
               />
             </div>
           </div>
