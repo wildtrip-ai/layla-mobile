@@ -13,8 +13,8 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6">
-      <div className="container mx-auto flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
+      <div className="container mx-auto flex items-center justify-between pointer-events-auto [&>*]:pointer-events-auto">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-card shadow-lg flex items-center justify-center overflow-hidden">
