@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate, useParams } from "react-router-dom";
 import { Star, Trash2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Accommodation } from "@/data/tripData";
@@ -8,6 +9,13 @@ interface AccommodationCardProps {
 }
 
 export function AccommodationCard({ accommodation }: AccommodationCardProps) {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  const handleMoreStays = () => {
+    navigate(`/trip/${id || "jordan-honeymoon"}/accommodations`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -75,7 +83,7 @@ export function AccommodationCard({ accommodation }: AccommodationCardProps) {
                 <Button className="bg-primary hover:bg-primary/90">
                   View Details
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleMoreStays}>
                   More stays
                 </Button>
               </div>
