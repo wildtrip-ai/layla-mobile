@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, Star, Building2, Car, Users } from "lucide-react";
 import type { TripData } from "@/data/tripData";
+import { StoryPreview } from "./StoryPreview";
 
 interface TripHeaderProps {
   trip: TripData;
@@ -9,6 +11,7 @@ interface TripHeaderProps {
 }
 
 export function TripHeader({ trip, onOpenDialog, travelers }: TripHeaderProps) {
+  const [storyOpen, setStoryOpen] = useState(false);
   const displayTravelers = travelers ?? trip.travelers;
   
   return (
@@ -26,10 +29,16 @@ export function TripHeader({ trip, onOpenDialog, travelers }: TripHeaderProps) {
             alt={trip.title}
             className="w-full h-full object-cover"
           />
-          <button className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-card transition-colors">
+          <button 
+            onClick={() => setStoryOpen(true)}
+            className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-card transition-colors"
+          >
             Preview
           </button>
         </div>
+
+        {/* Story Preview Modal */}
+        <StoryPreview open={storyOpen} onClose={() => setStoryOpen(false)} />
 
         {/* Info */}
         <div className="flex flex-col justify-between">
