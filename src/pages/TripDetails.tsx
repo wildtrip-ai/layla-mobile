@@ -86,7 +86,11 @@ export default function TripDetails() {
             {/* Main Content */}
             <div className="space-y-8">
               {/* Trip Header */}
-              <TripHeader trip={sampleTrip} />
+              <TripHeader 
+                trip={sampleTrip} 
+                onOpenDialog={() => setDialogOpen(true)}
+                travelers={tripSettings.travelers}
+              />
 
               {/* Map */}
               <TripMap cityStops={sampleTrip.cityStops} />
