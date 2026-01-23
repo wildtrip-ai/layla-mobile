@@ -133,6 +133,7 @@ export default function TripDetails() {
                 travelers={tripSettings.travelers}
                 onCityClick={handleCityClick}
                 selectedCityIndex={selectedCityIndex}
+                currentCityIndex={currentCityIndex}
               />
 
               {/* Map */}

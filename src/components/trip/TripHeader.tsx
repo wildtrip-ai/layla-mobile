@@ -10,9 +10,10 @@ interface TripHeaderProps {
   travelers?: number;
   onCityClick?: (cityIndex: number) => void;
   selectedCityIndex?: number | null;
+  currentCityIndex?: number;
 }
 
-export function TripHeader({ trip, onOpenDialog, travelers, onCityClick, selectedCityIndex }: TripHeaderProps) {
+export function TripHeader({ trip, onOpenDialog, travelers, onCityClick, selectedCityIndex, currentCityIndex = 0 }: TripHeaderProps) {
   const [storyOpen, setStoryOpen] = useState(false);
   const displayTravelers = travelers ?? trip.travelers;
   
@@ -169,13 +170,22 @@ export function TripHeader({ trip, onOpenDialog, travelers, onCityClick, selecte
             <div key={city.id} className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => onCityClick?.(index)}
-                className={`bg-secondary rounded-lg px-3 py-2 border transition-all cursor-pointer hover:bg-secondary/70 hover:border-primary/30 ${
-                  selectedCityIndex === index 
-                    ? 'border-primary ring-2 ring-primary/20' 
-                    : 'border-border'
+                className={`relative rounded-lg px-3 py-2 border transition-all cursor-pointer hover:bg-secondary/70 hover:border-primary/30 ${
+                  currentCityIndex === index
+                    ? 'bg-primary/10 border-primary'
+                    : selectedCityIndex === index 
+                      ? 'bg-secondary border-primary ring-2 ring-primary/20' 
+                      : 'bg-secondary border-border'
                 }`}
               >
-                <p className="font-medium text-foreground text-sm">{city.name}</p>
+                {/* Current city indicator dot */}
+                {currentCityIndex === index && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                  </span>
+                )}
+                <p className={`font-medium text-sm ${currentCityIndex === index ? 'text-primary' : 'text-foreground'}`}>{city.name}</p>
                 <p className="text-xs text-muted-foreground">{city.dates}</p>
               </button>
               {index < trip.cityStops.length - 1 && (
