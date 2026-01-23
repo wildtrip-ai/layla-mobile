@@ -7,9 +7,10 @@ import type { DayPlan } from "@/data/tripData";
 interface DayPlanSectionProps {
   dayPlans: DayPlan[];
   dates: string;
+  onAddClick?: () => void;
 }
 
-export function DayPlanSection({ dayPlans, dates }: DayPlanSectionProps) {
+export function DayPlanSection({ dayPlans, dates, onAddClick }: DayPlanSectionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -72,7 +73,12 @@ export function DayPlanSection({ dayPlans, dates }: DayPlanSectionProps) {
             </div>
 
             {/* Add Button */}
-            <Button variant="outline" size="sm" className="gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 mt-4"
+              onClick={onAddClick}
+            >
               <Plus className="h-4 w-4" />
               Add
             </Button>

@@ -13,14 +13,26 @@ import { AccommodationSection } from "@/components/trip/AccommodationSection";
 import { DayPlanSection } from "@/components/trip/DayPlanSection";
 import { TripSidebar } from "@/components/trip/TripSidebar";
 import { TripDetailsDialog, type EditableTripData } from "@/components/trip/TripDetailsDialog";
+import { PremiumUpgradeDrawer } from "@/components/trip/PremiumUpgradeDrawer";
 import { sampleTrip } from "@/data/tripData";
 
 export default function TripDetails() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [premiumDrawerOpen, setPremiumDrawerOpen] = useState(false);
+  const [isFreePlan] = useState(true); // Mock: defaults to free plan for demo
   const [tripSettings, setTripSettings] = useState({
     travelers: sampleTrip.travelers,
     dates: sampleTrip.dates,
   });
+
+  const handleAddClick = () => {
+    if (isFreePlan) {
+      setPremiumDrawerOpen(true);
+    } else {
+      // Future: Handle normal add flow
+      console.log("Adding item...");
+    }
+  };
 
   const handleApplyChanges = (data: EditableTripData) => {
     const totalTravelers = data.adults + data.children;
@@ -128,12 +140,19 @@ export default function TripDetails() {
               {/* Day by Day Plan */}
               <DayPlanSection 
                 dayPlans={sampleTrip.dayPlans} 
-                dates="May 1 - 3" 
+                dates="May 1 - 3"
+                onAddClick={handleAddClick}
               />
             </div>
           </div>
         </div>
       </main>
+
+      {/* Premium Upgrade Drawer */}
+      <PremiumUpgradeDrawer 
+        open={premiumDrawerOpen} 
+        onOpenChange={setPremiumDrawerOpen} 
+      />
 
       {/* Fixed CTA on Mobile */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border lg:hidden">
