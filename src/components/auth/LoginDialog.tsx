@@ -33,7 +33,6 @@ const FacebookIcon = () => (
 
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
 
   const handleClose = () => {
@@ -42,8 +41,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission - would connect to auth later
-    console.log("Form submitted:", { email, password, isSignUp });
+    // Handle magic link submission - would connect to auth later
+    console.log("Magic link sent to:", email);
   };
 
   return (
@@ -60,15 +59,15 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             onClick={handleClose}
           />
 
-          {/* Dialog */}
+          {/* Dialog - centered horizontally and vertically */}
           <motion.div
-            initial={{ opacity: 0, y: "100%" }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: "100%" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-4xl"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="flex overflow-hidden rounded-t-3xl bg-card shadow-2xl max-h-[90vh]">
+            <div className="flex overflow-hidden rounded-3xl bg-card shadow-2xl max-h-[90vh] max-w-4xl w-full">
               {/* Left Panel - Form */}
               <div className="flex-1 p-8 md:p-10 overflow-y-auto">
                 <div className="mx-auto max-w-sm">
@@ -95,31 +94,15 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                       onChange={(e) => setEmail(e.target.value)}
                       className="rounded-full px-5 py-6 border-border"
                     />
-                    <Input
-                      type="password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="rounded-full px-5 py-6 border-border"
-                    />
                     
                     <Button 
                       type="submit" 
                       className="w-full rounded-full py-6"
                       variant="hero"
                     >
-                      Continue
+                      Send Magic Link
                     </Button>
                   </form>
-
-                  {!isSignUp && (
-                    <button
-                      type="button"
-                      className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors mt-4"
-                    >
-                      Forgot password?
-                    </button>
-                  )}
 
                   {/* Divider */}
                   <div className="relative my-6">
