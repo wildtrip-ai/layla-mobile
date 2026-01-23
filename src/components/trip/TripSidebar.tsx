@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Mic, Send, Calendar } from "lucide-react";
+import { Mic, Send, Calendar, Undo2 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 interface ChatMessage {
@@ -14,6 +14,8 @@ interface TripSidebarProps {
   onRemoveFlights?: () => void;
   onAddCity?: (cityName: string) => void;
   onApplyBudgetChanges?: () => void;
+  onUndo?: () => void;
+  canUndo?: boolean;
 }
 
 // Chips to show after certain responses
@@ -58,7 +60,7 @@ const actionTriggers: Record<string, { action: string; param?: string }> = {
   "Yes, remove flights": { action: "removeFlights" },
 };
 
-export function TripSidebar({ onRemoveFlights, onAddCity, onApplyBudgetChanges }: TripSidebarProps) {
+export function TripSidebar({ onRemoveFlights, onAddCity, onApplyBudgetChanges, onUndo, canUndo }: TripSidebarProps) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -72,6 +74,19 @@ export function TripSidebar({ onRemoveFlights, onAddCity, onApplyBudgetChanges }
     { emoji: "✈️", text: "Can you remove the flights from this trip?" },
     { emoji: "🏙️", text: "Can you add more cities?" },
   ];
+
+  // Handle undo with chat feedback
+  const handleUndo = useCallback(() => {
+    if (onUndo && canUndo) {
+      onUndo();
+      // Add undo feedback to chat
+      setMessages(prev => [
+        ...prev,
+        { id: `user-undo-${Date.now()}`, role: "user", content: "Undo last change" },
+        { id: `assistant-undo-${Date.now()}`, role: "assistant", content: "✅ Done! I've reverted your last change. Your trip is back to its previous state." }
+      ]);
+    }
+  }, [onUndo, canUndo]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -308,6 +323,15 @@ export function TripSidebar({ onRemoveFlights, onAddCity, onApplyBudgetChanges }
             />
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-2">
+                <button 
+                  type="button"
+                  onClick={handleUndo}
+                  disabled={!canUndo}
+                  className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Undo last change"
+                >
+                  <Undo2 className="h-4 w-4" />
+                </button>
                 <button 
                   type="button"
                   className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary"

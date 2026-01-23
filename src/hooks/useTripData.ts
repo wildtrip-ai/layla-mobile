@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { sampleTrip, TripData, CityStop, Transport, Accommodation, DayPlan, Activity } from "@/data/tripData";
 
 export type TripAction = 
@@ -6,29 +6,45 @@ export type TripAction =
   | { type: "ADD_CITY"; city: CityStop; dayPlan?: DayPlan }
   | { type: "CHANGE_HOTEL"; cityIndex: number; newHotel: Accommodation }
   | { type: "APPLY_BUDGET_CHANGES" }
-  | { type: "RESET" };
+  | { type: "RESET" }
+  | { type: "UNDO" };
+
+const MAX_HISTORY = 10;
 
 export function useTripData() {
   const [tripData, setTripData] = useState<TripData>(() => structuredClone(sampleTrip));
+  const historyRef = useRef<TripData[]>([]);
 
   const dispatch = useCallback((action: TripAction) => {
     setTripData(prev => {
+      // Handle UNDO separately - restore from history
+      if (action.type === "UNDO") {
+        if (historyRef.current.length > 0) {
+          const previousState = historyRef.current.pop()!;
+          return previousState;
+        }
+        return prev;
+      }
+
+      // Save current state to history before making changes
+      historyRef.current.push(structuredClone(prev));
+      if (historyRef.current.length > MAX_HISTORY) {
+        historyRef.current.shift();
+      }
+
       const next = structuredClone(prev);
 
       switch (action.type) {
         case "REMOVE_FLIGHTS": {
-          // Remove all flight transports
           next.transports = next.transports.filter(t => t.type !== "flight");
           next.stats.transports = next.transports.length;
           return next;
         }
 
         case "ADD_CITY": {
-          // Add city to stops
           next.cityStops.push(action.city);
           next.stats.cities = next.cityStops.length;
           
-          // Add day plan if provided
           if (action.dayPlan) {
             next.dayPlans.push(action.dayPlan);
             next.stats.days = next.dayPlans.length;
@@ -38,7 +54,6 @@ export function useTripData() {
         }
 
         case "CHANGE_HOTEL": {
-          // Replace accommodation at index
           if (action.cityIndex < next.accommodations.length) {
             next.accommodations[action.cityIndex] = action.newHotel;
           }
@@ -46,7 +61,6 @@ export function useTripData() {
         }
 
         case "APPLY_BUDGET_CHANGES": {
-          // Simulate budget optimization: update hotel to cheaper option
           if (next.accommodations.length > 0) {
             next.accommodations[0] = {
               ...next.accommodations[0],
@@ -56,7 +70,6 @@ export function useTripData() {
               description: "A comfortable 4-star option with great amenities at a more affordable price.",
             };
           }
-          // Remove expensive private tours
           next.dayPlans = next.dayPlans.map(day => ({
             ...day,
             items: day.items.map(item => {
@@ -209,12 +222,18 @@ export function useTripData() {
   
   const resetTrip = useCallback(() => dispatch({ type: "RESET" }), [dispatch]);
 
+  const undo = useCallback(() => dispatch({ type: "UNDO" }), [dispatch]);
+
+  const canUndo = historyRef.current.length > 0;
+
   return {
     tripData,
     removeFlights,
     addCity,
     applyBudgetChanges,
     resetTrip,
+    undo,
+    canUndo,
     dispatch,
   };
 }
