@@ -93,7 +93,10 @@ export default function TripDetails() {
               />
 
               {/* Map */}
-              <TripMap cityStops={sampleTrip.cityStops} />
+              <TripMap 
+                cityStops={sampleTrip.cityStops} 
+                activities={sampleTrip.dayPlans.flatMap(day => day.items.filter(item => item.type !== 'note'))}
+              />
 
               {/* Description */}
               <TripDescription 

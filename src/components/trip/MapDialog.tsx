@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, MapPin, Utensils } from "lucide-react";
+import { Activity } from "@/data/tripData";
 
 // City coordinates for Jordan trip
 const cityCoordinates: Record<string, [number, number]> = {
@@ -11,17 +12,54 @@ const cityCoordinates: Record<string, [number, number]> = {
   "Dead Sea": [31.5, 35.5],
 };
 
+// Activity coordinates (approximate locations in Amman)
+const activityCoordinates: Record<string, [number, number]> = {
+  "Rainbow Street": [31.9515, 35.9243],
+  "Fakhreldin Restaurant": [31.9568, 35.9142],
+  "Amman Walking Tour: Hidden Gems, Culture & Street Food": [31.9520, 35.9310],
+  "Amman Citadel (Jabal al-Qalaa)": [31.9582, 35.9340],
+  "Jordan Archaeological Museum": [31.9580, 35.9335],
+  "Amman Roman Theater": [31.9512, 35.9365],
+  "Hashem Restaurant": [31.9505, 35.9350],
+};
+
 interface MapDialogProps {
   open: boolean;
   onClose: () => void;
   cityStops: { id: string; name: string; dates: string }[];
+  activities?: Activity[];
 }
 
 // Lazy load leaflet components
-const LeafletMap = ({ cityStops }: { cityStops: { id: string; name: string; dates: string }[] }) => {
+const LeafletMap = ({ 
+  cityStops, 
+  activities = [],
+  onCityClick 
+}: { 
+  cityStops: { id: string; name: string; dates: string }[];
+  activities?: Activity[];
+  onCityClick?: (coords: [number, number], zoom: number) => void;
+}) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Expose flyTo function
+  const flyToLocation = useCallback((coords: [number, number], zoom: number = 14) => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(coords, zoom, { duration: 1.2 });
+    }
+  }, []);
+
+  // Store flyTo in ref for parent access
+  useEffect(() => {
+    if (onCityClick) {
+      (window as any).__mapFlyTo = flyToLocation;
+    }
+    return () => {
+      delete (window as any).__mapFlyTo;
+    };
+  }, [flyToLocation, onCityClick]);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -111,6 +149,61 @@ const LeafletMap = ({ cityStops }: { cityStops: { id: string; name: string; date
         });
       };
 
+      // Create activity icon
+      const createActivityIcon = () => {
+        return L.divIcon({
+          className: "custom-activity-marker",
+          html: `
+            <div style="
+              width: 28px;
+              height: 28px;
+              background: #22c55e;
+              border: 2px solid white;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+            ">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+      };
+
+      // Create restaurant icon
+      const createRestaurantIcon = () => {
+        return L.divIcon({
+          className: "custom-restaurant-marker",
+          html: `
+            <div style="
+              width: 28px;
+              height: 28px;
+              background: #f97316;
+              border: 2px solid white;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+            ">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+                <path d="M7 2v20"/>
+                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+              </svg>
+            </div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+      };
+
       // Berlin marker (starting point)
       L.marker(cityCoordinates.Berlin, {
         icon: L.divIcon({
@@ -146,6 +239,22 @@ const LeafletMap = ({ cityStops }: { cityStops: { id: string; name: string; date
         }).addTo(map).bindPopup(`<b>${city.name}</b><br/>${city.dates}`);
       });
 
+      // Activity and restaurant markers
+      activities.forEach((activity) => {
+        const coords = activityCoordinates[activity.title];
+        if (!coords) return;
+        
+        const icon = activity.type === "restaurant" 
+          ? createRestaurantIcon() 
+          : createActivityIcon();
+        
+        const popupContent = activity.type === "restaurant"
+          ? `<b>🍴 ${activity.title}</b><br/>${activity.location || ""}<br/>⭐ ${activity.rating || "N/A"}`
+          : `<b>📍 ${activity.title}</b><br/>${activity.location || ""}<br/>${activity.duration || ""}`;
+        
+        L.marker(coords, { icon }).addTo(map).bindPopup(popupContent);
+      });
+
       // Fit bounds
       const bounds = L.latLngBounds(allCoordinates.map(coord => L.latLng(coord[0], coord[1])));
       map.fitBounds(bounds, { padding: [50, 50] });
@@ -161,7 +270,7 @@ const LeafletMap = ({ cityStops }: { cityStops: { id: string; name: string; date
         mapInstanceRef.current = null;
       }
     };
-  }, [cityStops]);
+  }, [cityStops, activities]);
 
   return (
     <div className="w-full h-full relative">
@@ -175,7 +284,7 @@ const LeafletMap = ({ cityStops }: { cityStops: { id: string; name: string; date
   );
 };
 
-export function MapDialog({ open, onClose, cityStops }: MapDialogProps) {
+export function MapDialog({ open, onClose, cityStops, activities = [] }: MapDialogProps) {
   // Handle keyboard
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -184,6 +293,19 @@ export function MapDialog({ open, onClose, cityStops }: MapDialogProps) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
+
+  const handleCityClick = (cityName: string) => {
+    const coords = cityCoordinates[cityName];
+    if (coords && (window as any).__mapFlyTo) {
+      (window as any).__mapFlyTo(coords, 12);
+    }
+  };
+
+  const handleStartClick = () => {
+    if ((window as any).__mapFlyTo) {
+      (window as any).__mapFlyTo(cityCoordinates.Berlin, 10);
+    }
+  };
 
   if (!open) return null;
 
@@ -229,7 +351,11 @@ export function MapDialog({ open, onClose, cityStops }: MapDialogProps) {
             </div>
 
             {/* Map */}
-            <LeafletMap cityStops={cityStops} />
+            <LeafletMap 
+              cityStops={cityStops} 
+              activities={activities}
+              onCityClick={() => {}}
+            />
 
             {/* Legend */}
             <div className="absolute bottom-4 left-4 z-[1000] bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
@@ -242,25 +368,44 @@ export function MapDialog({ open, onClose, cityStops }: MapDialogProps) {
                   <div className="w-6 h-1 bg-blue-600 rounded" />
                   <span className="text-muted-foreground">Ground</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                    <MapPin className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="text-muted-foreground">Activity</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                    <Utensils className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="text-muted-foreground">Restaurant</span>
+                </div>
               </div>
             </div>
 
-            {/* City list */}
+            {/* City list - now clickable */}
             <div className="absolute bottom-4 right-4 z-[1000] bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg max-w-xs">
               <h3 className="text-sm font-medium text-foreground mb-2">Your Route</h3>
               <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-sm">
+                <button
+                  onClick={handleStartClick}
+                  className="flex items-center gap-2 text-sm w-full text-left hover:bg-muted/50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+                >
                   <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</div>
-                  <span className="text-muted-foreground">Berlin (Start)</span>
-                </div>
+                  <span className="text-muted-foreground hover:text-foreground transition-colors">Berlin (Start)</span>
+                </button>
                 {cityStops.map((city, index) => (
-                  <div key={city.id} className="flex items-center gap-2 text-sm">
+                  <button
+                    key={city.id}
+                    onClick={() => handleCityClick(city.name)}
+                    className="flex items-center gap-2 text-sm w-full text-left hover:bg-muted/50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+                  >
                     <div className="w-5 h-5 bg-foreground rounded-full flex items-center justify-center text-background text-xs font-bold">
                       {index + 1}
                     </div>
                     <span className="text-foreground">{city.name}</span>
                     <span className="text-muted-foreground text-xs">({city.dates})</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>

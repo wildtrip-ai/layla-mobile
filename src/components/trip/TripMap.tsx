@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MapDialog } from "./MapDialog";
+import { Activity } from "@/data/tripData";
 
 interface TripMapProps {
   cityStops: { id: string; name: string; dates: string; image: string }[];
+  activities?: Activity[];
 }
 
 // City coordinates for Jordan trip
@@ -17,7 +19,7 @@ const cityCoordinates: Record<string, [number, number]> = {
   "Dead Sea": [31.5, 35.5],
 };
 
-export function TripMap({ cityStops }: TripMapProps) {
+export function TripMap({ cityStops, activities = [] }: TripMapProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // Get coordinates for all cities
@@ -100,6 +102,7 @@ export function TripMap({ cityStops }: TripMapProps) {
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         cityStops={cityStops}
+        activities={activities}
       />
     </>
   );
