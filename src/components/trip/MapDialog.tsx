@@ -28,6 +28,7 @@ interface MapDialogProps {
   onClose: () => void;
   cityStops: { id: string; name: string; dates: string }[];
   activities?: Activity[];
+  targetCityIndex?: number | null;
 }
 
 // Lazy load leaflet components
@@ -309,7 +310,9 @@ const LeafletMap = ({
   );
 };
 
-export function MapDialog({ open, onClose, cityStops, activities = [] }: MapDialogProps) {
+export function MapDialog({ open, onClose, cityStops, activities = [], targetCityIndex }: MapDialogProps) {
+  const [hasAnimated, setHasAnimated] = useState(false);
+
   // Handle keyboard
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -318,6 +321,33 @@ export function MapDialog({ open, onClose, cityStops, activities = [] }: MapDial
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
+
+  // Animate to target city when dialog opens with a target
+  useEffect(() => {
+    if (open && targetCityIndex !== null && targetCityIndex !== undefined && !hasAnimated) {
+      const cityName = cityStops[targetCityIndex]?.name;
+      if (cityName) {
+        const coords = cityCoordinates[cityName];
+        if (coords) {
+          // Wait for map to initialize before flying
+          const timer = setTimeout(() => {
+            if ((window as any).__mapFlyTo) {
+              (window as any).__mapFlyTo(coords, 12);
+              setHasAnimated(true);
+            }
+          }, 600);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+  }, [open, targetCityIndex, cityStops, hasAnimated]);
+
+  // Reset animation flag when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setHasAnimated(false);
+    }
+  }, [open]);
 
   const handleCityClick = (cityName: string) => {
     const coords = cityCoordinates[cityName];

@@ -19,17 +19,21 @@ import { sampleTrip } from "@/data/tripData";
 export default function TripDetails() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [premiumDrawerOpen, setPremiumDrawerOpen] = useState(false);
-  const [isFreePlan] = useState(true); // Mock: defaults to free plan for demo
+  const [isFreePlan] = useState(true);
   const [tripSettings, setTripSettings] = useState({
     travelers: sampleTrip.travelers,
     dates: sampleTrip.dates,
   });
 
+  // Map dialog state - lifted from TripMap for coordination
+  const [mapDialogOpen, setMapDialogOpen] = useState(false);
+  const [selectedCityIndex, setSelectedCityIndex] = useState<number | null>(null);
+  const [currentCityIndex, setCurrentCityIndex] = useState(0);
+
   const handleAddClick = () => {
     if (isFreePlan) {
       setPremiumDrawerOpen(true);
     } else {
-      // Future: Handle normal add flow
       console.log("Adding item...");
     }
   };
@@ -40,6 +44,30 @@ export default function TripDetails() {
       ...prev,
       travelers: totalTravelers,
     }));
+  };
+
+  // Handle city click from timeline - opens map and animates to city
+  const handleCityClick = (cityIndex: number) => {
+    setSelectedCityIndex(cityIndex);
+    setMapDialogOpen(true);
+  };
+
+  // Handle Next City button - advances to next city and shows on map
+  const handleNextCity = () => {
+    const nextIndex = currentCityIndex + 1;
+    if (nextIndex < sampleTrip.cityStops.length) {
+      setCurrentCityIndex(nextIndex);
+      setSelectedCityIndex(nextIndex);
+      setMapDialogOpen(true);
+    }
+  };
+
+  // Reset selected city when map closes
+  const handleMapDialogChange = (open: boolean) => {
+    setMapDialogOpen(open);
+    if (!open) {
+      setSelectedCityIndex(null);
+    }
   };
 
   return (
@@ -103,12 +131,17 @@ export default function TripDetails() {
                 trip={sampleTrip} 
                 onOpenDialog={() => setDialogOpen(true)}
                 travelers={tripSettings.travelers}
+                onCityClick={handleCityClick}
+                selectedCityIndex={selectedCityIndex}
               />
 
               {/* Map */}
               <TripMap 
                 cityStops={sampleTrip.cityStops} 
                 activities={sampleTrip.dayPlans.flatMap(day => day.items.filter(item => item.type !== 'note'))}
+                dialogOpen={mapDialogOpen}
+                onDialogOpenChange={handleMapDialogChange}
+                targetCityIndex={selectedCityIndex}
               />
 
               {/* Description */}
@@ -142,6 +175,9 @@ export default function TripDetails() {
                 dayPlans={sampleTrip.dayPlans} 
                 dates="May 1 - 3"
                 onAddClick={handleAddClick}
+                cityStops={sampleTrip.cityStops}
+                currentCityIndex={currentCityIndex}
+                onNextCity={handleNextCity}
               />
             </div>
           </div>

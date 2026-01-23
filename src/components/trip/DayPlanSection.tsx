@@ -1,16 +1,29 @@
 import { motion } from "framer-motion";
-import { Calendar, Plus } from "lucide-react";
+import { Calendar, Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityItem } from "./ActivityItem";
-import type { DayPlan } from "@/data/tripData";
+import type { DayPlan, CityStop } from "@/data/tripData";
 
 interface DayPlanSectionProps {
   dayPlans: DayPlan[];
   dates: string;
   onAddClick?: () => void;
+  cityStops?: CityStop[];
+  currentCityIndex?: number;
+  onNextCity?: () => void;
 }
 
-export function DayPlanSection({ dayPlans, dates, onAddClick }: DayPlanSectionProps) {
+export function DayPlanSection({ 
+  dayPlans, 
+  dates, 
+  onAddClick,
+  cityStops = [],
+  currentCityIndex = 0,
+  onNextCity
+}: DayPlanSectionProps) {
+  const hasNextCity = currentCityIndex < cityStops.length - 1;
+  const nextCity = hasNextCity ? cityStops[currentCityIndex + 1] : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -88,8 +101,21 @@ export function DayPlanSection({ dayPlans, dates, onAddClick }: DayPlanSectionPr
 
       {/* Next City Button */}
       <div className="flex justify-center pt-4">
-        <Button variant="outline" size="lg" className="w-full max-w-md">
-          Next City
+        <Button 
+          variant="outline" 
+          size="lg" 
+          className="w-full max-w-md gap-2"
+          onClick={onNextCity}
+          disabled={!hasNextCity}
+        >
+          {hasNextCity ? (
+            <>
+              Next City: {nextCity?.name}
+              <ArrowRight className="h-4 w-4" />
+            </>
+          ) : (
+            "End of Trip"
+          )}
         </Button>
       </div>
     </motion.div>
