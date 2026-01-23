@@ -91,19 +91,20 @@ export function TripDetailsDialog({
             onClick={() => onOpenChange(false)}
           />
 
-          {/* Dialog Content */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{
-              type: "spring",
-              damping: 25,
-              stiffness: 300,
-            }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2"
-          >
-            <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
+          {/* Dialog Container - Centered */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 300,
+              }}
+              className="w-full max-w-lg mx-4 pointer-events-auto"
+            >
+              <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-border">
                 <h2 className="text-lg font-semibold text-foreground">
@@ -182,6 +183,7 @@ export function TripDetailsDialog({
               </div>
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
