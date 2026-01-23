@@ -10,6 +10,12 @@ interface ChatMessage {
   chips?: { emoji: string; label: string }[];
 }
 
+interface TripSidebarProps {
+  onRemoveFlights?: () => void;
+  onAddCity?: (cityName: string) => void;
+  onApplyBudgetChanges?: () => void;
+}
+
 // Chips to show after certain responses
 const responseChips: Record<string, { emoji: string; label: string }[]> = {
   "Can you add more cities?": [
@@ -21,6 +27,10 @@ const responseChips: Record<string, { emoji: string; label: string }[]> = {
     { emoji: "✅", label: "Apply changes" },
     { emoji: "❌", label: "Keep original" },
   ],
+  "Can you remove the flights from this trip?": [
+    { emoji: "✅", label: "Yes, remove flights" },
+    { emoji: "❌", label: "Keep flights" },
+  ],
 };
 
 // Mock responses for different user queries
@@ -28,14 +38,27 @@ const mockResponses: Record<string, string> = {
   "Can you make this trip cheaper?": "Absolutely! I found a few ways to save on your Jordan trip:\n\n• Switch to a 4-star hotel in Amman — saves ~$200/night\n• Book a group desert tour instead of private — saves $150\n• Use local buses between cities — saves $80\n\nWant me to apply these changes?",
   "Can you remove the flights from this trip?": "Sure! I can remove the Berlin to Amman flights. This means you'll need to arrange your own transportation to Jordan.\n\nThe updated trip will start directly at your Amman hotel on May 1st. I'll deduct UAH 20,425 from the total price.\n\nShould I proceed with this change?",
   "Can you add more cities?": "Great idea! Here are some cities I recommend adding to your Jordan trip:\n\n🏛️ **Jerash** — Ancient Roman ruins, 1-2 hours from Amman\n🌊 **Dead Sea** — Float in the saltiest lake on Earth\n🏰 **Madaba** — Famous Byzantine mosaics\n\nWhich city would you like to add?",
-  "Jerash": "Excellent choice! I've added Jerash to your itinerary.\n\n📍 **Day 2: Jerash Day Trip**\n• Private car from Amman (1 hour)\n• Guided tour of ancient Roman ruins\n• Lunch at a local restaurant\n• Return to Amman\n\nThe trip is now 8 days. Want me to find accommodation nearby instead?",
-  "Dead Sea": "Perfect! The Dead Sea is a must-visit.\n\n📍 **Day 3: Dead Sea Experience**\n• Morning transfer from Amman\n• Float in the mineral-rich waters\n• Spa treatment at a luxury resort\n• Sunset views over Israel/Palestine\n\nI recommend staying overnight. Should I book a resort?",
-  "Madaba": "Great pick! Madaba is the 'City of Mosaics'.\n\n📍 **Day 2: Madaba Visit**\n• 30-minute drive from Amman\n• St. George's Church famous mosaic map\n• Mount Nebo viewpoint\n• Local handicraft shopping\n\nThis pairs well with a Dead Sea visit. Want to combine them?",
+  "Jerash": "✅ Done! I've added Jerash to your itinerary.\n\n📍 **New Day Added: Jerash Day Trip**\n• Private car from Amman (1 hour)\n• Guided tour of ancient Roman ruins\n• Lunch at Lebanese House Restaurant\n• Return to Amman\n\nCheck your updated trip below!",
+  "Dead Sea": "✅ Done! The Dead Sea has been added.\n\n📍 **New Day Added: Dead Sea Experience**\n• Morning transfer from Amman\n• Float in the mineral-rich waters\n• Mud spa treatment at Kempinski\n• Sunset views\n\nYour trip now includes this unforgettable experience!",
+  "Madaba": "✅ Done! Madaba is now on your itinerary.\n\n📍 **New Day Added: Madaba & Mount Nebo**\n• 30-minute drive from Amman\n• St. George's Church famous mosaic map\n• Mount Nebo viewpoint\n\nPerfect half-day trip!",
+  "Apply changes": "✅ Budget changes applied!\n\n• Hotel switched to Amman Rotana (4-star)\n• Walking tour changed to group option\n\nYou're saving approximately UAH 8,000 on this trip!",
+  "Keep original": "No problem! I'll keep your original luxury selections. Let me know if you'd like to explore other options.",
+  "Yes, remove flights": "✅ Flights removed!\n\nYour trip now starts directly at the hotel in Amman on May 1st. You've saved UAH 20,425.\n\nRemember to arrange your own transportation to Jordan.",
+  "Keep flights": "Got it! Your flights from Berlin to Amman are kept in the itinerary. Let me know if you need anything else!",
 };
 
 const defaultResponse = "I understand! Let me look into that for your Jordan trip. Give me a moment to find the best options for you.";
 
-export function TripSidebar() {
+// Actions that trigger real trip modifications
+const actionTriggers: Record<string, { action: string; param?: string }> = {
+  "Jerash": { action: "addCity", param: "Jerash" },
+  "Dead Sea": { action: "addCity", param: "Dead Sea" },
+  "Madaba": { action: "addCity", param: "Madaba" },
+  "Apply changes": { action: "applyBudget" },
+  "Yes, remove flights": { action: "removeFlights" },
+};
+
+export function TripSidebar({ onRemoveFlights, onAddCity, onApplyBudgetChanges }: TripSidebarProps) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -105,11 +128,26 @@ export function TripSidebar() {
     const response = mockResponses[text] || defaultResponse;
     const chips = responseChips[text];
 
+    // Check if this message triggers a real action
+    const trigger = actionTriggers[text];
+    if (trigger) {
+      // Execute action after a brief delay to show the response first
+      setTimeout(() => {
+        if (trigger.action === "addCity" && trigger.param && onAddCity) {
+          onAddCity(trigger.param);
+        } else if (trigger.action === "applyBudget" && onApplyBudgetChanges) {
+          onApplyBudgetChanges();
+        } else if (trigger.action === "removeFlights" && onRemoveFlights) {
+          onRemoveFlights();
+        }
+      }, 800);
+    }
+
     // Start typing animation after a short delay
     setTimeout(() => {
       startTypingAnimation(response, chips);
     }, 500);
-  }, [isTyping, startTypingAnimation]);
+  }, [isTyping, startTypingAnimation, onAddCity, onApplyBudgetChanges, onRemoveFlights]);
 
   const handleSuggestionClick = (suggestionText: string) => {
     handleSendMessage(suggestionText);
