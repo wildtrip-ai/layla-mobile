@@ -7,9 +7,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText } from "lucide-react";
+import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown } from "lucide-react";
 import { LoginDialog } from "@/components/auth/LoginDialog";
 import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+// Mock user state - replace with real auth later
+const mockUser = {
+  name: "Cooper Al",
+  email: "cooper@gmail.com",
+  initials: "C",
+};
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,9 +26,20 @@ export function Header() {
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Toggle for demo
 
   const currentLanguage = languages.find(l => l.code === selectedLanguage);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
+
+  const handleSignOut = () => {
+    setIsLoggedIn(false);
+    setIsOpen(false);
+  };
+
+  const handleLogin = () => {
+    setLoginDialogOpen(true);
+    setIsOpen(false);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
@@ -57,43 +76,103 @@ export function Header() {
           {/* User menu */}
           <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="hero-outline" size="icon" className="rounded-full h-10 w-10">
-                <User className="h-5 w-5" />
-              </Button>
+              {isLoggedIn ? (
+                <Button variant="ghost" className="rounded-full h-10 px-1 gap-1 bg-primary hover:bg-primary/90">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+                      {mockUser.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <ChevronDown className="h-4 w-4 text-primary-foreground" />
+                </Button>
+              ) : (
+                <Button variant="hero-outline" size="icon" className="rounded-full h-10 w-10">
+                  <User className="h-5 w-5" />
+                </Button>
+              )}
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mt-2">
-              <DropdownMenuItem 
-                className="gap-3 py-3"
-                onClick={() => setLoginDialogOpen(true)}
-              >
-                <LogIn className="h-4 w-4" />
-                <span>Login</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-3">
-                <Plus className="h-4 w-4" />
-                <span>New Trip</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-3">
-                <Crown className="h-4 w-4" />
-                <span>Manage Subscription</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-3">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-3 py-3">
-                <HelpCircle className="h-4 w-4" />
-                <span>About</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-3">
-                <MessageSquare className="h-4 w-4" />
-                <span>Contact</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-3">
-                <FileText className="h-4 w-4" />
-                <span>Terms of service</span>
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-64 mt-2">
+              {isLoggedIn ? (
+                <>
+                  {/* User info header */}
+                  <div className="flex items-center gap-3 px-3 py-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-lg font-medium">
+                        {mockUser.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="font-medium text-foreground">{mockUser.name}</span>
+                      <span className="text-sm text-muted-foreground">{mockUser.email}</span>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <Plus className="h-4 w-4" />
+                    <span>New Trip</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <MapPin className="h-4 w-4" />
+                    <span>My Trips</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <Crown className="h-4 w-4" />
+                    <span>Manage Subscription</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <HelpCircle className="h-4 w-4" />
+                    <span>About</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Contact</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <FileText className="h-4 w-4" />
+                    <span>Terms of service</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="gap-3 py-3 text-destructive focus:text-destructive"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem 
+                    className="gap-3 py-3"
+                    onClick={handleLogin}
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>Login</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <Plus className="h-4 w-4" />
+                    <span>New Trip</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <HelpCircle className="h-4 w-4" />
+                    <span>About</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Contact</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-3 py-3">
+                    <FileText className="h-4 w-4" />
+                    <span>Terms of service</span>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
