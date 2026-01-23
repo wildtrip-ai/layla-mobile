@@ -33,8 +33,16 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
   const [isPaused, setIsPaused] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  
+  // Swipe gesture state
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchStartTime = useRef<number | null>(null);
+  const isSwipeGesture = useRef(false);
 
   const STORY_DURATION = 5000; // 5 seconds per story
+  const SWIPE_THRESHOLD = 50; // minimum swipe distance in pixels
+  const SWIPE_TIME_THRESHOLD = 300; // max time for a swipe in ms
 
   const goToNext = useCallback(() => {
     if (currentIndex < stories.length - 1) {
@@ -54,9 +62,11 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
 
   // Pause/Resume handlers
   const handlePause = useCallback(() => {
-    setIsPaused(true);
-    if (videoRef.current) {
-      videoRef.current.pause();
+    if (!isSwipeGesture.current) {
+      setIsPaused(true);
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
     }
   }, []);
 
@@ -66,6 +76,61 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
       videoRef.current.play().catch(() => {});
     }
   }, []);
+
+  // Touch handlers for swipe gestures
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
+    isSwipeGesture.current = false;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartX.current);
+    const deltaY = Math.abs(e.touches[0].clientY - (touchStartY.current || 0));
+    
+    // If horizontal movement is greater than vertical, it's likely a swipe
+    if (deltaX > 10 && deltaX > deltaY) {
+      isSwipeGesture.current = true;
+      // Resume if we were paused by the initial touch
+      if (isPaused) {
+        handleResume();
+      }
+    }
+  }, [isPaused, handleResume]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartTime.current === null) {
+      handleResume();
+      return;
+    }
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchEndX - touchStartX.current;
+    const deltaTime = Date.now() - touchStartTime.current;
+
+    // Check if it's a valid swipe
+    if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaTime < SWIPE_TIME_THRESHOLD) {
+      if (deltaX < 0) {
+        // Swipe left - go to next
+        goToNext();
+      } else {
+        // Swipe right - go to previous
+        goToPrev();
+      }
+    } else if (!isSwipeGesture.current) {
+      // It was a tap, not a swipe - resume from pause
+      handleResume();
+    }
+
+    // Reset touch state
+    touchStartX.current = null;
+    touchStartY.current = null;
+    touchStartTime.current = null;
+    isSwipeGesture.current = false;
+  }, [goToNext, goToPrev, handleResume]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -237,34 +302,28 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
               </motion.div>
             </AnimatePresence>
 
-            {/* Click areas for navigation + hold to pause */}
-            <div className="absolute inset-0 z-10 flex">
-              <div 
-                className="w-1/3 h-full cursor-pointer" 
-                onClick={goToPrev}
-                onMouseDown={handlePause}
-                onMouseUp={handleResume}
-                onMouseLeave={handleResume}
-                onTouchStart={handlePause}
-                onTouchEnd={handleResume}
-              />
-              <div 
-                className="w-1/3 h-full cursor-pointer"
-                onMouseDown={handlePause}
-                onMouseUp={handleResume}
-                onMouseLeave={handleResume}
-                onTouchStart={handlePause}
-                onTouchEnd={handleResume}
-              />
-              <div 
-                className="w-1/3 h-full cursor-pointer" 
-                onClick={goToNext}
-                onMouseDown={handlePause}
-                onMouseUp={handleResume}
-                onMouseLeave={handleResume}
-                onTouchStart={handlePause}
-                onTouchEnd={handleResume}
-              />
+            {/* Touch area for swipe gestures + hold to pause */}
+            <div 
+              className="absolute inset-0 z-10"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handlePause}
+              onMouseUp={handleResume}
+              onMouseLeave={handleResume}
+            >
+              {/* Click areas for navigation (desktop) */}
+              <div className="absolute inset-0 flex">
+                <div 
+                  className="w-1/3 h-full cursor-pointer" 
+                  onClick={goToPrev}
+                />
+                <div className="w-1/3 h-full" />
+                <div 
+                  className="w-1/3 h-full cursor-pointer" 
+                  onClick={goToNext}
+                />
+              </div>
             </div>
 
             {/* Pause indicator */}
