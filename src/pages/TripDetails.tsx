@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Calendar, Users } from "lucide-react";
@@ -10,27 +11,53 @@ import { TransportSection } from "@/components/trip/TransportSection";
 import { AccommodationSection } from "@/components/trip/AccommodationSection";
 import { DayPlanSection } from "@/components/trip/DayPlanSection";
 import { TripSidebar } from "@/components/trip/TripSidebar";
+import { TripDetailsDialog, type EditableTripData } from "@/components/trip/TripDetailsDialog";
 import { sampleTrip } from "@/data/tripData";
 
 export default function TripDetails() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [tripSettings, setTripSettings] = useState({
+    travelers: sampleTrip.travelers,
+    dates: sampleTrip.dates,
+  });
+
+  const handleApplyChanges = (data: EditableTripData) => {
+    const totalTravelers = data.adults + data.children;
+    setTripSettings((prev) => ({
+      ...prev,
+      travelers: totalTravelers,
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Trip Date/Travelers Badge */}
+      {/* Trip Date/Travelers Badge - Clickable */}
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 hidden md:block">
-        <div className="bg-card border border-border rounded-full px-4 py-2 shadow-lg flex items-center gap-3 text-sm">
+        <button
+          onClick={() => setDialogOpen(true)}
+          className="bg-card border border-border rounded-full px-4 py-2 shadow-lg flex items-center gap-3 text-sm hover:bg-secondary/50 transition-colors cursor-pointer"
+        >
           <div className="flex items-center gap-1.5">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-foreground">{sampleTrip.dates}</span>
+            <span className="text-foreground">{tripSettings.dates}</span>
           </div>
           <div className="h-4 w-px bg-border" />
           <div className="flex items-center gap-1.5">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="text-foreground">{sampleTrip.travelers} travellers</span>
+            <span className="text-foreground">{tripSettings.travelers} travellers</span>
           </div>
-        </div>
+        </button>
       </div>
+
+      {/* Trip Details Dialog */}
+      <TripDetailsDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        tripData={sampleTrip}
+        onApply={handleApplyChanges}
+      />
 
       <main className="pt-20 pb-24">
         <div className="container mx-auto px-4">
