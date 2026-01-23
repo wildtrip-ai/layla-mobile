@@ -21,7 +21,14 @@ import {
   CircleSlash,
   Maximize2,
   Calendar,
-  Users
+  Users,
+  Wifi,
+  Coffee,
+  Tv,
+  Bath,
+  BedDouble,
+  ThumbsUp,
+  ThumbsDown
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { ImageGallery, type GalleryImage } from "@/components/trip/ImageGallery";
@@ -211,6 +218,188 @@ const iconMap: Record<string, React.ElementType> = {
   CircleSlash,
 };
 
+// Room types data
+interface RoomType {
+  id: string;
+  name: string;
+  description: string;
+  size: string;
+  maxGuests: number;
+  bedType: string;
+  price: string;
+  originalPrice?: string;
+  amenities: string[];
+  image: string;
+}
+
+const roomTypes: Record<string, RoomType[]> = {
+  "w-amman": [
+    {
+      id: "wonderful-room",
+      name: "Wonderful Room",
+      description: "Contemporary style with city views",
+      size: "40 m²",
+      maxGuests: 2,
+      bedType: "King Bed",
+      price: "UAH 17,437",
+      amenities: ["Free WiFi", "Smart TV", "Mini Bar", "Rain Shower"],
+      image: hotelImage,
+    },
+    {
+      id: "spectacular-room",
+      name: "Spectacular Room",
+      description: "Corner room with panoramic city views",
+      size: "48 m²",
+      maxGuests: 2,
+      bedType: "King Bed",
+      price: "UAH 21,850",
+      originalPrice: "UAH 24,500",
+      amenities: ["Free WiFi", "Smart TV", "Mini Bar", "Rain Shower", "Bathtub", "Coffee Machine"],
+      image: activityCitadel,
+    },
+    {
+      id: "wow-suite",
+      name: "WOW Suite",
+      description: "Luxury suite with separate living area",
+      size: "72 m²",
+      maxGuests: 3,
+      bedType: "King Bed + Sofa Bed",
+      price: "UAH 35,200",
+      amenities: ["Free WiFi", "Smart TV", "Mini Bar", "Rain Shower", "Bathtub", "Coffee Machine", "Living Area"],
+      image: activityRainbowStreet,
+    },
+  ],
+  "four-seasons": [
+    {
+      id: "superior-room",
+      name: "Superior Room",
+      description: "Elegant room with garden views",
+      size: "45 m²",
+      maxGuests: 2,
+      bedType: "King Bed",
+      price: "UAH 22,150",
+      amenities: ["Free WiFi", "Smart TV", "Mini Bar", "Marble Bathroom"],
+      image: hotelImage,
+    },
+    {
+      id: "deluxe-room",
+      name: "Deluxe Room",
+      description: "Spacious room with city views",
+      size: "55 m²",
+      maxGuests: 2,
+      bedType: "King Bed",
+      price: "UAH 28,400",
+      originalPrice: "UAH 31,000",
+      amenities: ["Free WiFi", "Smart TV", "Mini Bar", "Marble Bathroom", "Bathtub", "Nespresso"],
+      image: activityCitadel,
+    },
+  ],
+};
+
+// Guest reviews data
+interface GuestReview {
+  id: string;
+  author: string;
+  avatar: string;
+  country: string;
+  date: string;
+  rating: number;
+  title: string;
+  content: string;
+  positives?: string;
+  negatives?: string;
+  tripType: string;
+}
+
+const guestReviews: Record<string, { breakdown: Record<string, number>; reviews: GuestReview[] }> = {
+  "w-amman": {
+    breakdown: {
+      "Staff": 9.2,
+      "Facilities": 9.0,
+      "Cleanliness": 9.4,
+      "Comfort": 9.1,
+      "Value": 8.3,
+      "Location": 8.8,
+    },
+    reviews: [
+      {
+        id: "r1",
+        author: "Sarah M.",
+        avatar: "S",
+        country: "United Kingdom",
+        date: "December 2025",
+        rating: 9.5,
+        title: "Perfect honeymoon stay!",
+        content: "The hotel exceeded all our expectations. The staff went above and beyond to make our honeymoon special.",
+        positives: "Amazing rooftop pool, incredible breakfast buffet, attentive staff",
+        negatives: "Parking can be tricky during peak hours",
+        tripType: "Couple",
+      },
+      {
+        id: "r2",
+        author: "Ahmed K.",
+        avatar: "A",
+        country: "Jordan",
+        date: "November 2025",
+        rating: 8.8,
+        title: "Modern luxury in Amman",
+        content: "Stylish rooms with great amenities. The WET Deck pool area is fantastic for relaxation.",
+        positives: "Modern design, great pool, excellent location",
+        tripType: "Business",
+      },
+      {
+        id: "r3",
+        author: "Maria L.",
+        avatar: "M",
+        country: "Germany",
+        date: "October 2025",
+        rating: 9.0,
+        title: "Wonderful experience",
+        content: "Everything was perfect from check-in to check-out. The room was spacious and beautifully decorated.",
+        positives: "Spacious room, friendly staff, delicious food",
+        negatives: "Gym could be larger",
+        tripType: "Couple",
+      },
+    ],
+  },
+  "four-seasons": {
+    breakdown: {
+      "Staff": 9.5,
+      "Facilities": 9.3,
+      "Cleanliness": 9.6,
+      "Comfort": 9.4,
+      "Value": 8.5,
+      "Location": 9.0,
+    },
+    reviews: [
+      {
+        id: "r1",
+        author: "John D.",
+        avatar: "J",
+        country: "United States",
+        date: "December 2025",
+        rating: 9.8,
+        title: "Exceptional service",
+        content: "The Four Seasons never disappoints. Impeccable service and stunning views.",
+        positives: "Outstanding service, beautiful spa, excellent dining",
+        tripType: "Family",
+      },
+    ],
+  },
+};
+
+const roomAmenityIcons: Record<string, React.ElementType> = {
+  "Free WiFi": Wifi,
+  "Smart TV": Tv,
+  "Mini Bar": Coffee,
+  "Rain Shower": Bath,
+  "Bathtub": Bath,
+  "Coffee Machine": Coffee,
+  "Nespresso": Coffee,
+  "Marble Bathroom": Bath,
+  "Living Area": BedDouble,
+};
+
 function getRatingLabel(rating: number): string {
   if (rating >= 9) return "Exceptional";
   if (rating >= 8.5) return "Excellent";
@@ -227,6 +416,11 @@ export default function AccommodationDetails() {
   const [isAddedToTrip, setIsAddedToTrip] = useState(true);
   const [showFullInsight, setShowFullInsight] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+
+  // Get room types and reviews for this hotel
+  const hotelRoomTypes = roomTypes[accommodationId as keyof typeof roomTypes] || roomTypes["w-amman"];
+  const hotelReviews = guestReviews[accommodationId as keyof typeof guestReviews] || guestReviews["w-amman"];
 
   // Get hotel data
   const hotel = hotelDetails[accommodationId as keyof typeof hotelDetails] || hotelDetails["w-amman"];
@@ -440,6 +634,179 @@ export default function AccommodationDetails() {
                 </div>
               </div>
             </div>
+          </motion.section>
+
+          {/* Room Types Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+            className="mb-8"
+          >
+            <h2 className="text-xl font-serif font-medium text-foreground mb-4">Select Your Room</h2>
+            <div className="space-y-4">
+              {hotelRoomTypes.map((room) => (
+                <div
+                  key={room.id}
+                  className={`bg-card rounded-xl border transition-all cursor-pointer ${
+                    selectedRoom === room.id
+                      ? "border-primary ring-2 ring-primary/20"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                  onClick={() => setSelectedRoom(room.id)}
+                >
+                  <div className="flex flex-col md:flex-row">
+                    {/* Room Image */}
+                    <div className="md:w-1/3 h-48 md:h-auto relative">
+                      <img
+                        src={room.image}
+                        alt={room.name}
+                        className="w-full h-full object-cover rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
+                      />
+                      {selectedRoom === room.id && (
+                        <div className="absolute top-3 right-3 bg-primary text-primary-foreground p-1.5 rounded-full">
+                          <Check className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Room Details */}
+                    <div className="flex-1 p-4 md:p-5">
+                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 mb-3">
+                        <div>
+                          <h3 className="text-lg font-medium text-foreground">{room.name}</h3>
+                          <p className="text-sm text-muted-foreground">{room.description}</p>
+                        </div>
+                        <div className="text-right">
+                          {room.originalPrice && (
+                            <p className="text-sm text-muted-foreground line-through">{room.originalPrice}</p>
+                          )}
+                          <p className="text-xl font-bold text-foreground">{room.price}</p>
+                          <p className="text-xs text-muted-foreground">for 2 nights</p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-3">
+                        <span className="flex items-center gap-1">
+                          <BedDouble className="h-4 w-4" />
+                          {room.bedType}
+                        </span>
+                        <span>•</span>
+                        <span>{room.size}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          Up to {room.maxGuests} guests
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {room.amenities.map((amenity) => {
+                          const IconComponent = roomAmenityIcons[amenity];
+                          return (
+                            <span
+                              key={amenity}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted rounded-full text-xs text-muted-foreground"
+                            >
+                              {IconComponent && <IconComponent className="h-3 w-3" />}
+                              {amenity}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+
+          {/* Guest Reviews Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.38 }}
+            className="mb-8"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-serif font-medium text-foreground">Guest Reviews</h2>
+              <div className="flex items-center gap-2">
+                <span className="bg-teal-500 text-white px-2.5 py-1 rounded text-sm font-bold">
+                  {hotel.rating}
+                </span>
+                <span className="text-sm font-medium text-foreground">{getRatingLabel(hotel.rating)}</span>
+                <span className="text-sm text-muted-foreground">({hotel.reviews.toLocaleString()} reviews)</span>
+              </div>
+            </div>
+
+            {/* Ratings Breakdown */}
+            <div className="bg-card rounded-xl border border-border p-4 md:p-6 mb-4">
+              <h3 className="text-sm font-medium text-foreground mb-4">Rating Breakdown</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Object.entries(hotelReviews.breakdown).map(([category, score]) => (
+                  <div key={category} className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-muted-foreground">{category}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-teal-500 rounded-full"
+                          style={{ width: `${(score / 10) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-foreground w-8">{score}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Individual Reviews */}
+            <div className="space-y-4">
+              {hotelReviews.reviews.map((review) => (
+                <div key={review.id} className="bg-card rounded-xl border border-border p-4 md:p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
+                        {review.avatar}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{review.author}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {review.country} • {review.tripType} • {review.date}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="bg-teal-500 text-white px-2 py-0.5 rounded text-sm font-bold">
+                      {review.rating}
+                    </span>
+                  </div>
+
+                  <h4 className="font-medium text-foreground mb-2">{review.title}</h4>
+                  <p className="text-sm text-muted-foreground mb-3">{review.content}</p>
+
+                  {(review.positives || review.negatives) && (
+                    <div className="space-y-2">
+                      {review.positives && (
+                        <div className="flex items-start gap-2">
+                          <ThumbsUp className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                          <p className="text-sm text-muted-foreground">{review.positives}</p>
+                        </div>
+                      )}
+                      {review.negatives && (
+                        <div className="flex items-start gap-2">
+                          <ThumbsDown className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                          <p className="text-sm text-muted-foreground">{review.negatives}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <Button variant="outline" className="w-full mt-4">
+              See All {hotel.reviews.toLocaleString()} Reviews
+            </Button>
           </motion.section>
 
           {/* Collapsible Sections */}
