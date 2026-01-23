@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,9 @@ import { StaticLeafletMap } from "./StaticLeafletMap";
 interface TripMapProps {
   cityStops: { id: string; name: string; dates: string; image: string }[];
   activities?: Activity[];
+  dialogOpen: boolean;
+  onDialogOpenChange: (open: boolean) => void;
+  targetCityIndex?: number | null;
 }
 
 // City coordinates for Jordan trip
@@ -20,9 +22,7 @@ const cityCoordinates: Record<string, [number, number]> = {
   "Dead Sea": [31.5, 35.5],
 };
 
-export function TripMap({ cityStops, activities = [] }: TripMapProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-
+export function TripMap({ cityStops, activities = [], dialogOpen, onDialogOpenChange, targetCityIndex }: TripMapProps) {
   // Get coordinates for all cities
   const routeCoordinates: [number, number][] = cityStops
     .map(city => cityCoordinates[city.name])
@@ -40,7 +40,7 @@ export function TripMap({ cityStops, activities = [] }: TripMapProps) {
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.1 }}
         className="bg-card rounded-2xl overflow-hidden border border-border cursor-pointer group"
-        onClick={() => setDialogOpen(true)}
+        onClick={() => onDialogOpenChange(true)}
       >
         {/* Static Leaflet Map Preview */}
         <div className="relative h-64 md:h-80 overflow-hidden">
@@ -61,7 +61,7 @@ export function TripMap({ cityStops, activities = [] }: TripMapProps) {
             className="absolute bottom-4 right-4 gap-2 shadow-lg pointer-events-auto"
             onClick={(e) => {
               e.stopPropagation();
-              setDialogOpen(true);
+              onDialogOpenChange(true);
             }}
           >
             <MapPin className="h-3 w-3" />
@@ -73,9 +73,10 @@ export function TripMap({ cityStops, activities = [] }: TripMapProps) {
       {/* Map Dialog */}
       <MapDialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => onDialogOpenChange(false)}
         cityStops={cityStops}
         activities={activities}
+        targetCityIndex={targetCityIndex}
       />
     </>
   );

@@ -8,9 +8,11 @@ interface TripHeaderProps {
   trip: TripData;
   onOpenDialog?: () => void;
   travelers?: number;
+  onCityClick?: (cityIndex: number) => void;
+  selectedCityIndex?: number | null;
 }
 
-export function TripHeader({ trip, onOpenDialog, travelers }: TripHeaderProps) {
+export function TripHeader({ trip, onOpenDialog, travelers, onCityClick, selectedCityIndex }: TripHeaderProps) {
   const [storyOpen, setStoryOpen] = useState(false);
   const displayTravelers = travelers ?? trip.travelers;
   
@@ -165,10 +167,17 @@ export function TripHeader({ trip, onOpenDialog, travelers }: TripHeaderProps) {
 
           {trip.cityStops.map((city, index) => (
             <div key={city.id} className="flex items-center gap-2 shrink-0">
-              <div className="bg-secondary rounded-lg px-3 py-2 border border-border">
+              <button
+                onClick={() => onCityClick?.(index)}
+                className={`bg-secondary rounded-lg px-3 py-2 border transition-all cursor-pointer hover:bg-secondary/70 hover:border-primary/30 ${
+                  selectedCityIndex === index 
+                    ? 'border-primary ring-2 ring-primary/20' 
+                    : 'border-border'
+                }`}
+              >
                 <p className="font-medium text-foreground text-sm">{city.name}</p>
                 <p className="text-xs text-muted-foreground">{city.dates}</p>
-              </div>
+              </button>
               {index < trip.cityStops.length - 1 && (
                 <>
                   <div className="h-px w-4 bg-border" />
