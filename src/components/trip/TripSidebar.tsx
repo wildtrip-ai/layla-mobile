@@ -189,7 +189,7 @@ export function TripSidebar({ onRemoveFlights, onAddCity, onApplyBudgetChanges, 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-card rounded-2xl border border-border p-6 h-fit sticky top-24 flex flex-col max-h-[calc(100vh-120px)]"
+      className="bg-card rounded-2xl border border-border p-6 sticky top-24 flex flex-col h-[calc(100vh-120px)]"
     >
       {/* AI Avatar & Intro - Always visible */}
       <div className="mb-4">
