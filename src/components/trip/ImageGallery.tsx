@@ -28,6 +28,8 @@ export function ImageGallery({ images }: ImageGalleryProps) {
   const imageRef = useRef<HTMLDivElement>(null);
   const lastTouchDistance = useRef<number | null>(null);
   const lastTouchCenter = useRef<{ x: number; y: number } | null>(null);
+  const swipeStart = useRef<{ x: number; y: number; time: number } | null>(null);
+  const isSwiping = useRef(false);
 
   const openLightbox = (index: number) => {
     setActiveIndex(index);
@@ -55,9 +57,10 @@ export function ImageGallery({ images }: ImageGalleryProps) {
     resetZoom();
   }, [images.length]);
 
-  // Touch handlers for pinch-to-zoom
+  // Touch handlers for pinch-to-zoom and swipe
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Pinch gesture
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -69,12 +72,23 @@ export function ImageGallery({ images }: ImageGalleryProps) {
         x: (touch1.clientX + touch2.clientX) / 2,
         y: (touch1.clientY + touch2.clientY) / 2,
       };
+      isSwiping.current = false;
+    } else if (e.touches.length === 1 && scale === 1) {
+      // Single touch - potential swipe
+      swipeStart.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        time: Date.now(),
+      };
+      isSwiping.current = true;
     }
-  }, []);
+  }, [scale]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+      // Pinch gesture
       e.preventDefault();
+      isSwiping.current = false;
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -101,14 +115,39 @@ export function ImageGallery({ images }: ImageGalleryProps) {
     }
   }, []);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Handle swipe gesture
+    if (isSwiping.current && swipeStart.current && e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - swipeStart.current.x;
+      const deltaY = touch.clientY - swipeStart.current.y;
+      const deltaTime = Date.now() - swipeStart.current.time;
+      
+      // Check if it's a valid horizontal swipe
+      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * 1.5;
+      const isQuickEnough = deltaTime < 300;
+      const isLongEnough = Math.abs(deltaX) > 50;
+      
+      if (isHorizontalSwipe && (isQuickEnough || isLongEnough) && scale === 1) {
+        if (deltaX > 0) {
+          goToPrevious();
+        } else {
+          goToNext();
+        }
+      }
+    }
+
+    // Reset refs
     lastTouchDistance.current = null;
     lastTouchCenter.current = null;
+    swipeStart.current = null;
+    isSwiping.current = false;
+    
     // Reset if zoomed out
     if (scale <= 1) {
       resetZoom();
     }
-  }, [scale]);
+  }, [scale, goToPrevious, goToNext]);
 
   // Double tap to zoom
   const lastTap = useRef<number>(0);
@@ -324,7 +363,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
             {/* Zoom hint for mobile */}
             {scale === 1 && (
               <div className="absolute bottom-32 left-1/2 -translate-x-1/2 text-xs text-muted-foreground md:hidden">
-                Pinch to zoom • Double-tap to zoom in
+                Swipe to navigate • Pinch to zoom • Double-tap to zoom in
               </div>
             )}
           </motion.div>
