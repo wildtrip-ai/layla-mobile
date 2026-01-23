@@ -7,13 +7,30 @@ interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  chips?: { emoji: string; label: string }[];
 }
+
+// Chips to show after certain responses
+const responseChips: Record<string, { emoji: string; label: string }[]> = {
+  "Can you add more cities?": [
+    { emoji: "🏛️", label: "Jerash" },
+    { emoji: "🌊", label: "Dead Sea" },
+    { emoji: "🏰", label: "Madaba" },
+  ],
+  "Can you make this trip cheaper?": [
+    { emoji: "✅", label: "Apply changes" },
+    { emoji: "❌", label: "Keep original" },
+  ],
+};
 
 // Mock responses for different user queries
 const mockResponses: Record<string, string> = {
   "Can you make this trip cheaper?": "Absolutely! I found a few ways to save on your Jordan trip:\n\n• Switch to a 4-star hotel in Amman — saves ~$200/night\n• Book a group desert tour instead of private — saves $150\n• Use local buses between cities — saves $80\n\nWant me to apply these changes?",
   "Can you remove the flights from this trip?": "Sure! I can remove the Berlin to Amman flights. This means you'll need to arrange your own transportation to Jordan.\n\nThe updated trip will start directly at your Amman hotel on May 1st. I'll deduct UAH 20,425 from the total price.\n\nShould I proceed with this change?",
   "Can you add more cities?": "Great idea! Here are some cities I recommend adding to your Jordan trip:\n\n🏛️ **Jerash** — Ancient Roman ruins, 1-2 hours from Amman\n🌊 **Dead Sea** — Float in the saltiest lake on Earth\n🏰 **Madaba** — Famous Byzantine mosaics\n\nWhich city would you like to add?",
+  "Jerash": "Excellent choice! I've added Jerash to your itinerary.\n\n📍 **Day 2: Jerash Day Trip**\n• Private car from Amman (1 hour)\n• Guided tour of ancient Roman ruins\n• Lunch at a local restaurant\n• Return to Amman\n\nThe trip is now 8 days. Want me to find accommodation nearby instead?",
+  "Dead Sea": "Perfect! The Dead Sea is a must-visit.\n\n📍 **Day 3: Dead Sea Experience**\n• Morning transfer from Amman\n• Float in the mineral-rich waters\n• Spa treatment at a luxury resort\n• Sunset views over Israel/Palestine\n\nI recommend staying overnight. Should I book a resort?",
+  "Madaba": "Great pick! Madaba is the 'City of Mosaics'.\n\n📍 **Day 2: Madaba Visit**\n• 30-minute drive from Amman\n• St. George's Church famous mosaic map\n• Mount Nebo viewpoint\n• Local handicraft shopping\n\nThis pairs well with a Dead Sea visit. Want to combine them?",
 };
 
 const defaultResponse = "I understand! Let me look into that for your Jordan trip. Give me a moment to find the best options for you.";
@@ -23,7 +40,7 @@ export function TripSidebar() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [displayedResponse, setDisplayedResponse] = useState("");
-  const [currentResponseIndex, setCurrentResponseIndex] = useState(0);
+  const [pendingChips, setPendingChips] = useState<{ emoji: string; label: string }[] | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,10 +56,10 @@ export function TripSidebar() {
   }, [messages, displayedResponse]);
 
   // Typing animation effect
-  const startTypingAnimation = useCallback((fullResponse: string) => {
+  const startTypingAnimation = useCallback((fullResponse: string, chips?: { emoji: string; label: string }[]) => {
     setIsTyping(true);
     setDisplayedResponse("");
-    setCurrentResponseIndex(0);
+    setPendingChips(null);
 
     let index = 0;
     typingIntervalRef.current = setInterval(() => {
@@ -55,19 +72,24 @@ export function TripSidebar() {
           clearInterval(typingIntervalRef.current);
         }
         setIsTyping(false);
-        // Add the complete message to chat history
+        // Add the complete message to chat history with chips
         setMessages(prev => [...prev, {
           id: `assistant-${Date.now()}`,
           role: "assistant",
-          content: fullResponse
+          content: fullResponse,
+          chips: chips
         }]);
         setDisplayedResponse("");
+        setPendingChips(chips || null);
       }
     }, 15); // Speed of typing
   }, []);
 
   const handleSendMessage = useCallback((text: string) => {
     if (!text.trim() || isTyping) return;
+
+    // Clear pending chips when user sends a new message
+    setPendingChips(null);
 
     // Add user message
     setMessages(prev => [...prev, {
@@ -81,10 +103,11 @@ export function TripSidebar() {
 
     // Get mock response or default
     const response = mockResponses[text] || defaultResponse;
+    const chips = responseChips[text];
 
     // Start typing animation after a short delay
     setTimeout(() => {
-      startTypingAnimation(response);
+      startTypingAnimation(response, chips);
     }, 500);
   }, [isTyping, startTypingAnimation]);
 
@@ -139,24 +162,52 @@ export function TripSidebar() {
       {hasMessages && (
         <div className="flex-1 overflow-y-auto mb-4 space-y-3 min-h-0 max-h-64 scrollbar-hide">
           <AnimatePresence>
-            {messages.map((msg) => (
+            {messages.map((msg, msgIndex) => (
               <motion.div
                 key={msg.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                className="space-y-2"
               >
-                <div
-                  className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-foreground"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-foreground"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  </div>
                 </div>
+                
+                {/* Show chips after assistant message if it's the last message */}
+                {msg.role === "assistant" && msg.chips && msgIndex === messages.length - 1 && !isTyping && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                    className="flex flex-wrap gap-2 pl-1"
+                  >
+                    {msg.chips.map((chip, chipIndex) => (
+                      <motion.button
+                        key={chipIndex}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2, delay: 0.3 + chipIndex * 0.1 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleSendMessage(chip.label)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-background hover:bg-secondary hover:border-primary/30 transition-colors text-sm"
+                      >
+                        <span>{chip.emoji}</span>
+                        <span className="text-foreground">{chip.label}</span>
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
