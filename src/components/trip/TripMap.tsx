@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MapDialog } from "./MapDialog";
 import { Activity } from "@/data/tripData";
+import { StaticLeafletMap } from "./StaticLeafletMap";
 
 interface TripMapProps {
   cityStops: { id: string; name: string; dates: string; image: string }[];
@@ -41,42 +42,14 @@ export function TripMap({ cityStops, activities = [] }: TripMapProps) {
         className="bg-card rounded-2xl overflow-hidden border border-border cursor-pointer group"
         onClick={() => setDialogOpen(true)}
       >
-        {/* Map Preview using static image */}
+        {/* Static Leaflet Map Preview */}
         <div className="relative h-64 md:h-80 overflow-hidden">
-          {/* Static OpenStreetMap image */}
-          <img
-            src={`https://staticmap.openstreetmap.de/staticmap.php?center=${centerLat},${centerLng}&zoom=7&size=800x400&maptype=osmarenderer&markers=${routeCoordinates.map((coord, i) => `${coord[0]},${coord[1]},lightblue${i + 1}`).join('|')}`}
-            alt="Trip map"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => {
-              // Fallback to placeholder if static map fails
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
+          <StaticLeafletMap
+            coordinates={routeCoordinates}
+            center={[centerLat, centerLng]}
+            zoom={7}
+            className="group-hover:scale-105 transition-transform duration-500"
           />
-          
-          {/* Fallback placeholder */}
-          <div className="hidden absolute inset-0 bg-secondary flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="h-12 w-12 text-primary mx-auto mb-2" />
-              <p className="text-muted-foreground">Interactive map</p>
-              <p className="text-sm text-muted-foreground">
-                {cityStops.map(c => c.name).join(" → ")}
-              </p>
-            </div>
-          </div>
-
-          {/* Map markers overlay */}
-          <div className="absolute top-4 right-4 flex flex-col gap-2">
-            {cityStops.map((city, index) => (
-              <div
-                key={city.id}
-                className="bg-foreground text-background w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-lg"
-              >
-                {index + 1}
-              </div>
-            ))}
-          </div>
 
           {/* Hover overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
@@ -85,7 +58,7 @@ export function TripMap({ cityStops, activities = [] }: TripMapProps) {
           <Button
             variant="secondary"
             size="sm"
-            className="absolute bottom-4 right-4 gap-2 shadow-lg"
+            className="absolute bottom-4 right-4 gap-2 shadow-lg pointer-events-auto"
             onClick={(e) => {
               e.stopPropagation();
               setDialogOpen(true);
