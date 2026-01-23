@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Star, Building2, Car, Users } from "lucide-react";
+import { Calendar, MapPin, Star, Building2, Car, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import type { TripData } from "@/data/tripData";
 import { StoryPreview } from "./StoryPreview";
 
@@ -13,6 +13,35 @@ interface TripHeaderProps {
 export function TripHeader({ trip, onOpenDialog, travelers }: TripHeaderProps) {
   const [storyOpen, setStoryOpen] = useState(false);
   const displayTravelers = travelers ?? trip.travelers;
+  
+  // Scroll state for timeline
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, []);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 200;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
   
   return (
     <div className="space-y-4">
@@ -92,36 +121,72 @@ export function TripHeader({ trip, onOpenDialog, travelers }: TripHeaderProps) {
         </div>
       </motion.div>
 
-      {/* City Timeline - Outside Card */}
+      {/* City Timeline - Outside Card with Scroll Arrows */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="flex items-center gap-2 overflow-x-auto pb-2 px-2"
+        className="relative"
       >
-        <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
-          <MapPin className="h-4 w-4" />
-          <span>Berlin</span>
-        </div>
-        <div className="h-px w-4 bg-border shrink-0" />
-        <span className="text-muted-foreground shrink-0">✈</span>
-        <div className="h-px w-4 bg-border shrink-0" />
+        {/* Left Arrow */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-card border border-border rounded-full flex items-center justify-center shadow-md hover:bg-secondary transition-colors md:hidden"
+          >
+            <ChevronLeft className="h-4 w-4 text-foreground" />
+          </button>
+        )}
 
-        {trip.cityStops.map((city, index) => (
-          <div key={city.id} className="flex items-center gap-2 shrink-0">
-            <div className="bg-secondary rounded-lg px-3 py-2 border border-border">
-              <p className="font-medium text-foreground text-sm">{city.name}</p>
-              <p className="text-xs text-muted-foreground">{city.dates}</p>
-            </div>
-            {index < trip.cityStops.length - 1 && (
-              <>
-                <div className="h-px w-4 bg-border" />
-                <span className="text-muted-foreground">🚗</span>
-                <div className="h-px w-4 bg-border" />
-              </>
-            )}
+        {/* Right Arrow */}
+        {canScrollRight && (
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-card border border-border rounded-full flex items-center justify-center shadow-md hover:bg-secondary transition-colors md:hidden"
+          >
+            <ChevronRight className="h-4 w-4 text-foreground" />
+          </button>
+        )}
+
+        {/* Scroll Container */}
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex items-center gap-2 overflow-x-auto pb-2 px-2 scrollbar-hide"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
+            <MapPin className="h-4 w-4" />
+            <span>Berlin</span>
           </div>
-        ))}
+          <div className="h-px w-4 bg-border shrink-0" />
+          <span className="text-muted-foreground shrink-0">✈</span>
+          <div className="h-px w-4 bg-border shrink-0" />
+
+          {trip.cityStops.map((city, index) => (
+            <div key={city.id} className="flex items-center gap-2 shrink-0">
+              <div className="bg-secondary rounded-lg px-3 py-2 border border-border">
+                <p className="font-medium text-foreground text-sm">{city.name}</p>
+                <p className="text-xs text-muted-foreground">{city.dates}</p>
+              </div>
+              {index < trip.cityStops.length - 1 && (
+                <>
+                  <div className="h-px w-4 bg-border" />
+                  <span className="text-muted-foreground">🚗</span>
+                  <div className="h-px w-4 bg-border" />
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Gradient Fade Indicators */}
+        {canScrollLeft && (
+          <div className="absolute left-8 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none md:hidden" />
+        )}
+        {canScrollRight && (
+          <div className="absolute right-8 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
+        )}
       </motion.div>
     </div>
   );
