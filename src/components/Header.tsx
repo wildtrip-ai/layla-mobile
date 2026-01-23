@@ -9,26 +9,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText } from "lucide-react";
 import { LoginDialog } from "@/components/auth/LoginDialog";
-import { LanguageDialog } from "@/components/LanguageDialog";
-
-const languageFlags: Record<string, string> = {
-  en: "🇺🇸",
-  es: "🇪🇸",
-  fr: "🇫🇷",
-  it: "🇮🇹",
-  zh: "🇨🇳",
-  de: "🇩🇪",
-  pt: "🇵🇹",
-  ru: "🇷🇺",
-  ar: "🇦🇪",
-  pl: "🇵🇱",
-};
+import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
+  const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [selectedCurrency, setSelectedCurrency] = useState("usd");
+
+  const currentLanguage = languages.find(l => l.code === selectedLanguage);
+  const currentCurrency = currencies.find(c => c.code === selectedCurrency);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
@@ -45,14 +37,17 @@ export function Header() {
         <div className="flex items-center gap-2">
           {/* Settings pills */}
           <div className="hidden sm:flex items-center bg-card/90 backdrop-blur-sm rounded-full px-1 py-1 shadow-lg">
-            <button className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors">
-              $
+            <button 
+              className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors"
+              onClick={() => setCurrencyDialogOpen(true)}
+            >
+              {currentCurrency?.icon || "$"}
             </button>
             <button 
               className="px-3 py-1.5 text-sm bg-secondary text-foreground rounded-full transition-colors"
               onClick={() => setLanguageDialogOpen(true)}
             >
-              {languageFlags[selectedLanguage]}
+              {currentLanguage?.icon || "🇺🇸"}
             </button>
             <button className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors">
               °C
@@ -108,11 +103,23 @@ export function Header() {
       <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
 
       {/* Language Dialog */}
-      <LanguageDialog 
+      <SelectionDialog 
         open={languageDialogOpen} 
         onOpenChange={setLanguageDialogOpen}
-        selectedLanguage={selectedLanguage}
-        onSelectLanguage={setSelectedLanguage}
+        title="Choose language"
+        items={languages}
+        selectedValue={selectedLanguage}
+        onSelect={setSelectedLanguage}
+      />
+
+      {/* Currency Dialog */}
+      <SelectionDialog 
+        open={currencyDialogOpen} 
+        onOpenChange={setCurrencyDialogOpen}
+        title="Choose currency"
+        items={currencies}
+        selectedValue={selectedCurrency}
+        onSelect={setSelectedCurrency}
       />
     </header>
   );

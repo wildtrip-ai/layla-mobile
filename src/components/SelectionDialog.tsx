@@ -1,39 +1,35 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-interface LanguageDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedLanguage: string;
-  onSelectLanguage: (language: string) => void;
+interface SelectionItem {
+  code: string;
+  name: string;
+  icon: string;
 }
 
-const languages = [
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "es", name: "Spanish", flag: "🇪🇸" },
-  { code: "fr", name: "French", flag: "🇫🇷" },
-  { code: "it", name: "Italian", flag: "🇮🇹" },
-  { code: "zh", name: "Chinese", flag: "🇨🇳" },
-  { code: "de", name: "German", flag: "🇩🇪" },
-  { code: "pt", name: "Portuguese", flag: "🇵🇹" },
-  { code: "ru", name: "Russian", flag: "🇷🇺" },
-  { code: "ar", name: "Arabic", flag: "🇦🇪" },
-  { code: "pl", name: "Polish", flag: "🇵🇱" },
-];
+interface SelectionDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  items: SelectionItem[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}
 
-export function LanguageDialog({
+export function SelectionDialog({
   open,
   onOpenChange,
-  selectedLanguage,
-  onSelectLanguage,
-}: LanguageDialogProps) {
+  title,
+  items,
+  selectedValue,
+  onSelect,
+}: SelectionDialogProps) {
   const handleClose = () => {
     onOpenChange(false);
   };
 
-  const handleSelectLanguage = (code: string) => {
-    onSelectLanguage(code);
+  const handleSelect = (code: string) => {
+    onSelect(code);
     onOpenChange(false);
   };
 
@@ -70,23 +66,23 @@ export function LanguageDialog({
 
               {/* Title */}
               <h2 className="font-serif text-2xl font-bold mb-8">
-                Choose language
+                {title}
               </h2>
 
-              {/* Languages grid */}
+              {/* Items grid */}
               <div className="grid grid-cols-2 gap-4">
-                {languages.map((lang) => (
+                {items.map((item) => (
                   <button
-                    key={lang.code}
-                    onClick={() => handleSelectLanguage(lang.code)}
+                    key={item.code}
+                    onClick={() => handleSelect(item.code)}
                     className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${
-                      selectedLanguage === lang.code
+                      selectedValue === item.code
                         ? "border-2 border-foreground bg-secondary/50"
                         : "border border-transparent hover:bg-secondary/50"
                     }`}
                   >
-                    <span className="text-2xl">{lang.flag}</span>
-                    <span className="font-medium text-foreground">{lang.name}</span>
+                    <span className="text-2xl">{item.icon}</span>
+                    <span className="font-medium text-foreground">{item.name}</span>
                   </button>
                 ))}
               </div>
@@ -97,3 +93,31 @@ export function LanguageDialog({
     </AnimatePresence>
   );
 }
+
+// Language data
+export const languages = [
+  { code: "en", name: "English", icon: "🇺🇸" },
+  { code: "es", name: "Spanish", icon: "🇪🇸" },
+  { code: "fr", name: "French", icon: "🇫🇷" },
+  { code: "it", name: "Italian", icon: "🇮🇹" },
+  { code: "zh", name: "Chinese", icon: "🇨🇳" },
+  { code: "de", name: "German", icon: "🇩🇪" },
+  { code: "pt", name: "Portuguese", icon: "🇵🇹" },
+  { code: "ru", name: "Russian", icon: "🇷🇺" },
+  { code: "ar", name: "Arabic", icon: "🇦🇪" },
+  { code: "pl", name: "Polish", icon: "🇵🇱" },
+];
+
+// Currency data
+export const currencies = [
+  { code: "usd", name: "US Dollar", icon: "$" },
+  { code: "eur", name: "Euro", icon: "€" },
+  { code: "gbp", name: "British Pound", icon: "£" },
+  { code: "jpy", name: "Japanese Yen", icon: "¥" },
+  { code: "cad", name: "Canadian Dollar", icon: "C$" },
+  { code: "aud", name: "Australian Dollar", icon: "A$" },
+  { code: "chf", name: "Swiss Franc", icon: "Fr" },
+  { code: "cny", name: "Chinese Yuan", icon: "¥" },
+  { code: "inr", name: "Indian Rupee", icon: "₹" },
+  { code: "krw", name: "Korean Won", icon: "₩" },
+];
