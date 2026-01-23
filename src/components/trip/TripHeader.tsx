@@ -4,9 +4,13 @@ import type { TripData } from "@/data/tripData";
 
 interface TripHeaderProps {
   trip: TripData;
+  onOpenDialog?: () => void;
+  travelers?: number;
 }
 
-export function TripHeader({ trip }: TripHeaderProps) {
+export function TripHeader({ trip, onOpenDialog, travelers }: TripHeaderProps) {
+  const displayTravelers = travelers ?? trip.travelers;
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -30,6 +34,22 @@ export function TripHeader({ trip }: TripHeaderProps) {
         {/* Info */}
         <div className="flex flex-col justify-between">
           <div>
+            {/* Clickable Date/Travelers Badge */}
+            <button
+              onClick={onOpenDialog}
+              className="mb-4 bg-secondary border border-border rounded-full px-4 py-2 flex items-center gap-3 text-sm hover:bg-secondary/70 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">{trip.dates}</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-1.5">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">{displayTravelers} travellers</span>
+              </div>
+            </button>
+
             <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-4">
               {trip.title}
             </h1>
