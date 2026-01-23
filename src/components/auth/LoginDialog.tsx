@@ -55,7 +55,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60"
+            className="fixed inset-0 z-[100] bg-black/60"
             onClick={handleClose}
           />
 
@@ -65,7 +65,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           >
             <div className="flex overflow-hidden rounded-3xl bg-card shadow-2xl max-h-[90vh] max-w-4xl w-full">
               {/* Left Panel - Form */}

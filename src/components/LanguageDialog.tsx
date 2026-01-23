@@ -47,7 +47,7 @@ export function LanguageDialog({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60"
+            className="fixed inset-0 z-[100] bg-black/60"
             onClick={handleClose}
           />
 
@@ -57,7 +57,7 @@ export function LanguageDialog({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           >
             <div className="relative w-full max-w-lg bg-card rounded-3xl shadow-2xl p-8">
               {/* Close button */}
