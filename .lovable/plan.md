@@ -1,169 +1,156 @@
 
-
-# Trip Details Editor Dialog Implementation
+# Hotel Details Page Implementation Plan
 
 ## Overview
+Create a dedicated hotel details page that opens when clicking the "View Details" button on the Accommodation section. The page will display comprehensive hotel information including an overview, AI insight, amenities, confirmation section, location map, and a sticky booking bar.
 
-This plan implements an interactive dialog that opens when clicking the trip date/travelers badge at the top of the trip details page. The dialog will allow users to:
-- View and modify the trip overview with all destination stops
-- Skip/remove specific stops from the itinerary
-- Change dates for each leg of the journey
-- Adjust the number of adults and children
+## Page Structure (Based on Screenshots)
 
-The dialog will feature smooth open/close animations and a muted overlay background.
+### 1. Header and Navigation
+- Breadcrumb: Trip plan > Hotel Name (e.g., "W Amman Hotel")
+- Trip date/travelers badge (same as TripDetails page)
+- Back arrow linking to trip details
 
-## Visual Reference
+### 2. Accommodation Overview Section
+- Hotel name with "Added to Trip" dropdown and "Book Now" button
+- Rating badge (8.8 Very Good) with review count
+- Address with location pin icon
+- Large hero image of the hotel
 
-Based on the uploaded screenshots, the dialog will have:
-- A centered modal with rounded corners
-- Trip overview section with numbered rows
-- Each row showing: stop number, origin city, transport icon (plane/car), destination city, date picker, and remove button
-- Travelers section at the bottom with Adults and Children counters
-- Apply button in the footer
+### 3. AI Insight Section
+- "From Layla:" avatar and name
+- Expandable text with "Read more" toggle
+- Styled with the existing accent background pattern
 
-## Architecture
+### 4. Collapsible Sections
+- **Accommodation Information**: Grid of amenity badges (Business Center, Room Service, Restaurant, Parking, Swimming pool, Airport shuttle, Valet Parking, Tour Desk, Dry Cleaning, Non-Smoking Rooms)
+- **Accommodation Confirmation**: Text about uploading booking documents
 
-```text
-+------------------------------------------------------------------+
-|                        TripDetails.tsx                            |
-|  +------------------------------------------------------------+  |
-|  |                  TripDetailsDialog                          |  |
-|  |  +-------------------------------------------------------+  |  |
-|  |  |  DialogOverlay (muted bg with animation)             |  |  |
-|  |  +-------------------------------------------------------+  |  |
-|  |  +-------------------------------------------------------+  |  |
-|  |  |  DialogContent (animated scale + fade)               |  |  |
-|  |  |                                                       |  |  |
-|  |  |   [X]              Select Your Stay Details           |  |  |
-|  |  |                                                       |  |  |
-|  |  |   Trip Overview                                       |  |  |
-|  |  |   +-----------------------------------------------+   |  |  |
-|  |  |   |  TripStopRow (for each destination)          |   |  |  |
-|  |  |   |  [ 1 ] [Origin] [icon] [Dest] [Date] [X]     |   |  |  |
-|  |  |   +-----------------------------------------------+   |  |  |
-|  |  |                                                       |  |  |
-|  |  |   Travelers                                           |  |  |
-|  |  |   +-----------------------------------------------+   |  |  |
-|  |  |   |  Adults   [-] 4 [+]                          |   |  |  |
-|  |  |   |  Children [-] 0 [+]                          |   |  |  |
-|  |  |   +-----------------------------------------------+   |  |  |
-|  |  |                                                       |  |  |
-|  |  |                           [Apply Button]              |  |  |
-|  |  +-------------------------------------------------------+  |  |
-|  +------------------------------------------------------------+  |
-+------------------------------------------------------------------+
-```
+### 5. Accommodation Map Section
+- Address display
+- Leaflet map centered on hotel location
+- Fullscreen expand button
+
+### 6. Sticky Bottom Bar (Mobile and Desktop)
+- Total price display
+- Dates and travelers info
+- "Added to Trip" button with dropdown
+- "Book Now" button
+
+---
+
+## Technical Implementation
+
+### Files to Create
+
+**1. `src/pages/AccommodationDetails.tsx`** - Main hotel details page
+- Uses existing Header component
+- Implements breadcrumb navigation
+- Contains all sections described above
+- Uses Leaflet for the location map
+- Implements collapsible sections using Accordion component
+
+### Files to Modify
+
+**2. `src/App.tsx`** - Add new route
+- Add route: `/trip/:id/accommodation/:accommodationId`
+
+**3. `src/components/trip/AccommodationCard.tsx`** - Wire up "View Details" button
+- Add navigation to the new details page on button click
+
+**4. `src/pages/AccommodationResults.tsx`** - Wire up "View Details" button
+- Add navigation for the View Details button in `AccommodationResultCard`
+
+**5. `src/components/trip/AccommodationMap.tsx`** - Wire up "View Details" button
+- Add navigation in the selected hotel card
+
+### Data Structure
+The existing `Accommodation` interface in `tripData.ts` will be extended to include:
+- `address`: string (for display and map location)
+- `amenities`: string array (for the amenities badges)
+- `coordinates`: [number, number] (for map positioning)
+
+Alternatively, we can define the extended data directly in the details page (following the pattern used in `AccommodationResults.tsx` with `moreAccommodations`).
+
+---
 
 ## Implementation Steps
 
-### Step 1: Create TripDetailsDialog Component
-Create a new component at `src/components/trip/TripDetailsDialog.tsx` that contains:
-- Dialog with custom animations using framer-motion
-- State management for trip stops, dates, and travelers
-- Trip stop rows with ability to remove stops
-- Date picker integration for each stop
-- Adults/Children counter controls
+### Step 1: Create AccommodationDetails Page
+Create the main page component with:
+- Route params handling (`useParams` for tripId and accommodationId)
+- State for expanded AI insight text
+- Accordion state for collapsible sections
+- Map initialization with Leaflet
 
-### Step 2: Create TripStopRow Component
-Create `src/components/trip/TripStopRow.tsx` for individual stop rows:
-- Stop number badge
-- Origin and destination city inputs (read-only display)
-- Transport type icon (plane or car)
-- Date picker button with popover calendar
-- Remove button (X) to skip this stop
+### Step 2: Add Route to App.tsx
+Add the new route pattern to handle accommodation detail views.
 
-### Step 3: Create TravelerCounter Component
-Create `src/components/trip/TravelerCounter.tsx`:
-- Reusable counter with increment/decrement buttons
-- Icon for Adults/Children
-- Minimum value constraints (at least 1 adult)
+### Step 3: Update AccommodationCard Component
+Modify the "View Details" button to navigate to the new page using `useNavigate`.
 
-### Step 4: Update TripDetails.tsx
-- Make the existing date/travelers badge clickable
-- Add dialog state management
-- Pass trip data to the dialog
-- Handle applying changes from the dialog
+### Step 4: Update AccommodationResults Page
+Update the `AccommodationResultCard` component to navigate to details on "View Details" click.
 
-### Step 5: Add Custom Dialog Animations
-Update the Dialog component or create motion variants for:
-- Smooth scale-in (from 95% to 100%) on open
-- Fade-in on overlay
-- Smooth scale-out on close
-- Spring-based easing for natural feel
+### Step 5: Update AccommodationMap Component
+Add navigation to the "View Details" button in the selected hotel popup card.
 
-## Technical Details
+---
 
-### New Files to Create
-1. `src/components/trip/TripDetailsDialog.tsx` - Main dialog component
-2. `src/components/trip/TripStopRow.tsx` - Individual trip stop row
-3. `src/components/trip/TravelerCounter.tsx` - Traveler count control
+## Component Breakdown
 
-### Files to Modify
-1. `src/pages/TripDetails.tsx` - Add dialog trigger and state
-2. `src/data/tripData.ts` - May need to extend interface for editing state
-
-### Component Props
-
-**TripDetailsDialog:**
-```typescript
-interface TripDetailsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  tripData: TripData;
-  onApply: (updatedData: EditableTripData) => void;
-}
+### AccommodationDetails Page Structure
+```text
++----------------------------------+
+|          Header                  |
++----------------------------------+
+| < Trip plan > Hotel Name         |  <- Breadcrumb
++----------------------------------+
+| Accommodation Overview           |
+| [Hotel Name]    [Added][Book Now]|
+| 8.8 Very Good (1932 reviews)     |
+| @ Address                        |
+| [    Large Hero Image           ]|
++----------------------------------+
+| From Layla:                      |  <- AI Insight
+| "This luxury 5-star hotel..."   |
++----------------------------------+
+| Accommodation Information    [^] |  <- Collapsible
+| [amenity badges grid]            |
++----------------------------------+
+| Accommodation Confirmation   [v] |  <- Collapsible
++----------------------------------+
+| Accommodation Map                |
+| @ Address                        |
+| [      Leaflet Map              ]|
++----------------------------------+
+|                                  |
++----------------------------------+
+| UAH 17,437  [Added to Trip][Book]|  <- Sticky bottom
+| May 01 - May 03 - 2 travellers   |
++----------------------------------+
 ```
 
-**TripStopRow:**
-```typescript
-interface TripStopRowProps {
-  index: number;
-  origin: string;
-  destination: string;
-  transportType: "flight" | "car";
-  date: Date;
-  onDateChange: (date: Date) => void;
-  onRemove: () => void;
-  canRemove: boolean;
-}
-```
+### Amenities List
+Using icons from lucide-react:
+- Business Center (Building2)
+- Room Service (Utensils)
+- Restaurant (UtensilsCrossed)
+- Parking (ParkingCircle / CircleParking)
+- Swimming pool (Waves)
+- Airport shuttle (Bus)
+- Valet Parking (Car)
+- Tour Desk (Ticket)
+- Dry Cleaning (Shirt)
+- Non-Smoking Rooms (CircleSlash)
 
-**TravelerCounter:**
-```typescript
-interface TravelerCounterProps {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-  min?: number;
-  icon: React.ReactNode;
-}
-```
+---
 
-### Animation Configuration
-Using framer-motion for smooth animations:
-- Overlay: `opacity` 0 to 1 with 200ms duration
-- Content: `scale` from 0.95 to 1, `opacity` 0 to 1, with spring animation
-- Exit animations mirroring entry in reverse
+## Styling Notes
 
-### State Management
-The dialog will maintain local state for edits:
-```typescript
-interface EditableTripData {
-  stops: Array<{
-    id: string;
-    origin: string;
-    destination: string;
-    transportType: "flight" | "car";
-    date: Date;
-    isSkipped: boolean;
-  }>;
-  adults: number;
-  children: number;
-}
-```
-
-### Calendar Integration
-Using the existing Calendar component with Popover for date selection:
-- `pointer-events-auto` class to ensure interactivity inside dialog
-- Proper z-index management for nested popovers
-
+- Follow existing patterns from TripDetails and AccommodationResults pages
+- Use framer-motion for animations (scroll-in effects)
+- Maintain consistent spacing and typography
+- Cards use `bg-card rounded-xl border border-border`
+- Sections separated by spacing, not dividers
+- Sticky bottom bar: `fixed bottom-0 bg-background/80 backdrop-blur-lg border-t`
