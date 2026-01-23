@@ -1,0 +1,100 @@
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Calendar, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Header } from "@/components/Header";
+import { TripHeader } from "@/components/trip/TripHeader";
+import { TripMap } from "@/components/trip/TripMap";
+import { TripDescription } from "@/components/trip/TripDescription";
+import { TransportSection } from "@/components/trip/TransportSection";
+import { AccommodationSection } from "@/components/trip/AccommodationSection";
+import { DayPlanSection } from "@/components/trip/DayPlanSection";
+import { TripSidebar } from "@/components/trip/TripSidebar";
+import { sampleTrip } from "@/data/tripData";
+
+export default function TripDetails() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      {/* Trip Date/Travelers Badge */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 hidden md:block">
+        <div className="bg-card border border-border rounded-full px-4 py-2 shadow-lg flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-foreground">{sampleTrip.dates}</span>
+          </div>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-1.5">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="text-foreground">{sampleTrip.travelers} travellers</span>
+          </div>
+        </div>
+      </div>
+
+      <main className="pt-20 pb-24">
+        <div className="container mx-auto px-4">
+          {/* Back Button */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mb-6"
+          >
+            <Link to="/">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to home
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+            {/* Sidebar - Hidden on mobile */}
+            <div className="hidden lg:block">
+              <TripSidebar />
+            </div>
+
+            {/* Main Content */}
+            <div className="space-y-8">
+              {/* Trip Header */}
+              <TripHeader trip={sampleTrip} />
+
+              {/* Map */}
+              <TripMap cityStops={sampleTrip.cityStops} />
+
+              {/* Description */}
+              <TripDescription 
+                title={sampleTrip.subtitle} 
+                description={sampleTrip.description} 
+              />
+
+              {/* Transport */}
+              <TransportSection transports={sampleTrip.transports} />
+
+              {/* Accommodation */}
+              <AccommodationSection 
+                accommodations={sampleTrip.accommodations} 
+                dates="May 1 - 3" 
+              />
+
+              {/* Day by Day Plan */}
+              <DayPlanSection 
+                dayPlans={sampleTrip.dayPlans} 
+                dates="May 1 - 3" 
+              />
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Fixed CTA on Mobile */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border lg:hidden">
+        <Button variant="hero" size="lg" className="w-full">
+          Customize this trip
+        </Button>
+      </div>
+    </div>
+  );
+}
