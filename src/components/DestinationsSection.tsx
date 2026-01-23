@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleOnHover } from "@/components/ui/scroll-animations";
 import italyImage from "@/assets/destination-italy.jpg";
@@ -8,16 +9,19 @@ import irelandImage from "@/assets/destination-ireland.jpg";
 const destinations = [
   {
     id: 1,
+    slug: "italy-family",
     title: "Family - Europe Trip",
     image: italyImage,
   },
   {
     id: 2,
+    slug: "jordan-honeymoon",
     title: "Couples - Honeymoon in Jordan",
     image: jordanImage,
   },
   {
     id: 3,
+    slug: "ireland-road-trip",
     title: "Road Trip Highlands",
     image: irelandImage,
   },
@@ -38,7 +42,7 @@ export function DestinationsSection() {
           {destinations.map((destination) => (
             <StaggerItem key={destination.id}>
               <ScaleOnHover scale={1.02}>
-                <div className="group cursor-pointer">
+                <Link to={`/trip/${destination.slug}`} className="group cursor-pointer block">
                   {/* Image */}
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
                     <motion.img
@@ -62,15 +66,15 @@ export function DestinationsSection() {
                   </h3>
                   
                   {/* Link */}
-                  <motion.button 
+                  <motion.span 
                     className="flex items-center gap-2 text-foreground font-semibold"
                     whileHover={{ x: 5 }}
                     transition={{ duration: 0.2 }}
                   >
                     Start planning
                     <ArrowRight className="h-4 w-4" />
-                  </motion.button>
-                </div>
+                  </motion.span>
+                </Link>
               </ScaleOnHover>
             </StaggerItem>
           ))}
