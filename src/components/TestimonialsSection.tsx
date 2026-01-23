@@ -1,3 +1,6 @@
+import { motion } from "framer-motion";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animations";
+
 const testimonials = [
   {
     id: 1,
@@ -24,32 +27,48 @@ const testimonials = [
 
 export function TestimonialsSection() {
   return (
-    <section className="py-12 md:py-20 bg-background">
+    <section className="py-12 md:py-20 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-serif text-foreground mb-8 md:mb-12">
-          What travellers say about me
-        </h2>
+        <FadeIn>
+          <h2 className="text-3xl md:text-4xl font-serif text-foreground mb-8 md:mb-12">
+            What travellers say about me
+          </h2>
+        </FadeIn>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={0.15}>
           {testimonials.map((testimonial) => (
-            <div
-              key={testimonial.id}
-              className="bg-card rounded-2xl p-6 border border-border"
-            >
-              <p className="text-foreground mb-6 leading-relaxed">
-                "{testimonial.quote}"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-lg">
-                  {testimonial.avatar}
+            <StaggerItem key={testimonial.id}>
+              <motion.div
+                className="bg-card rounded-2xl p-6 border border-border h-full"
+                whileHover={{ 
+                  y: -8,
+                  boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.1)"
+                }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <motion.p 
+                  className="text-foreground mb-6 leading-relaxed"
+                  initial={{ opacity: 0.8 }}
+                  whileHover={{ opacity: 1 }}
+                >
+                  "{testimonial.quote}"
+                </motion.p>
+                <div className="flex items-center gap-3">
+                  <motion.div 
+                    className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-lg"
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {testimonial.avatar}
+                  </motion.div>
+                  <span className="font-semibold text-foreground">
+                    {testimonial.name}, {testimonial.age}
+                  </span>
                 </div>
-                <span className="font-semibold text-foreground">
-                  {testimonial.name}, {testimonial.age}
-                </span>
-              </div>
-            </div>
+              </motion.div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );
