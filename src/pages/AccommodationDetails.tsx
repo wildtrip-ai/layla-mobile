@@ -24,6 +24,7 @@ import {
   Users
 } from "lucide-react";
 import { Header } from "@/components/Header";
+import { ImageGallery, type GalleryImage } from "@/components/trip/ImageGallery";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -47,7 +48,43 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { sampleTrip } from "@/data/tripData";
 import hotelImage from "@/assets/hotel-w-amman.jpg";
+import activityCitadel from "@/assets/activity-citadel.jpg";
+import activityRainbowStreet from "@/assets/activity-rainbow-street.jpg";
+import activityRomanTheater from "@/assets/activity-roman-theater.jpg";
+import destinationJordan from "@/assets/destination-jordan.jpg";
 import type L from "leaflet";
+
+// Hotel gallery images
+const hotelGalleryImages: Record<string, GalleryImage[]> = {
+  "w-amman": [
+    { src: hotelImage, title: "Hotel Exterior", location: "W Amman Hotel" },
+    { src: activityCitadel, title: "Rooftop Pool & Lounge", location: "W Amman Hotel" },
+    { src: activityRainbowStreet, title: "WET Deck Pool Area", location: "W Amman Hotel" },
+    { src: activityRomanTheater, title: "Lobby & Reception", location: "W Amman Hotel" },
+    { src: destinationJordan, title: "Deluxe Room", location: "W Amman Hotel" },
+  ],
+  "four-seasons": [
+    { src: hotelImage, title: "Hotel Exterior", location: "Four Seasons Amman" },
+    { src: activityCitadel, title: "Executive Suite", location: "Four Seasons Amman" },
+    { src: activityRainbowStreet, title: "The Spa", location: "Four Seasons Amman" },
+    { src: activityRomanTheater, title: "Fine Dining Restaurant", location: "Four Seasons Amman" },
+    { src: destinationJordan, title: "Pool Area", location: "Four Seasons Amman" },
+  ],
+  "fairmont": [
+    { src: hotelImage, title: "Hotel Exterior", location: "Fairmont Amman" },
+    { src: activityCitadel, title: "Presidential Suite", location: "Fairmont Amman" },
+    { src: activityRainbowStreet, title: "Willow Stream Spa", location: "Fairmont Amman" },
+    { src: activityRomanTheater, title: "Spectrum Restaurant", location: "Fairmont Amman" },
+    { src: destinationJordan, title: "Rooftop Bar", location: "Fairmont Amman" },
+  ],
+  "kempinski": [
+    { src: hotelImage, title: "Hotel Exterior", location: "Kempinski Amman" },
+    { src: activityCitadel, title: "Royal Suite", location: "Kempinski Amman" },
+    { src: activityRainbowStreet, title: "Kempinski Spa", location: "Kempinski Amman" },
+    { src: activityRomanTheater, title: "Levantine Restaurant", location: "Kempinski Amman" },
+    { src: destinationJordan, title: "Pool & Gardens", location: "Kempinski Amman" },
+  ],
+};
 
 // Extended hotel data for the details page
 const hotelDetails = {
@@ -360,6 +397,12 @@ export default function AccommodationDetails() {
                 alt={hotel.name}
                 className="w-full h-full object-cover"
               />
+            </div>
+
+            {/* Photo Gallery */}
+            <div className="mt-4">
+              <h2 className="text-lg font-medium text-foreground mb-2">Photos</h2>
+              <ImageGallery images={hotelGalleryImages[hotel.id] || hotelGalleryImages["w-amman"]} />
             </div>
           </motion.section>
 
