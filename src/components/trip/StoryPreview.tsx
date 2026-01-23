@@ -30,6 +30,7 @@ interface StoryPreviewProps {
 export function StoryPreview({ open, onClose }: StoryPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -51,6 +52,21 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
     }
   }, [currentIndex]);
 
+  // Pause/Resume handlers
+  const handlePause = useCallback(() => {
+    setIsPaused(true);
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+  }, []);
+
+  const handleResume = useCallback(() => {
+    setIsPaused(false);
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
+
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -58,16 +74,25 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") goToNext();
       if (e.key === "ArrowLeft") goToPrev();
+      if (e.key === " ") {
+        e.preventDefault();
+        setIsPaused((prev) => !prev);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, goToNext, goToPrev, onClose]);
 
-  // Progress bar timer
+  // Progress bar timer - respects pause state
   useEffect(() => {
-    if (!open) return;
+    if (!open || isPaused) {
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
+      return;
+    }
     
-    setProgress(0);
     progressInterval.current = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -83,7 +108,17 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
         clearInterval(progressInterval.current);
       }
     };
-  }, [open, currentIndex, goToNext]);
+  }, [open, currentIndex, goToNext, isPaused]);
+
+  // Handle video pause/play sync
+  useEffect(() => {
+    if (!videoRef.current || !open) return;
+    if (isPaused) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play().catch(() => {});
+    }
+  }, [isPaused, open]);
 
   // Reset on close
   useEffect(() => {
@@ -202,12 +237,54 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
               </motion.div>
             </AnimatePresence>
 
-            {/* Click areas for navigation */}
+            {/* Click areas for navigation + hold to pause */}
             <div className="absolute inset-0 z-10 flex">
-              <div className="w-1/3 h-full" onClick={goToPrev} />
-              <div className="w-1/3 h-full" />
-              <div className="w-1/3 h-full" onClick={goToNext} />
+              <div 
+                className="w-1/3 h-full cursor-pointer" 
+                onClick={goToPrev}
+                onMouseDown={handlePause}
+                onMouseUp={handleResume}
+                onMouseLeave={handleResume}
+                onTouchStart={handlePause}
+                onTouchEnd={handleResume}
+              />
+              <div 
+                className="w-1/3 h-full cursor-pointer"
+                onMouseDown={handlePause}
+                onMouseUp={handleResume}
+                onMouseLeave={handleResume}
+                onTouchStart={handlePause}
+                onTouchEnd={handleResume}
+              />
+              <div 
+                className="w-1/3 h-full cursor-pointer" 
+                onClick={goToNext}
+                onMouseDown={handlePause}
+                onMouseUp={handleResume}
+                onMouseLeave={handleResume}
+                onTouchStart={handlePause}
+                onTouchEnd={handleResume}
+              />
             </div>
+
+            {/* Pause indicator */}
+            <AnimatePresence>
+              {isPaused && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="absolute inset-0 z-15 flex items-center justify-center pointer-events-none"
+                >
+                  <div className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-8 bg-white rounded-sm" />
+                      <div className="w-2 h-8 bg-white rounded-sm" />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Story info overlay */}
             <div className="absolute bottom-0 left-0 right-0 z-20 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
