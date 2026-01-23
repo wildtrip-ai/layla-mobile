@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, Plus, Check, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ interface AccommodationMapProps {
 }
 
 export function AccommodationMap({ accommodations, onClose }: AccommodationMapProps) {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [selectedHotel, setSelectedHotel] = useState<Accommodation | null>(null);
@@ -211,7 +214,7 @@ export function AccommodationMap({ accommodations, onClose }: AccommodationMapPr
                 </>
               )}
             </Button>
-            <Button className="flex-1">View Details</Button>
+            <Button className="flex-1" onClick={() => navigate(`/trip/${id || "jordan-honeymoon"}/accommodation/${selectedHotel.id}`)}>View Details</Button>
           </div>
         </motion.div>
       )}

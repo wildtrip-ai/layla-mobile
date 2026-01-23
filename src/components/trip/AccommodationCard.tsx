@@ -16,6 +16,10 @@ export function AccommodationCard({ accommodation }: AccommodationCardProps) {
     navigate(`/trip/${id || "jordan-honeymoon"}/accommodations`);
   };
 
+  const handleViewDetails = () => {
+    navigate(`/trip/${id || "jordan-honeymoon"}/accommodation/${accommodation.id}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -80,7 +84,7 @@ export function AccommodationCard({ accommodation }: AccommodationCardProps) {
               <p className="text-sm text-muted-foreground">Includes taxes and fees</p>
 
               <div className="flex flex-col gap-2 mt-3">
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button className="bg-primary hover:bg-primary/90" onClick={handleViewDetails}>
                   View Details
                 </Button>
                 <Button variant="outline" onClick={handleMoreStays}>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
   ChevronRight, 
@@ -84,12 +84,14 @@ interface AccommodationResultCardProps {
   accommodation: Accommodation;
   isAdded?: boolean;
   isFeatured?: boolean;
+  onViewDetails: () => void;
 }
 
 function AccommodationResultCard({ 
   accommodation, 
   isAdded = false,
-  isFeatured = false 
+  isFeatured = false,
+  onViewDetails
 }: AccommodationResultCardProps) {
   const [added, setAdded] = useState(isAdded);
 
@@ -209,7 +211,7 @@ function AccommodationResultCard({
                   </>
                 )}
               </Button>
-              <Button className="w-full md:w-40">
+              <Button className="w-full md:w-40" onClick={onViewDetails}>
                 View Details
               </Button>
             </div>
@@ -222,8 +224,13 @@ function AccommodationResultCard({
 
 export default function AccommodationResults() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [showMap, setShowMap] = useState(false);
+
+  const handleViewDetails = (accommodationId: string) => {
+    navigate(`/trip/${id || "jordan-honeymoon"}/accommodation/${accommodationId}`);
+  };
 
   const toggleFilter = (filter: string) => {
     setSelectedFilters(prev => 
@@ -342,6 +349,7 @@ export default function AccommodationResults() {
                 accommodation={accommodation}
                 isAdded={index === 0}
                 isFeatured={index === 0}
+                onViewDetails={() => handleViewDetails(accommodation.id)}
               />
             ))}
           </div>
