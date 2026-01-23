@@ -1,25 +1,31 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface StaticLeafletMapProps {
   coordinates: [number, number][];
   center: [number, number];
   zoom?: number;
   className?: string;
+  selectedIndex?: number | null;
 }
 
 export function StaticLeafletMap({ 
   coordinates, 
   center, 
   zoom = 7,
-  className = ""
+  className = "",
+  selectedIndex = null
 }: StaticLeafletMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const prevCenterRef = useRef<[number, number]>(center);
+  const prevZoomRef = useRef<number>(zoom);
 
+  // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    // Dynamic import of Leaflet
     const initMap = async () => {
       const L = await import("leaflet");
       await import("leaflet/dist/leaflet.css");
@@ -52,30 +58,32 @@ export function StaticLeafletMap({
       }).addTo(map);
 
       // Custom numbered marker
-      const createNumberedIcon = (num: number) => {
+      const createNumberedIcon = (num: number, isSelected: boolean = false) => {
         return L.divIcon({
           className: "custom-numbered-marker",
           html: `<div style="
-            background: hsl(var(--foreground));
-            color: hsl(var(--background));
-            width: 28px;
-            height: 28px;
+            background: ${isSelected ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'};
+            color: ${isSelected ? 'hsl(var(--primary-foreground))' : 'hsl(var(--background))'};
+            width: ${isSelected ? '36px' : '28px'};
+            height: ${isSelected ? '36px' : '28px'};
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-size: ${isSelected ? '16px' : '14px'};
+            box-shadow: ${isSelected ? '0 0 0 4px hsla(var(--primary) / 0.3), 0 4px 12px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.3)'};
+            transition: all 0.3s ease;
           ">${num}</div>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14],
+          iconSize: [isSelected ? 36 : 28, isSelected ? 36 : 28],
+          iconAnchor: [isSelected ? 18 : 14, isSelected ? 18 : 14],
         });
       };
 
-      // Add markers
-      coordinates.forEach((coord, index) => {
-        L.marker(coord, { icon: createNumberedIcon(index + 1) }).addTo(map);
+      // Add markers and store references
+      markersRef.current = coordinates.map((coord, index) => {
+        const marker = L.marker(coord, { icon: createNumberedIcon(index + 1, selectedIndex === index) }).addTo(map);
+        return marker;
       });
 
       // Draw route line
@@ -89,6 +97,7 @@ export function StaticLeafletMap({
       }
 
       mapInstanceRef.current = map;
+      setIsMapReady(true);
     };
 
     initMap();
@@ -97,9 +106,65 @@ export function StaticLeafletMap({
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        markersRef.current = [];
+        setIsMapReady(false);
       }
     };
-  }, [coordinates, center, zoom]);
+  }, [coordinates]);
+
+  // Animate to new center/zoom when props change
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isMapReady) return;
+
+    const centerChanged = prevCenterRef.current[0] !== center[0] || prevCenterRef.current[1] !== center[1];
+    const zoomChanged = prevZoomRef.current !== zoom;
+
+    if (centerChanged || zoomChanged) {
+      mapInstanceRef.current.flyTo(center, zoom, {
+        duration: 1.2,
+        easeLinearity: 0.25,
+      });
+      prevCenterRef.current = center;
+      prevZoomRef.current = zoom;
+    }
+  }, [center, zoom, isMapReady]);
+
+  // Update marker styles when selectedIndex changes
+  useEffect(() => {
+    if (!isMapReady) return;
+
+    const updateMarkerIcons = async () => {
+      const L = await import("leaflet");
+      
+      const createNumberedIcon = (num: number, isSelected: boolean = false) => {
+        return L.divIcon({
+          className: "custom-numbered-marker",
+          html: `<div style="
+            background: ${isSelected ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'};
+            color: ${isSelected ? 'hsl(var(--primary-foreground))' : 'hsl(var(--background))'};
+            width: ${isSelected ? '36px' : '28px'};
+            height: ${isSelected ? '36px' : '28px'};
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: ${isSelected ? '16px' : '14px'};
+            box-shadow: ${isSelected ? '0 0 0 4px hsla(var(--primary) / 0.3), 0 4px 12px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.3)'};
+            transition: all 0.3s ease;
+          ">${num}</div>`,
+          iconSize: [isSelected ? 36 : 28, isSelected ? 36 : 28],
+          iconAnchor: [isSelected ? 18 : 14, isSelected ? 18 : 14],
+        });
+      };
+
+      markersRef.current.forEach((marker, index) => {
+        marker.setIcon(createNumberedIcon(index + 1, selectedIndex === index));
+      });
+    };
+
+    updateMarkerIcons();
+  }, [selectedIndex, isMapReady]);
 
   return (
     <div 

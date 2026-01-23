@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
-import { Building2 } from "lucide-react";
+import { Building2, MapPinOff } from "lucide-react";
 import { AccommodationCard } from "./AccommodationCard";
 import type { Accommodation } from "@/data/tripData";
 
 interface AccommodationSectionProps {
   accommodations: Accommodation[];
   dates: string;
+  cityName?: string;
 }
 
-export function AccommodationSection({ accommodations, dates }: AccommodationSectionProps) {
+export function AccommodationSection({ accommodations, dates, cityName }: AccommodationSectionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -21,17 +22,26 @@ export function AccommodationSection({ accommodations, dates }: AccommodationSec
       <div className="flex items-center gap-3">
         <Building2 className="h-6 w-6 text-foreground" />
         <div>
-          <h2 className="text-2xl font-serif text-foreground">Accommodation</h2>
+          <h2 className="text-2xl font-serif text-foreground">
+            {cityName ? `Accommodation in ${cityName}` : "Accommodation"}
+          </h2>
           <p className="text-sm text-muted-foreground">{dates}</p>
         </div>
       </div>
 
       {/* Accommodation Cards */}
-      <div className="space-y-4">
-        {accommodations.map((accommodation) => (
-          <AccommodationCard key={accommodation.id} accommodation={accommodation} />
-        ))}
-      </div>
+      {accommodations.length > 0 ? (
+        <div className="space-y-4">
+          {accommodations.map((accommodation) => (
+            <AccommodationCard key={accommodation.id} accommodation={accommodation} />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-card rounded-xl border border-border p-8 text-center">
+          <MapPinOff className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">No accommodation booked for {cityName || "this city"}</p>
+        </div>
+      )}
     </motion.div>
   );
 }

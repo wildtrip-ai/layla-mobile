@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Plus, ArrowRight } from "lucide-react";
+import { Calendar, Plus, ArrowRight, CalendarX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityItem } from "./ActivityItem";
 import type { DayPlan, CityStop } from "@/data/tripData";
@@ -11,6 +11,7 @@ interface DayPlanSectionProps {
   cityStops?: CityStop[];
   currentCityIndex?: number;
   onNextCity?: () => void;
+  cityName?: string;
 }
 
 export function DayPlanSection({ 
@@ -19,7 +20,8 @@ export function DayPlanSection({
   onAddClick,
   cityStops = [],
   currentCityIndex = 0,
-  onNextCity
+  onNextCity,
+  cityName
 }: DayPlanSectionProps) {
   const hasNextCity = currentCityIndex < cityStops.length - 1;
   const nextCity = hasNextCity ? cityStops[currentCityIndex + 1] : null;
@@ -36,68 +38,82 @@ export function DayPlanSection({
       <div className="flex items-center gap-3">
         <Calendar className="h-6 w-6 text-foreground" />
         <div>
-          <h2 className="text-2xl font-serif text-foreground">Day-by-Day Plan</h2>
+          <h2 className="text-2xl font-serif text-foreground">
+            {cityName ? `Day-by-Day Plan: ${cityName}` : "Day-by-Day Plan"}
+          </h2>
           <p className="text-sm text-muted-foreground">{dates}</p>
         </div>
       </div>
 
-      {/* Day Cards */}
-      {dayPlans.map((day) => (
-        <motion.div
-          key={day.day}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.4 }}
-          className="relative pl-8 md:pl-12"
-        >
-          {/* Day Number Circle */}
-          <div className="absolute left-0 top-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-            {day.day}
-          </div>
-
-          {/* Timeline Line */}
-          <div className="absolute left-4 top-8 bottom-0 w-px bg-border" />
-
-          {/* Day Content */}
-          <div className="pb-8">
-            {/* Day Header */}
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-muted-foreground">
-                {day.date}, {day.dayOfWeek}
-              </span>
-              <span className="text-muted-foreground">•</span>
-              <span>{day.weather}</span>
-              <span className="text-muted-foreground">{day.temperature}°C</span>
+      {/* Empty State */}
+      {dayPlans.length === 0 ? (
+        <div className="bg-card rounded-xl border border-border p-8 text-center">
+          <CalendarX className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">No activities planned for {cityName || "this city"} yet</p>
+          <Button variant="outline" size="sm" className="gap-2" onClick={onAddClick}>
+            <Plus className="h-4 w-4" />
+            Add Activity
+          </Button>
+        </div>
+      ) : (
+        /* Day Cards */
+        dayPlans.map((day) => (
+          <motion.div
+            key={day.day}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.4 }}
+            className="relative pl-8 md:pl-12"
+          >
+            {/* Day Number Circle */}
+            <div className="absolute left-0 top-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+              {day.day}
             </div>
 
-            <h3 className="text-lg font-semibold text-foreground mb-1">
-              {day.title}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {day.items.length} items
-            </p>
+            {/* Timeline Line */}
+            <div className="absolute left-4 top-8 bottom-0 w-px bg-border" />
 
-            {/* Activities */}
-            <div className="space-y-2">
-              {day.items.map((item, index) => (
-                <ActivityItem key={item.id} activity={item} index={index} />
-              ))}
+            {/* Day Content */}
+            <div className="pb-8">
+              {/* Day Header */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">
+                  {day.date}, {day.dayOfWeek}
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span>{day.weather}</span>
+                <span className="text-muted-foreground">{day.temperature}°C</span>
+              </div>
+
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                {day.title}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {day.items.length} items
+              </p>
+
+              {/* Activities */}
+              <div className="space-y-2">
+                {day.items.map((item, index) => (
+                  <ActivityItem key={item.id} activity={item} index={index} />
+                ))}
+              </div>
+
+              {/* Add Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 mt-4"
+                onClick={onAddClick}
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </Button>
             </div>
-
-            {/* Add Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2 mt-4"
-              onClick={onAddClick}
-            >
-              <Plus className="h-4 w-4" />
-              Add
-            </Button>
-          </div>
-        </motion.div>
-      ))}
+          </motion.div>
+        ))
+      )}
 
       {/* Next City Button */}
       <div className="flex justify-center pt-4">

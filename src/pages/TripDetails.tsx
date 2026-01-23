@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Calendar, Users } from "lucide-react";
@@ -16,6 +16,21 @@ import { TripDetailsDialog, type EditableTripData } from "@/components/trip/Trip
 import { PremiumUpgradeDrawer } from "@/components/trip/PremiumUpgradeDrawer";
 import { sampleTrip } from "@/data/tripData";
 
+// Helper to parse city dates like "May 1 - May 3" 
+function parseCityDateRange(dateString: string): { startDay: number; endDay: number } {
+  const match = dateString.match(/May (\d+) - May (\d+)/);
+  if (match) {
+    return { startDay: parseInt(match[1]), endDay: parseInt(match[2]) };
+  }
+  return { startDay: 1, endDay: 31 };
+}
+
+// Helper to parse day date like "May 1"
+function parseDayDate(dateString: string): number {
+  const match = dateString.match(/May (\d+)/);
+  return match ? parseInt(match[1]) : 0;
+}
+
 export default function TripDetails() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [premiumDrawerOpen, setPremiumDrawerOpen] = useState(false);
@@ -29,6 +44,59 @@ export default function TripDetails() {
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
   const [selectedCityIndex, setSelectedCityIndex] = useState<number | null>(null);
   const [currentCityIndex, setCurrentCityIndex] = useState(0);
+
+  // Get current city info
+  const currentCity = sampleTrip.cityStops[currentCityIndex];
+  const currentCityName = currentCity?.name || "";
+  const currentCityDates = currentCity?.dates || "";
+  const cityDateRange = parseCityDateRange(currentCityDates);
+
+  // Filter day plans by current city
+  const filteredDayPlans = useMemo(() => {
+    return sampleTrip.dayPlans.filter(day => {
+      const dayNum = parseDayDate(day.date);
+      // Include days that start within the city's date range (not including end day which is departure)
+      return dayNum >= cityDateRange.startDay && dayNum < cityDateRange.endDay;
+    });
+  }, [cityDateRange.startDay, cityDateRange.endDay]);
+
+  // Filter accommodations by current city dates
+  const filteredAccommodations = useMemo(() => {
+    return sampleTrip.accommodations.filter(acc => {
+      // Parse accommodation dates like "May 1 - 3"
+      const match = acc.dates.match(/May (\d+) - (\d+)/);
+      if (match) {
+        const accStart = parseInt(match[1]);
+        const accEnd = parseInt(match[2]);
+        // Check if accommodation overlaps with city dates
+        return accStart < cityDateRange.endDay && accEnd > cityDateRange.startDay;
+      }
+      return false;
+    });
+  }, [cityDateRange.startDay, cityDateRange.endDay]);
+
+  // Filter transports for current city
+  const filteredTransports = useMemo(() => {
+    return sampleTrip.transports.filter(transport => {
+      // For first city, show flights/arrivals
+      if (currentCityIndex === 0) {
+        return transport.to === currentCityName || transport.toCode === "AMM";
+      }
+      // For other cities, show transfers to that city
+      return transport.to === currentCityName || transport.title.toLowerCase().includes(currentCityName.toLowerCase());
+    });
+  }, [currentCityIndex, currentCityName]);
+
+  // Filter images from current city's day plans
+  const filteredImages = useMemo(() => {
+    return filteredDayPlans.flatMap(day => 
+      day.items.filter(item => item.image).map(item => ({
+        src: item.image!,
+        title: item.title,
+        location: item.location,
+      }))
+    );
+  }, [filteredDayPlans]);
 
   const handleAddClick = () => {
     if (isFreePlan) {
@@ -46,28 +114,24 @@ export default function TripDetails() {
     }));
   };
 
-  // Handle city click from timeline - opens map and animates to city
+  // Handle city click from timeline - zooms map, doesn't open dialog
   const handleCityClick = (cityIndex: number) => {
+    setCurrentCityIndex(cityIndex);
     setSelectedCityIndex(cityIndex);
-    setMapDialogOpen(true);
   };
 
-  // Handle Next City button - advances to next city and shows on map
+  // Handle Next City button - advances to next city
   const handleNextCity = () => {
     const nextIndex = currentCityIndex + 1;
     if (nextIndex < sampleTrip.cityStops.length) {
       setCurrentCityIndex(nextIndex);
       setSelectedCityIndex(nextIndex);
-      setMapDialogOpen(true);
     }
   };
 
   // Reset selected city when map closes
   const handleMapDialogChange = (open: boolean) => {
     setMapDialogOpen(open);
-    if (!open) {
-      setSelectedCityIndex(null);
-    }
   };
 
   return (
@@ -143,42 +207,43 @@ export default function TripDetails() {
                 dialogOpen={mapDialogOpen}
                 onDialogOpenChange={handleMapDialogChange}
                 targetCityIndex={selectedCityIndex}
+                selectedCityIndex={selectedCityIndex}
               />
 
               {/* Description */}
               <TripDescription 
-                title={sampleTrip.subtitle} 
+                title={`${currentCityName} Experience`} 
                 description={sampleTrip.description} 
               />
 
-              {/* Image Gallery */}
-              <ImageGallery 
-                images={sampleTrip.dayPlans.flatMap(day => 
-                  day.items.filter(item => item.image).map(item => ({
-                    src: item.image!,
-                    title: item.title,
-                    location: item.location,
-                  }))
-                )}
+              {/* Image Gallery - Filtered */}
+              {filteredImages.length > 0 && (
+                <ImageGallery images={filteredImages} />
+              )}
+
+              {/* Transport - Filtered */}
+              <TransportSection 
+                transports={filteredTransports} 
+                cityName={currentCityName}
+                isFirstCity={currentCityIndex === 0}
               />
 
-              {/* Transport */}
-              <TransportSection transports={sampleTrip.transports} />
-
-              {/* Accommodation */}
+              {/* Accommodation - Filtered */}
               <AccommodationSection 
-                accommodations={sampleTrip.accommodations} 
-                dates="May 1 - 3" 
+                accommodations={filteredAccommodations} 
+                dates={currentCityDates}
+                cityName={currentCityName}
               />
 
-              {/* Day by Day Plan */}
+              {/* Day by Day Plan - Filtered */}
               <DayPlanSection 
-                dayPlans={sampleTrip.dayPlans} 
-                dates="May 1 - 3"
+                dayPlans={filteredDayPlans} 
+                dates={currentCityDates}
                 onAddClick={handleAddClick}
                 cityStops={sampleTrip.cityStops}
                 currentCityIndex={currentCityIndex}
                 onNextCity={handleNextCity}
+                cityName={currentCityName}
               />
             </div>
           </div>
