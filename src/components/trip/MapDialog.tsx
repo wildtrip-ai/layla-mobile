@@ -1,17 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Fix for default marker icons in Leaflet with webpack/vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+import { X, Loader2 } from "lucide-react";
 
 // City coordinates for Jordan trip
 const cityCoordinates: Record<string, [number, number]> = {
@@ -22,77 +11,171 @@ const cityCoordinates: Record<string, [number, number]> = {
   "Dead Sea": [31.5, 35.5],
 };
 
-// Custom marker icons
-const createNumberedIcon = (number: number, color: string = "#1a1a2e") => {
-  return L.divIcon({
-    className: "custom-numbered-marker",
-    html: `
-      <div style="
-        width: 36px;
-        height: 36px;
-        background: ${color};
-        border: 3px solid white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 14px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      ">
-        ${number}
-      </div>
-    `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-  });
-};
-
-// Component to fit bounds when map loads
-function FitBounds({ coordinates }: { coordinates: [number, number][] }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (coordinates.length > 0) {
-      const bounds = L.latLngBounds(coordinates.map(coord => L.latLng(coord[0], coord[1])));
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [map, coordinates]);
-  
-  return null;
-}
-
 interface MapDialogProps {
   open: boolean;
   onClose: () => void;
   cityStops: { id: string; name: string; dates: string }[];
 }
 
+// Lazy load leaflet components
+const LeafletMap = ({ cityStops }: { cityStops: { id: string; name: string; dates: string }[] }) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    // Dynamically import Leaflet
+    const loadMap = async () => {
+      const L = (await import("leaflet")).default;
+      await import("leaflet/dist/leaflet.css");
+
+      // Fix default marker icons
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      // Get coordinates
+      const routeCoordinates: [number, number][] = cityStops
+        .map(city => cityCoordinates[city.name])
+        .filter(Boolean);
+
+      const allCoordinates: [number, number][] = [
+        cityCoordinates.Berlin,
+        ...routeCoordinates
+      ].filter(Boolean);
+
+      // Create map
+      const map = L.map(mapRef.current!, {
+        center: [35, 30],
+        zoom: 5,
+        zoomControl: true,
+      });
+
+      mapInstanceRef.current = map;
+
+      // Add tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      // Flight route (Berlin to Amman) - curved polyline
+      const flightRoute: [number, number][] = [
+        cityCoordinates.Berlin,
+        [45, 25], // Intermediate point for curve
+        cityCoordinates.Amman,
+      ];
+
+      L.polyline(flightRoute, {
+        color: "#dc2626",
+        weight: 3,
+        dashArray: "10, 10",
+        opacity: 0.8,
+      }).addTo(map);
+
+      // Ground route between Jordan cities
+      L.polyline(routeCoordinates, {
+        color: "#2563eb",
+        weight: 4,
+        opacity: 0.9,
+      }).addTo(map);
+
+      // Create numbered marker icon
+      const createNumberedIcon = (number: number, color: string = "#1a1a2e") => {
+        return L.divIcon({
+          className: "custom-numbered-marker",
+          html: `
+            <div style="
+              width: 36px;
+              height: 36px;
+              background: ${color};
+              border: 3px solid white;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 14px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            ">
+              ${number}
+            </div>
+          `,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        });
+      };
+
+      // Berlin marker (starting point)
+      L.marker(cityCoordinates.Berlin, {
+        icon: L.divIcon({
+          className: "custom-start-marker",
+          html: `
+            <div style="
+              width: 32px;
+              height: 32px;
+              background: #22c55e;
+              border: 3px solid white;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            ">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        }),
+      }).addTo(map).bindPopup("Berlin (Start)");
+
+      // City markers
+      cityStops.forEach((city, index) => {
+        const coords = cityCoordinates[city.name];
+        if (!coords) return;
+        L.marker(coords, {
+          icon: createNumberedIcon(index + 1),
+        }).addTo(map).bindPopup(`<b>${city.name}</b><br/>${city.dates}`);
+      });
+
+      // Fit bounds
+      const bounds = L.latLngBounds(allCoordinates.map(coord => L.latLng(coord[0], coord[1])));
+      map.fitBounds(bounds, { padding: [50, 50] });
+
+      setIsLoaded(true);
+    };
+
+    loadMap();
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [cityStops]);
+
+  return (
+    <div className="w-full h-full relative">
+      {!isLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-secondary z-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+      <div ref={mapRef} className="w-full h-full" />
+    </div>
+  );
+};
+
 export function MapDialog({ open, onClose, cityStops }: MapDialogProps) {
-  const mapRef = useRef<L.Map | null>(null);
-
-  // Get coordinates for all cities
-  const routeCoordinates: [number, number][] = cityStops
-    .map(city => cityCoordinates[city.name])
-    .filter(Boolean);
-
-  // Add Berlin as starting point for the flight route
-  const allCoordinates: [number, number][] = [
-    cityCoordinates.Berlin,
-    ...routeCoordinates
-  ].filter(Boolean);
-
-  // Flight route (Berlin to Amman) - curved line simulation
-  const flightRoute: [number, number][] = [
-    cityCoordinates.Berlin,
-    [45, 25], // Intermediate point for curve
-    cityCoordinates.Amman,
-  ];
-
-  // Ground route between Jordan cities
-  const groundRoute: [number, number][] = routeCoordinates;
-
   // Handle keyboard
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -146,92 +229,17 @@ export function MapDialog({ open, onClose, cityStops }: MapDialogProps) {
             </div>
 
             {/* Map */}
-            <MapContainer
-              ref={mapRef}
-              center={[35, 30]}
-              zoom={5}
-              className="w-full h-full"
-              zoomControl={false}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-
-              {/* Fit bounds to show all markers */}
-              <FitBounds coordinates={allCoordinates} />
-
-              {/* Flight route (Berlin to Amman) - dashed red line */}
-              <Polyline
-                positions={flightRoute}
-                pathOptions={{
-                  color: "#dc2626",
-                  weight: 3,
-                  dashArray: "10, 10",
-                  opacity: 0.8,
-                }}
-              />
-
-              {/* Ground route (between Jordan cities) - solid blue line */}
-              <Polyline
-                positions={groundRoute}
-                pathOptions={{
-                  color: "#2563eb",
-                  weight: 4,
-                  opacity: 0.9,
-                }}
-              />
-
-              {/* City markers */}
-              {cityStops.map((city, index) => {
-                const coords = cityCoordinates[city.name];
-                if (!coords) return null;
-                return (
-                  <Marker
-                    key={city.id}
-                    position={coords}
-                    icon={createNumberedIcon(index + 1)}
-                  />
-                );
-              })}
-
-              {/* Berlin marker (starting point) */}
-              <Marker
-                position={cityCoordinates.Berlin}
-                icon={L.divIcon({
-                  className: "custom-start-marker",
-                  html: `
-                    <div style="
-                      width: 32px;
-                      height: 32px;
-                      background: #22c55e;
-                      border: 3px solid white;
-                      border-radius: 50%;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                    ">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M12 19V5M5 12l7-7 7 7"/>
-                      </svg>
-                    </div>
-                  `,
-                  iconSize: [32, 32],
-                  iconAnchor: [16, 16],
-                })}
-              />
-            </MapContainer>
+            <LeafletMap cityStops={cityStops} />
 
             {/* Legend */}
             <div className="absolute bottom-4 left-4 z-[1000] bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-0.5 bg-red-600" style={{ borderStyle: "dashed" }} />
+                  <div className="w-6 h-0.5 border-t-2 border-dashed border-red-600" />
                   <span className="text-muted-foreground">Flight</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-1 bg-blue-600 rounded" />
+                  <div className="w-6 h-1 bg-blue-600 rounded" />
                   <span className="text-muted-foreground">Ground</span>
                 </div>
               </div>
