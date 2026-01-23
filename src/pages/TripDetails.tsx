@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { TripHeader } from "@/components/trip/TripHeader";
 import { TripMap } from "@/components/trip/TripMap";
 import { TripDescription } from "@/components/trip/TripDescription";
+import { ImageGallery } from "@/components/trip/ImageGallery";
 import { TransportSection } from "@/components/trip/TransportSection";
 import { AccommodationSection } from "@/components/trip/AccommodationSection";
 import { DayPlanSection } from "@/components/trip/DayPlanSection";
@@ -102,6 +103,13 @@ export default function TripDetails() {
               <TripDescription 
                 title={sampleTrip.subtitle} 
                 description={sampleTrip.description} 
+              />
+
+              {/* Image Gallery */}
+              <ImageGallery 
+                images={sampleTrip.dayPlans.flatMap(day => 
+                  day.items.filter(item => item.image).map(item => item.image!)
+                )}
               />
 
               {/* Transport */}
