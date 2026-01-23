@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText } from "lucide-react";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
@@ -46,7 +48,10 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 mt-2">
-              <DropdownMenuItem className="gap-3 py-3">
+              <DropdownMenuItem 
+                className="gap-3 py-3"
+                onClick={() => setLoginDialogOpen(true)}
+              >
                 <LogIn className="h-4 w-4" />
                 <span>Login</span>
               </DropdownMenuItem>
@@ -79,6 +84,9 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Login Dialog */}
+      <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
     </header>
   );
 }
