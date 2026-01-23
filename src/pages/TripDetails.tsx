@@ -108,7 +108,11 @@ export default function TripDetails() {
               {/* Image Gallery */}
               <ImageGallery 
                 images={sampleTrip.dayPlans.flatMap(day => 
-                  day.items.filter(item => item.image).map(item => item.image!)
+                  day.items.filter(item => item.image).map(item => ({
+                    src: item.image!,
+                    title: item.title,
+                    location: item.location,
+                  }))
                 )}
               />
 
