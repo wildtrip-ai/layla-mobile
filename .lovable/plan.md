@@ -1,161 +1,98 @@
 
-# Login Dialog Implementation Plan
+# City Navigation with Map Animation
 
 ## Overview
-Create an animated login dialog that opens from the bottom with a two-panel layout: a form panel on the left and an image/character panel on the right. The dialog will be triggered when clicking "Login" in the Header dropdown menu.
+When clicking on a city in the timeline (TripHeader) or the "Next City" button (DayPlanSection), the map will open and animate to that city's location using Leaflet's `flyTo` function.
 
-## Design Details (Based on Screenshot)
+## Current Architecture
+- **TripHeader.tsx**: Contains the city timeline with clickable city stops
+- **DayPlanSection.tsx**: Contains the "Next City" button at the bottom
+- **TripMap.tsx**: Contains the static map preview and renders MapDialog
+- **MapDialog.tsx**: Full interactive map with existing `flyTo` capability via `window.__mapFlyTo`
+- **TripDetails.tsx**: Parent component that coordinates all sections
 
-### Left Panel - Form Section
-- **Title**: "Sign In" (centered, serif font)
-- **Sign up link**: "New to Layla? Sign up" (with underlined "Sign up")
-- **Email input**: Rounded input with placeholder "Email"
-- **Password input**: Rounded input with placeholder "Password"
-- **Continue button**: Full-width, dark/primary button
-- **Forgot password link**: Text button "Forgot password?"
-- **Divider**: Visual separator between form and social logins
-- **Social login buttons** (outlined style):
-  - "Continue with Google" (Google icon)
-  - "Continue with Apple" (Apple icon)
-  - "Continue with Facebook" (Facebook icon)
-- **Terms text**: "By signing up, you agree to our Terms of service and Privacy Policy."
+## Implementation Strategy
 
-### Right Panel - Image Section
-- Background: Sky blue color with a person image
-- Speech bubble: "Here's the tea, sign up for a free account and, voilà, we'll continue chatting."
-- Close button: Circular white button with X icon in top-right corner
+### 1. Lift Map Dialog State to TripDetails
+Move the `dialogOpen` state from TripMap to TripDetails so it can be controlled by both TripHeader and DayPlanSection.
 
-### Animation
-- Dialog slides up from bottom using framer-motion
-- Overlay fades in
-- Similar spring animation pattern to TripDetailsDialog
+### 2. Add Selected City State
+Create state to track which city should be focused when the map opens. This allows the map to automatically animate to that city after opening.
 
----
+### 3. Make City Stops Clickable in TripHeader
+Add click handlers to each city in the timeline that:
+- Set the selected city
+- Open the map dialog
 
-## Technical Implementation
+### 4. Add Current City Tracking for "Next City" Button
+Pass the current city index and city stops to DayPlanSection so the "Next City" button knows which city to navigate to.
 
-### Files to Create
-
-**1. `src/components/auth/LoginDialog.tsx`** - Main login dialog component
-- Props: `open`, `onOpenChange`
-- Uses framer-motion for bottom-up slide animation with AnimatePresence
-- Two-panel responsive layout (stacks on mobile)
-- Form inputs using existing Input component
-- Button components with existing variants
-- SVG icons for social providers (Google, Apple, Facebook)
-- State management for email, password, and form mode (sign in/sign up)
-
-### Files to Modify
-
-**2. `src/components/Header.tsx`** - Wire up Login menu item
-- Import LoginDialog component
-- Add state: `loginDialogOpen`
-- Attach onClick to "Login" dropdown item to open dialog
-- Render LoginDialog with open/onOpenChange props
+### 5. Animate to City After Map Opens
+Use a `useEffect` in MapDialog to detect when both the dialog is open and a target city is set, then call `flyTo` with a small delay to ensure the map has fully loaded.
 
 ---
 
-## Component Structure
+## Technical Details
+
+### File: `src/pages/TripDetails.tsx`
+- Add `mapDialogOpen` state (boolean)
+- Add `selectedCityIndex` state (number | null)
+- Add `currentCityIndex` state for tracking which city the user is viewing (default: 0)
+- Pass handlers down to child components:
+  - `onCityClick(cityIndex)` to TripHeader
+  - `onNextCity()` to DayPlanSection
+
+### File: `src/components/trip/TripHeader.tsx`
+- Accept new prop: `onCityClick?: (cityIndex: number) => void`
+- Add cursor-pointer and hover styles to city stop cards
+- Call `onCityClick(index)` when a city is clicked
+
+### File: `src/components/trip/DayPlanSection.tsx`
+- Accept new props:
+  - `cityStops: CityStop[]`
+  - `currentCityIndex: number`
+  - `onNextCity?: () => void`
+- Update "Next City" button to call `onNextCity` and show the next city name
+- Disable or hide the button if on the last city
+
+### File: `src/components/trip/TripMap.tsx`
+- Accept new props:
+  - `dialogOpen: boolean`
+  - `onDialogOpenChange: (open: boolean) => void`
+  - `targetCityIndex?: number | null`
+  - `onCityAnimationComplete?: () => void`
+- Remove internal `dialogOpen` state (now controlled by parent)
+- Pass `targetCityIndex` to MapDialog
+
+### File: `src/components/trip/MapDialog.tsx`
+- Accept new prop: `targetCityIndex?: number | null`
+- Add `useEffect` that watches for changes to `targetCityIndex`:
+  - When both `open === true` and `targetCityIndex` is set
+  - Wait ~500ms for map to initialize
+  - Call `window.__mapFlyTo(coords, 12)` to animate to the city
+- Highlight the selected city in the route list
+
+---
+
+## User Flow
 
 ```text
-LoginDialog (framer-motion animated)
-+------------------------------------------------------------------+
-|                                                                  |
-| +---------------------------+  +-------------------------------+ |
-| |                           |  |           [X] close btn       | |
-| |         Sign In           |  |                               | |
-| |                           |  |   +-------------------+       | |
-| |  New to Layla? Sign up    |  |   | Speech bubble:    |       | |
-| |                           |  |   | "Here's the tea..." |     | |
-| |  +---------------------+  |  |   +-------------------+       | |
-| |  | Email               |  |  |                               | |
-| |  +---------------------+  |  |         [Person Image]        | |
-| |                           |  |                               | |
-| |  +---------------------+  |  |                               | |
-| |  | Password            |  |  |                               | |
-| |  +---------------------+  |  |                               | |
-| |                           |  |                               | |
-| |  [    Continue        ]   |  |                               | |
-| |                           |  |                               | |
-| |  Forgot password?         |  |                               | |
-| |                           |  |                               | |
-| |  ───────────────────────  |  |                               | |
-| |                           |  |                               | |
-| |  [G] Continue with Google |  |                               | |
-| |  [] Continue with Apple  |  |                               | |
-| |  [f] Continue with FB     |  |                               | |
-| |                           |  |                               | |
-| |  Terms and Privacy links  |  |                               | |
-| +---------------------------+  +-------------------------------+ |
-+------------------------------------------------------------------+
+1. User clicks "Amman" in timeline
+   └─> TripHeader calls onCityClick(0)
+       └─> TripDetails sets selectedCityIndex=0, opens dialog
+           └─> MapDialog opens, waits for map to load
+               └─> Calls flyTo(Amman coords, zoom 12)
+                   └─> Map smoothly animates to Amman
+
+2. User clicks "Next City" button
+   └─> DayPlanSection calls onNextCity()
+       └─> TripDetails increments currentCityIndex
+           └─> Same flow as above, map animates to next city
 ```
 
 ---
 
-## Implementation Details
-
-### Animation Pattern
-Following the TripDetailsDialog pattern with framer-motion:
-```typescript
-// Overlay
-initial={{ opacity: 0 }}
-animate={{ opacity: 1 }}
-exit={{ opacity: 0 }}
-
-// Dialog content - slide from bottom
-initial={{ opacity: 0, y: "100%" }}
-animate={{ opacity: 1, y: 0 }}
-exit={{ opacity: 0, y: "100%" }}
-transition={{ type: "spring", damping: 25, stiffness: 200 }}
-```
-
-### Social Login Icons
-Create inline SVG components for:
-- Google (multicolor G logo)
-- Apple (black apple logo)
-- Facebook (blue f logo)
-
-### Form Inputs
-Use the existing Input component with custom styling:
-- Rounded-full shape (rounded-full class)
-- Larger padding for a softer appearance
-- Light gray border
-
-### Responsive Behavior
-- Desktop: Two-column layout with image panel visible
-- Mobile/Tablet: Single column with form only, image panel hidden
-
-### State Management
-- `email`: string - controlled input state
-- `password`: string - controlled input state
-- `isSignUp`: boolean - toggle between Sign In and Sign Up modes
-
----
-
-## Implementation Steps
-
-### Step 1: Create LoginDialog Component
-- Create new file `src/components/auth/LoginDialog.tsx`
-- Implement the animated two-panel layout
-- Add form inputs with controlled state
-- Add social login buttons with SVG icons
-- Include terms and privacy policy links
-
-### Step 2: Update Header Component
-- Import LoginDialog
-- Add `loginDialogOpen` state
-- Wire up Login menu item onClick
-- Render LoginDialog component
-
----
-
-## Styling Notes
-
-- Dialog uses `bg-card` for form panel background
-- Right panel uses a blue gradient or image background (`bg-sky-400`)
-- Form panel max-width: ~400px
-- Speech bubble: white background with rounded corners and a tail/pointer
-- Social buttons: outlined style with left-aligned icon
-- Input fields: `rounded-full` for pill shape matching the screenshot
-- Use `font-serif` for the "Sign In" title
-- Close button: white circular button with subtle shadow
+## Visual Enhancements
+- Add hover state to city cards in timeline: `hover:bg-secondary/70 hover:border-primary/30 transition-colors cursor-pointer`
+- Show which city is currently active/selected with a subtle ring or different background
+- The "Next City" button shows the destination: "Next City: Wadi Rum"
