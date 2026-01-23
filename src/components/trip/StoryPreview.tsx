@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
 
 // Import story videos
 import romeVideo from "@/assets/stories/rome-colosseum.mp4";
@@ -31,6 +31,7 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   
@@ -224,13 +225,28 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
             onClick={onClose}
           />
 
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-[110] p-2 rounded-full bg-foreground/10 hover:bg-foreground/20 transition-colors"
-          >
-            <X className="h-6 w-6 text-white" />
-          </button>
+          {/* Top right buttons */}
+          <div className="absolute top-4 right-4 z-[110] flex items-center gap-2">
+            {/* Mute/Unmute button */}
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className="p-2 rounded-full bg-foreground/10 hover:bg-foreground/20 transition-colors"
+            >
+              {isMuted ? (
+                <VolumeX className="h-6 w-6 text-white" />
+              ) : (
+                <Volume2 className="h-6 w-6 text-white" />
+              )}
+            </button>
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full bg-foreground/10 hover:bg-foreground/20 transition-colors"
+            >
+              <X className="h-6 w-6 text-white" />
+            </button>
+          </div>
 
           {/* Navigation arrows */}
           <button
@@ -294,7 +310,7 @@ export function StoryPreview({ open, onClose }: StoryPreviewProps) {
                   ref={videoRef}
                   src={currentStory.video}
                   className="w-full h-full object-cover"
-                  muted
+                  muted={isMuted}
                   playsInline
                   autoPlay
                   loop
