@@ -246,7 +246,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center"
+            className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center pt-14"
             onClick={closeLightbox}
           >
             {/* Close button */}
@@ -280,7 +280,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
             {/* Main image with pinch-to-zoom */}
             <div
               ref={imageRef}
-              className="flex-1 flex items-center justify-center w-full touch-none"
+              className="flex items-center justify-center w-full touch-none"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
