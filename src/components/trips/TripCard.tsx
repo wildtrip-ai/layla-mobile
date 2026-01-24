@@ -103,8 +103,8 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
           {statusLabels[trip.status]}
         </Badge>
 
-        {/* Action buttons overlay */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        {/* Action buttons overlay - hidden by default, shown on hover */}
+        <div className="absolute top-3 left-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <Button
             variant="secondary"
             size="icon"
