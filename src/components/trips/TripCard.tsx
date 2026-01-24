@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar, MapPin, Share2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,14 +29,18 @@ const statusLabels = {
 };
 
 const SWIPE_THRESHOLD = -100;
+const LONG_PRESS_DURATION = 500;
 
 export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showMobileActions, setShowMobileActions] = useState(false);
   const isMobile = useIsMobile();
   const haptics = useHapticFeedback();
   const hasTriggeredHaptic = useRef(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressing = useRef(false);
 
   const x = useMotionValue(0);
   const deleteOpacity = useTransform(x, [-150, -80, 0], [1, 0.8, 0]);
@@ -68,16 +72,60 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
     onDelete?.(trip.id);
   };
 
-  const handleShareClick = (e: React.MouseEvent) => {
+  const handleShareClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setShowMobileActions(false);
     setShareDialogOpen(true);
   };
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setShowMobileActions(false);
     setDeleteDialogOpen(true);
+  };
+
+  // Long press handlers for mobile
+  const handleTouchStart = useCallback(() => {
+    if (!isMobile) return;
+    
+    isLongPressing.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPressing.current = true;
+      haptics.medium();
+      setShowMobileActions(true);
+    }, LONG_PRESS_DURATION);
+  }, [isMobile, haptics]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback(() => {
+    // Cancel long press if user moves finger
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  // Close mobile actions when clicking outside
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (isLongPressing.current) {
+      e.preventDefault();
+      isLongPressing.current = false;
+    }
+  };
+
+  // Dismiss mobile actions overlay
+  const handleDismissActions = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowMobileActions(false);
   };
 
   const cardContent = (
@@ -103,25 +151,81 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
           {statusLabels[trip.status]}
         </Badge>
 
-        {/* Action buttons overlay - hidden by default, shown on hover */}
-        <div className="absolute top-3 left-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <Button
-            variant="secondary"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
-            onClick={handleShareClick}
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
-            onClick={handleDeleteClick}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Action buttons overlay - desktop: shown on hover */}
+        {!isMobile && (
+          <div className="absolute top-3 left-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
+              onClick={handleShareClick}
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
+              onClick={handleDeleteClick}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Mobile long-press action overlay */}
+        <AnimatePresence>
+          {isMobile && showMobileActions && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center gap-4"
+              onClick={handleDismissActions}
+              onTouchEnd={handleDismissActions}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ delay: 0.05 }}
+              >
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="h-14 w-14 rounded-full bg-background shadow-lg"
+                  onClick={handleShareClick}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    handleShareClick(e);
+                  }}
+                >
+                  <Share2 className="h-6 w-6" />
+                </Button>
+              </motion.div>
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  className="h-14 w-14 rounded-full shadow-lg"
+                  onClick={handleDeleteClick}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(e);
+                  }}
+                >
+                  <Trash2 className="h-6 w-6" />
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Content */}
@@ -187,11 +291,19 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
             onDragEnd={handleDragEnd}
             style={{ x }}
             className="relative"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
           >
             <Link 
               to={linkTo} 
               className="block group"
-              onClick={(e) => isDragging && e.preventDefault()}
+              onClick={(e) => {
+                if (isDragging || isLongPressing.current || showMobileActions) {
+                  e.preventDefault();
+                }
+                handleCardClick(e);
+              }}
             >
               {cardContent}
             </Link>
