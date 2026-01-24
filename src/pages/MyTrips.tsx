@@ -7,18 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripCard } from "@/components/trips/TripCard";
 import { EmptyTripsState } from "@/components/trips/EmptyTripsState";
-import { savedTrips, type SavedTrip } from "@/data/savedTripsData";
+import { savedTrips as initialTrips, type SavedTrip } from "@/data/savedTripsData";
 
 type TabValue = "all" | "upcoming" | "past" | "drafts";
 
 export default function MyTrips() {
   const [activeTab, setActiveTab] = useState<TabValue>("all");
+  const [trips, setTrips] = useState<SavedTrip[]>(initialTrips);
 
   const filteredTrips = useMemo(() => {
-    if (activeTab === "all") return savedTrips;
-    if (activeTab === "drafts") return savedTrips.filter((t) => t.status === "draft");
-    return savedTrips.filter((t) => t.status === activeTab);
-  }, [activeTab]);
+    if (activeTab === "all") return trips;
+    if (activeTab === "drafts") return trips.filter((t) => t.status === "draft");
+    return trips.filter((t) => t.status === activeTab);
+  }, [activeTab, trips]);
+
+  const handleDeleteTrip = (tripId: string) => {
+    setTrips((prev) => prev.filter((t) => t.id !== tripId));
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,8 +87,18 @@ export default function MyTrips() {
             </Tabs>
           </motion.div>
 
+          {/* Mobile swipe hint */}
+          <motion.p
+            className="text-xs text-muted-foreground mt-4 sm:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Swipe left on a card to delete
+          </motion.p>
+
           {/* Trip Grid */}
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <AnimatePresence mode="wait">
               {filteredTrips.length > 0 ? (
                 <motion.div
@@ -94,9 +109,16 @@ export default function MyTrips() {
                   transition={{ duration: 0.2 }}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                  {filteredTrips.map((trip, index) => (
-                    <TripCard key={trip.id} trip={trip} index={index} />
-                  ))}
+                  <AnimatePresence>
+                    {filteredTrips.map((trip, index) => (
+                      <TripCard
+                        key={trip.id}
+                        trip={trip}
+                        index={index}
+                        onDelete={handleDeleteTrip}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </motion.div>
               ) : (
                 <EmptyTripsState tab={activeTab} />
