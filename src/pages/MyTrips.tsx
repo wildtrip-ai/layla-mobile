@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,19 +31,6 @@ export default function MyTrips() {
 
       <main className="pt-24 pb-24">
         <div className="container mx-auto px-4">
-          {/* Back Button */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="mb-6 -ml-2">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to home
-              </Button>
-            </Link>
-          </motion.div>
 
           {/* Page Header */}
           <motion.div
