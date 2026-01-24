@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { NewTripSidebar } from "@/components/trip/NewTripSidebar";
 import { EmptyTripState } from "@/components/trip/EmptyTripState";
 import { TripPreview } from "@/components/trip/TripPreview";
+import { MobileChatDrawer } from "@/components/trip/MobileChatDrawer";
 import type { TripData } from "@/data/tripData";
 
 export default function NewTripPlanner() {
@@ -41,16 +42,14 @@ export default function NewTripPlanner() {
             </Link>
           </motion.div>
 
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
-            {/* Chat Sidebar - Hidden on mobile, show as bottom sheet or separate view */}
-            <div className="hidden lg:block">
-              <NewTripSidebar
-                initialMessage={initialMessage}
-                mode={mode}
-                onTripGenerated={handleTripGenerated}
-              />
-            </div>
+          {/* Two Column Layout - Desktop */}
+          <div className="hidden lg:grid lg:grid-cols-[340px_1fr] gap-6">
+            {/* Chat Sidebar */}
+            <NewTripSidebar
+              initialMessage={initialMessage}
+              mode={mode}
+              onTripGenerated={handleTripGenerated}
+            />
 
             {/* Content Area */}
             <div>
@@ -62,16 +61,23 @@ export default function NewTripPlanner() {
             </div>
           </div>
 
-          {/* Mobile Chat - Show sidebar content inline on mobile */}
-          <div className="lg:hidden mt-6">
-            <NewTripSidebar
-              initialMessage={initialMessage}
-              mode={mode}
-              onTripGenerated={handleTripGenerated}
-            />
+          {/* Mobile Layout - Show content only, chat in drawer */}
+          <div className="lg:hidden">
+            {generatedTrip ? (
+              <TripPreview trip={generatedTrip} />
+            ) : (
+              <EmptyTripState />
+            )}
           </div>
         </div>
       </main>
+
+      {/* Mobile Chat Drawer */}
+      <MobileChatDrawer
+        initialMessage={initialMessage}
+        mode={mode}
+        onTripGenerated={handleTripGenerated}
+      />
     </div>
   );
 }
