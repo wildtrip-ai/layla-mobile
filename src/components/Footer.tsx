@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animations";
 
 const footerLinks = {
@@ -16,7 +17,14 @@ const footerLinks = {
   },
   countries: {
     title: "Top Countries",
-    links: ["Spain", "Italy", "Portugal", "Indonesia", "Germany", "All Countries"],
+    links: [
+      { label: "Spain", href: "/country/spain" },
+      { label: "Italy", href: "/country/italy" },
+      { label: "Portugal", href: "/country/portugal" },
+      { label: "Indonesia", href: "/country/indonesia" },
+      { label: "Germany", href: "/country/germany" },
+      { label: "All Countries", href: "/countries" },
+    ],
   },
   plan: {
     title: "Plan",
@@ -40,18 +48,37 @@ export function Footer() {
               <div>
                 <h3 className="font-semibold text-foreground mb-4">{section.title}</h3>
                 <ul className="space-y-3">
-                  {section.links.map((link) => (
-                    <li key={link}>
-                      <motion.a
-                        href="#"
-                        className="text-muted-foreground hover:text-foreground transition-colors text-sm inline-block"
-                        whileHover={{ x: 3 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {link}
-                      </motion.a>
-                    </li>
-                  ))}
+                  {section.links.map((link) => {
+                    const isCountryLink = typeof link === "object" && "href" in link;
+                    const label = isCountryLink ? link.label : link;
+                    const href = isCountryLink ? link.href : "#";
+
+                    if (isCountryLink) {
+                      return (
+                        <li key={label}>
+                          <Link
+                            to={href}
+                            className="text-muted-foreground hover:text-foreground transition-colors text-sm inline-block hover:translate-x-1 transform duration-200"
+                          >
+                            {label}
+                          </Link>
+                        </li>
+                      );
+                    }
+
+                    return (
+                      <li key={label}>
+                        <motion.a
+                          href={href}
+                          className="text-muted-foreground hover:text-foreground transition-colors text-sm inline-block"
+                          whileHover={{ x: 3 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {label}
+                        </motion.a>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             </StaggerItem>
