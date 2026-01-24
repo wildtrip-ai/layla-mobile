@@ -48,7 +48,7 @@ export function Header() {
         <div className="flex items-center">
           <a href="/">
             <img src="/logo3.png" alt="Emirates Escape" className="h-14 object-contain" />
-          </>
+          </a>
         </div>
 
         {/* Right side controls */}
