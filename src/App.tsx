@@ -10,6 +10,7 @@ import TripDetails from "./pages/TripDetails";
 import AccommodationResults from "./pages/AccommodationResults";
 import AccommodationDetails from "./pages/AccommodationDetails";
 import ActivityDetails from "./pages/ActivityDetails";
+import NewTripPlanner from "./pages/NewTripPlanner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/new-trip-planner" element={<NewTripPlanner />} />
           <Route path="/trip/:id" element={<TripDetails />} />
           <Route path="/trip/:id/accommodations" element={<AccommodationResults />} />
           <Route path="/trip/:id/accommodation/:accommodationId" element={<AccommodationDetails />} />
