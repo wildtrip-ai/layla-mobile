@@ -46,7 +46,9 @@ export function Header() {
       <div className="container mx-auto flex items-center justify-between pointer-events-auto [&>*]:pointer-events-auto">
         {/* Logo */}
         <div className="flex items-center">
-          <img src="/logo3.png" alt="Voyager" className="h-14 object-contain" />
+          <a href="/">
+            <img src="/logo3.png" alt="Emirates Escape" className="h-14 object-contain" />
+          </>
         </div>
 
         {/* Right side controls */}
