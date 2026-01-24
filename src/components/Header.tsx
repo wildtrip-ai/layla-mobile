@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown } from "lucide-react";
 import { LoginDialog } from "@/components/auth/LoginDialog";
@@ -17,9 +11,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const mockUser = {
   name: "Cooper Al",
   email: "cooper@gmail.com",
-  initials: "C",
+  initials: "C"
 };
-
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -31,19 +24,15 @@ export function Header() {
 
   const currentLanguage = languages.find(l => l.code === selectedLanguage);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
-
   const handleSignOut = () => {
     setIsLoggedIn(false);
     setIsOpen(false);
   };
-
   const handleLogin = () => {
     setLoginDialogOpen(true);
     setIsOpen(false);
   };
-
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
+  return <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
       <div className="container mx-auto flex items-center justify-between pointer-events-auto [&>*]:pointer-events-auto">
         {/* Logo */}
         <div className="flex items-center">
@@ -56,44 +45,31 @@ export function Header() {
         <div className="flex items-center gap-2">
           {/* Settings pills */}
           <div className="hidden sm:flex items-center bg-card/90 backdrop-blur-sm rounded-full px-1 py-1 shadow-lg">
-            <button 
-              className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors"
-              onClick={() => setCurrencyDialogOpen(true)}
-            >
+            <button className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors" onClick={() => setCurrencyDialogOpen(true)}>
               {currentCurrency?.icon || "$"}
             </button>
-            <button 
-              className="px-3 py-1.5 text-sm bg-secondary text-foreground rounded-full transition-colors"
-              onClick={() => setLanguageDialogOpen(true)}
-            >
+            <button className="px-3 py-1.5 text-sm bg-secondary text-foreground rounded-full transition-colors" onClick={() => setLanguageDialogOpen(true)}>
               {currentLanguage?.icon || "🇺🇸"}
             </button>
-            <button className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors">
-              °C
-            </button>
+            
           </div>
 
           {/* User menu */}
           <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
-              {isLoggedIn ? (
-                <Button variant="ghost" className="rounded-full h-10 px-1 gap-1 bg-primary hover:bg-primary/90">
+              {isLoggedIn ? <Button variant="ghost" className="rounded-full h-10 px-1 gap-1 bg-primary hover:bg-primary/90">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                       {mockUser.initials}
                     </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-4 w-4 text-primary-foreground" />
-                </Button>
-              ) : (
-                <Button variant="hero-outline" size="icon" className="rounded-full h-10 w-10">
+                </Button> : <Button variant="hero-outline" size="icon" className="rounded-full h-10 w-10">
                   <User className="h-5 w-5" />
-                </Button>
-              )}
+                </Button>}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 mt-2">
-              {isLoggedIn ? (
-                <>
+              {isLoggedIn ? <>
                   {/* User info header */}
                   <div className="flex items-center gap-3 px-3 py-4">
                     <Avatar className="h-12 w-12">
@@ -141,20 +117,12 @@ export function Header() {
                     <span>Terms of service</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="gap-3 py-3 text-destructive focus:text-destructive"
-                    onClick={handleSignOut}
-                  >
+                  <DropdownMenuItem className="gap-3 py-3 text-destructive focus:text-destructive" onClick={handleSignOut}>
                     <LogOut className="h-4 w-4" />
                     <span>Sign out</span>
                   </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem 
-                    className="gap-3 py-3"
-                    onClick={handleLogin}
-                  >
+                </> : <>
+                  <DropdownMenuItem className="gap-3 py-3" onClick={handleLogin}>
                     <LogIn className="h-4 w-4" />
                     <span>Login</span>
                   </DropdownMenuItem>
@@ -177,8 +145,7 @@ export function Header() {
                     <FileText className="h-4 w-4" />
                     <span>Terms of service</span>
                   </DropdownMenuItem>
-                </>
-              )}
+                </>}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -188,24 +155,9 @@ export function Header() {
       <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
 
       {/* Language Dialog */}
-      <SelectionDialog 
-        open={languageDialogOpen} 
-        onOpenChange={setLanguageDialogOpen}
-        title="Choose language"
-        items={languages}
-        selectedValue={selectedLanguage}
-        onSelect={setSelectedLanguage}
-      />
+      <SelectionDialog open={languageDialogOpen} onOpenChange={setLanguageDialogOpen} title="Choose language" items={languages} selectedValue={selectedLanguage} onSelect={setSelectedLanguage} />
 
       {/* Currency Dialog */}
-      <SelectionDialog 
-        open={currencyDialogOpen} 
-        onOpenChange={setCurrencyDialogOpen}
-        title="Choose currency"
-        items={currencies}
-        selectedValue={selectedCurrency}
-        onSelect={setSelectedCurrency}
-      />
-    </header>
-  );
+      <SelectionDialog open={currencyDialogOpen} onOpenChange={setCurrencyDialogOpen} title="Choose currency" items={currencies} selectedValue={selectedCurrency} onSelect={setSelectedCurrency} />
+    </header>;
 }
