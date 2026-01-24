@@ -47,7 +47,7 @@ export function Header() {
         {/* Logo */}
         <div className="flex items-center">
           <a href="/">
-            <img src="/logo3.png" alt="Emirates Escape" className="h-14 object-contain" />
+            <img src="/logo2.png" alt="Emirates Escape" className="h-14 object-contain" />
           </a>
         </div>
 
