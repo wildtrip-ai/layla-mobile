@@ -1,0 +1,110 @@
+import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Plus } from "lucide-react";
+import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TripCard } from "@/components/trips/TripCard";
+import { EmptyTripsState } from "@/components/trips/EmptyTripsState";
+import { savedTrips, type SavedTrip } from "@/data/savedTripsData";
+
+type TabValue = "all" | "upcoming" | "past" | "drafts";
+
+export default function MyTrips() {
+  const [activeTab, setActiveTab] = useState<TabValue>("all");
+
+  const filteredTrips = useMemo(() => {
+    if (activeTab === "all") return savedTrips;
+    if (activeTab === "drafts") return savedTrips.filter((t) => t.status === "draft");
+    return savedTrips.filter((t) => t.status === activeTab);
+  }, [activeTab]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <main className="pt-24 pb-24">
+        <div className="container mx-auto px-4">
+          {/* Back Button */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Link to="/">
+              <Button variant="ghost" size="sm" className="mb-6 -ml-2">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to home
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Page Header */}
+          <motion.div
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <h1 className="text-3xl md:text-4xl font-serif font-medium text-foreground">
+              My Trips
+            </h1>
+            <Link to="/new-trip-planner">
+              <Button variant="hero" className="w-full sm:w-auto">
+                <Plus className="mr-2 h-4 w-4" />
+                New Trip
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Status Tabs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="all" className="flex-1 sm:flex-none">
+                  All
+                </TabsTrigger>
+                <TabsTrigger value="upcoming" className="flex-1 sm:flex-none">
+                  Upcoming
+                </TabsTrigger>
+                <TabsTrigger value="past" className="flex-1 sm:flex-none">
+                  Past
+                </TabsTrigger>
+                <TabsTrigger value="drafts" className="flex-1 sm:flex-none">
+                  Drafts
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </motion.div>
+
+          {/* Trip Grid */}
+          <div className="mt-8">
+            <AnimatePresence mode="wait">
+              {filteredTrips.length > 0 ? (
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  {filteredTrips.map((trip, index) => (
+                    <TripCard key={trip.id} trip={trip} index={index} />
+                  ))}
+                </motion.div>
+              ) : (
+                <EmptyTripsState tab={activeTab} />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,14 +107,18 @@ export function Header() {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="gap-3 py-3">
-                    <Plus className="h-4 w-4" />
-                    <span>New Trip</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-3 py-3">
-                    <MapPin className="h-4 w-4" />
-                    <span>My Trips</span>
-                  </DropdownMenuItem>
+                  <Link to="/new-trip-planner">
+                    <DropdownMenuItem className="gap-3 py-3">
+                      <Plus className="h-4 w-4" />
+                      <span>New Trip</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to="/my-trips">
+                    <DropdownMenuItem className="gap-3 py-3">
+                      <MapPin className="h-4 w-4" />
+                      <span>My Trips</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem className="gap-3 py-3">
                     <Crown className="h-4 w-4" />
                     <span>Manage Subscription</span>
@@ -153,10 +158,12 @@ export function Header() {
                     <LogIn className="h-4 w-4" />
                     <span>Login</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-3 py-3">
-                    <Plus className="h-4 w-4" />
-                    <span>New Trip</span>
-                  </DropdownMenuItem>
+                  <Link to="/new-trip-planner">
+                    <DropdownMenuItem className="gap-3 py-3">
+                      <Plus className="h-4 w-4" />
+                      <span>New Trip</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="gap-3 py-3">
                     <HelpCircle className="h-4 w-4" />
