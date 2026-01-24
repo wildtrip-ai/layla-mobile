@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, MapPin, ChevronDown, ExternalLink, Check, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, ChevronDown, ExternalLink, Check, Calendar, Star, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -25,8 +25,228 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Header } from "@/components/Header";
+import { ImageGallery, type GalleryImage } from "@/components/trip/ImageGallery";
 import { sampleTrip } from "@/data/tripData";
+import activityRainbowStreet from "@/assets/activity-rainbow-street.jpg";
+import activityCitadel from "@/assets/activity-citadel.jpg";
+import activityRomanTheater from "@/assets/activity-roman-theater.jpg";
+import tripAmman from "@/assets/trip-amman.jpg";
+import destinationJordan from "@/assets/destination-jordan.jpg";
 import type L from "leaflet";
+
+// Guest review interface
+interface ActivityReview {
+  id: string;
+  author: string;
+  avatar: string;
+  country: string;
+  date: string;
+  rating: number;
+  title: string;
+  content: string;
+  positives?: string;
+  negatives?: string;
+  visitType: string;
+}
+
+// Reviews data for activities
+const activityReviews: Record<string, { rating: number; totalReviews: number; breakdown: Record<string, number>; reviews: ActivityReview[] }> = {
+  "d1-1": {
+    rating: 4.6,
+    totalReviews: 2847,
+    breakdown: {
+      "Atmosphere": 4.8,
+      "Food & Drinks": 4.5,
+      "Value": 4.4,
+      "Accessibility": 4.3,
+      "Safety": 4.7,
+    },
+    reviews: [
+      {
+        id: "r1",
+        author: "Emma T.",
+        avatar: "E",
+        country: "Australia",
+        date: "January 2026",
+        rating: 5,
+        title: "Must-visit in Amman!",
+        content: "Rainbow Street has such a vibrant atmosphere. We loved walking around in the evening, trying different cafes and enjoying the views.",
+        positives: "Great cafes, beautiful views, friendly locals",
+        visitType: "Couple",
+      },
+      {
+        id: "r2",
+        author: "Mohammed A.",
+        avatar: "M",
+        country: "UAE",
+        date: "December 2025",
+        rating: 4,
+        title: "Charming street with great vibes",
+        content: "Perfect for an evening stroll. The street is lively with art galleries and restaurants. Parking can be difficult.",
+        positives: "Unique atmosphere, good restaurants",
+        negatives: "Limited parking, can get crowded on weekends",
+        visitType: "Family",
+      },
+      {
+        id: "r3",
+        author: "Sophie L.",
+        avatar: "S",
+        country: "France",
+        date: "November 2025",
+        rating: 5,
+        title: "Romantic evening spot",
+        content: "We spent a wonderful evening here during our honeymoon. The sunset views are incredible!",
+        positives: "Romantic ambiance, sunset views, diverse food options",
+        visitType: "Couple",
+      },
+    ],
+  },
+  "d2-2": {
+    rating: 4.8,
+    totalReviews: 5632,
+    breakdown: {
+      "Historical Value": 5.0,
+      "Views": 4.9,
+      "Accessibility": 4.5,
+      "Guides": 4.7,
+      "Value": 4.6,
+    },
+    reviews: [
+      {
+        id: "r1",
+        author: "David W.",
+        avatar: "D",
+        country: "United States",
+        date: "January 2026",
+        rating: 5,
+        title: "Breathtaking history and views",
+        content: "The Citadel offers an incredible glimpse into Jordan's rich history. The panoramic views of Amman are stunning!",
+        positives: "Amazing views, well-preserved ruins, knowledgeable guides available",
+        visitType: "Solo",
+      },
+      {
+        id: "r2",
+        author: "Fatima K.",
+        avatar: "F",
+        country: "Jordan",
+        date: "December 2025",
+        rating: 5,
+        title: "A must for history lovers",
+        content: "Every visitor to Amman should come here. The Temple of Hercules and Umayyad Palace are impressive.",
+        positives: "Rich history, great for photography",
+        negatives: "Can be hot in summer, bring water",
+        visitType: "Family",
+      },
+    ],
+  },
+  "d2-4": {
+    rating: 4.7,
+    totalReviews: 4218,
+    breakdown: {
+      "Historical Value": 4.9,
+      "Architecture": 4.8,
+      "Accessibility": 4.4,
+      "Experience": 4.7,
+      "Value": 4.5,
+    },
+    reviews: [
+      {
+        id: "r1",
+        author: "Marco R.",
+        avatar: "M",
+        country: "Italy",
+        date: "January 2026",
+        rating: 5,
+        title: "Magnificent Roman architecture",
+        content: "As an Italian, I've seen many Roman theaters, but this one is special. The acoustics are amazing!",
+        positives: "Well-preserved, great acoustics, interesting museum nearby",
+        visitType: "Couple",
+      },
+      {
+        id: "r2",
+        author: "Chen W.",
+        avatar: "C",
+        country: "China",
+        date: "December 2025",
+        rating: 4,
+        title: "Impressive ancient theater",
+        content: "Climbing to the top seats gives you a great view of downtown Amman. Very photogenic location.",
+        positives: "Great views, historical significance",
+        negatives: "Steep stairs can be challenging",
+        visitType: "Group",
+      },
+    ],
+  },
+};
+
+// Default reviews for activities without specific data
+const defaultReviews: typeof activityReviews["d1-1"] = {
+  rating: 4.5,
+  totalReviews: 1250,
+  breakdown: {
+    "Experience": 4.6,
+    "Value": 4.4,
+    "Location": 4.5,
+    "Service": 4.4,
+  },
+  reviews: [
+    {
+      id: "r1",
+      author: "Alex M.",
+      avatar: "A",
+      country: "United Kingdom",
+      date: "January 2026",
+      rating: 5,
+      title: "Wonderful experience",
+      content: "Had an amazing time here. Highly recommend for anyone visiting Jordan!",
+      positives: "Great atmosphere, friendly staff",
+      visitType: "Couple",
+    },
+  ],
+};
+
+// Gallery images for activities
+const activityGalleryImages: Record<string, GalleryImage[]> = {
+  "d1-1": [
+    { src: activityRainbowStreet, title: "Rainbow Street Evening", location: "Jabal Amman" },
+    { src: tripAmman, title: "Street Cafes", location: "Rainbow Street" },
+    { src: activityCitadel, title: "City Views", location: "Rainbow Street" },
+    { src: destinationJordan, title: "Local Art Gallery", location: "Rainbow Street" },
+  ],
+  "d1-2": [
+    { src: activityRainbowStreet, title: "Restaurant Terrace", location: "Fakhreldin" },
+    { src: tripAmman, title: "Fine Dining Interior", location: "Fakhreldin Restaurant" },
+    { src: destinationJordan, title: "Traditional Mezze", location: "Fakhreldin" },
+  ],
+  "d2-1": [
+    { src: tripAmman, title: "Walking Tour Start", location: "Downtown Amman" },
+    { src: activityRainbowStreet, title: "Street Food Tasting", location: "Downtown Amman" },
+    { src: activityCitadel, title: "Hidden Alleyways", location: "Old Amman" },
+    { src: destinationJordan, title: "Local Markets", location: "Downtown Souks" },
+  ],
+  "d2-2": [
+    { src: activityCitadel, title: "Temple of Hercules", location: "Amman Citadel" },
+    { src: tripAmman, title: "Panoramic City Views", location: "Citadel Hill" },
+    { src: activityRomanTheater, title: "Umayyad Palace", location: "Amman Citadel" },
+    { src: destinationJordan, title: "Archaeological Ruins", location: "Amman Citadel" },
+  ],
+  "d2-3": [
+    { src: activityCitadel, title: "Museum Entrance", location: "Jordan Archaeological Museum" },
+    { src: tripAmman, title: "Ancient Artifacts", location: "Archaeological Museum" },
+    { src: destinationJordan, title: "Historical Exhibits", location: "Archaeological Museum" },
+  ],
+  "d2-4": [
+    { src: activityRomanTheater, title: "Roman Theater View", location: "Downtown Amman" },
+    { src: tripAmman, title: "Theater Seating", location: "Roman Theater" },
+    { src: activityCitadel, title: "Hashemite Plaza", location: "Roman Theater" },
+    { src: destinationJordan, title: "Evening at the Theater", location: "Roman Theater" },
+  ],
+  "d2-5": [
+    { src: activityRainbowStreet, title: "Restaurant Exterior", location: "Hashem Restaurant" },
+    { src: tripAmman, title: "Famous Falafel", location: "Hashem Restaurant" },
+    { src: destinationJordan, title: "Fresh Hummus", location: "Hashem Restaurant" },
+  ],
+};
 
 // Extended activity details with descriptions, coordinates, and FAQs
 const activityDetails: Record<string, {
@@ -114,6 +334,14 @@ const activityDetails: Record<string, {
   },
 };
 
+function getRatingLabel(rating: number): string {
+  if (rating >= 4.5) return "Excellent";
+  if (rating >= 4.0) return "Very Good";
+  if (rating >= 3.5) return "Good";
+  if (rating >= 3.0) return "Average";
+  return "Fair";
+}
+
 export default function ActivityDetails() {
   const { id: tripId, activityId } = useParams<{ id: string; activityId: string }>();
   const navigate = useNavigate();
@@ -133,6 +361,16 @@ export default function ActivityDetails() {
 
   // Get extended details for this activity
   const details = activityId ? activityDetails[activityId] : null;
+
+  // Get reviews for this activity
+  const reviews = activityId && activityReviews[activityId] 
+    ? activityReviews[activityId] 
+    : defaultReviews;
+
+  // Get gallery images for this activity
+  const galleryImages = activityId && activityGalleryImages[activityId]
+    ? activityGalleryImages[activityId]
+    : [];
 
   // Initialize Leaflet map
   useEffect(() => {
@@ -254,9 +492,20 @@ export default function ActivityDetails() {
           <Badge variant="secondary" className="mb-3 text-xs font-semibold tracking-wider">
             {activityTypeLabel}
           </Badge>
-          <h1 className="text-3xl md:text-4xl font-serif text-foreground">
+          <h1 className="text-3xl md:text-4xl font-serif text-foreground mb-2">
             {activity.title}
           </h1>
+          
+          {/* Rating summary */}
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+              <span className="font-medium text-foreground">{reviews.rating}</span>
+            </div>
+            <span className="text-muted-foreground">
+              {getRatingLabel(reviews.rating)} • {reviews.totalReviews.toLocaleString()} reviews
+            </span>
+          </div>
         </motion.div>
 
         {/* Hero Image */}
@@ -275,6 +524,19 @@ export default function ActivityDetails() {
           </motion.div>
         )}
 
+        {/* Photo Gallery */}
+        {galleryImages.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mb-8"
+          >
+            <h2 className="text-xl font-semibold text-foreground mb-4">Photos</h2>
+            <ImageGallery images={galleryImages} />
+          </motion.section>
+        )}
+
         {/* Overview Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -286,6 +548,97 @@ export default function ActivityDetails() {
           <p className="text-muted-foreground leading-relaxed">
             {details?.description || `Discover ${activity.title}, a must-visit destination in your Jordan honeymoon itinerary.`}
           </p>
+        </motion.section>
+
+        {/* Guest Reviews Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">Visitor Reviews</h2>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                <span className="font-bold text-foreground">{reviews.rating}</span>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                ({reviews.totalReviews.toLocaleString()} reviews)
+              </span>
+            </div>
+          </div>
+
+          {/* Ratings Breakdown */}
+          <div className="bg-card rounded-xl border border-border p-4 md:p-6 mb-4">
+            <h3 className="text-sm font-medium text-foreground mb-4">Rating Breakdown</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {Object.entries(reviews.breakdown).map(([category, score]) => (
+                <div key={category} className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-muted-foreground">{category}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber-400 rounded-full"
+                        style={{ width: `${(score / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-foreground w-6">{score}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Individual Reviews */}
+          <div className="space-y-4">
+            {reviews.reviews.map((review) => (
+              <div key={review.id} className="bg-card rounded-xl border border-border p-4 md:p-5">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
+                      {review.avatar}
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{review.author}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {review.country} • {review.visitType} • {review.date}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-foreground">{review.rating}</span>
+                  </div>
+                </div>
+
+                <h4 className="font-medium text-foreground mb-2">{review.title}</h4>
+                <p className="text-sm text-muted-foreground mb-3">{review.content}</p>
+
+                {(review.positives || review.negatives) && (
+                  <div className="space-y-2">
+                    {review.positives && (
+                      <div className="flex items-start gap-2">
+                        <ThumbsUp className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                        <p className="text-sm text-muted-foreground">{review.positives}</p>
+                      </div>
+                    )}
+                    {review.negatives && (
+                      <div className="flex items-start gap-2">
+                        <ThumbsDown className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                        <p className="text-sm text-muted-foreground">{review.negatives}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <Button variant="outline" className="w-full mt-4">
+            See All {reviews.totalReviews.toLocaleString()} Reviews
+          </Button>
         </motion.section>
 
         {/* FAQ Section */}
