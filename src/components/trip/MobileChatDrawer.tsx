@@ -15,12 +15,14 @@ interface MobileChatDrawerProps {
   initialMessage?: string | null;
   mode?: string | null;
   onTripGenerated?: (trip: TripData) => void;
+  onGeneratingChange?: (isGenerating: boolean) => void;
 }
 
 export function MobileChatDrawer({
   initialMessage,
   mode,
   onTripGenerated,
+  onGeneratingChange,
 }: MobileChatDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,6 +30,10 @@ export function MobileChatDrawer({
     onTripGenerated?.(trip);
     // Optionally close drawer after trip is generated
     setTimeout(() => setIsOpen(false), 1000);
+  };
+
+  const handleGeneratingChange = (generating: boolean) => {
+    onGeneratingChange?.(generating);
   };
 
   return (
@@ -61,6 +67,7 @@ export function MobileChatDrawer({
               initialMessage={initialMessage}
               mode={mode}
               onTripGenerated={handleTripGenerated}
+              onGeneratingChange={handleGeneratingChange}
             />
           </div>
         </DrawerContent>
@@ -145,9 +152,10 @@ interface MobileNewTripSidebarProps {
   initialMessage?: string | null;
   mode?: string | null;
   onTripGenerated?: (trip: TripData) => void;
+  onGeneratingChange?: (isGenerating: boolean) => void;
 }
 
-function MobileNewTripSidebar({ initialMessage, mode, onTripGenerated }: MobileNewTripSidebarProps) {
+function MobileNewTripSidebar({ initialMessage, mode, onTripGenerated, onGeneratingChange }: MobileNewTripSidebarProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -166,6 +174,12 @@ function MobileNewTripSidebar({ initialMessage, mode, onTripGenerated }: MobileN
   const startTypingAnimation = useCallback((fullResponse: string, shouldGenerateTrip: boolean) => {
     setIsTyping(true);
     setDisplayedResponse("");
+    
+    // Notify parent that we're generating a trip (show skeleton)
+    if (shouldGenerateTrip) {
+      onGeneratingChange?.(true);
+    }
+    
     let currentIndex = 0;
     
     const typeInterval = setInterval(() => {
@@ -183,15 +197,17 @@ function MobileNewTripSidebar({ initialMessage, mode, onTripGenerated }: MobileN
         setDisplayedResponse("");
         
         if (shouldGenerateTrip && onTripGenerated) {
+          // Add a delay to show the skeleton animation before showing the result
           setTimeout(() => {
+            onGeneratingChange?.(false);
             onTripGenerated(sampleTrip);
-          }, 500);
+          }, 1500);
         }
       }
     }, 15);
     
     return () => clearInterval(typeInterval);
-  }, [onTripGenerated]);
+  }, [onTripGenerated, onGeneratingChange]);
 
   const handleSendMessage = useCallback((text: string) => {
     if (!text.trim()) return;

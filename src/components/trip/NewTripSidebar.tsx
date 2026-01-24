@@ -15,6 +15,7 @@ interface NewTripSidebarProps {
   initialMessage?: string | null;
   mode?: string | null;
   onTripGenerated?: (trip: TripData) => void;
+  onGeneratingChange?: (isGenerating: boolean) => void;
 }
 
 // Mock responses based on user input
@@ -77,7 +78,7 @@ const quickSuggestions = [
   { emoji: "🍷", label: "Food & wine tour" },
 ];
 
-export function NewTripSidebar({ initialMessage, mode, onTripGenerated }: NewTripSidebarProps) {
+export function NewTripSidebar({ initialMessage, mode, onTripGenerated, onGeneratingChange }: NewTripSidebarProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -96,6 +97,12 @@ export function NewTripSidebar({ initialMessage, mode, onTripGenerated }: NewTri
   const startTypingAnimation = useCallback((fullResponse: string, shouldGenerateTrip: boolean) => {
     setIsTyping(true);
     setDisplayedResponse("");
+    
+    // Notify parent that we're generating a trip (show skeleton)
+    if (shouldGenerateTrip) {
+      onGeneratingChange?.(true);
+    }
+    
     let currentIndex = 0;
     
     const typeInterval = setInterval(() => {
@@ -113,15 +120,17 @@ export function NewTripSidebar({ initialMessage, mode, onTripGenerated }: NewTri
         setDisplayedResponse("");
         
         if (shouldGenerateTrip && onTripGenerated) {
+          // Add a delay to show the skeleton animation before showing the result
           setTimeout(() => {
+            onGeneratingChange?.(false);
             onTripGenerated(sampleTrip);
-          }, 500);
+          }, 1500);
         }
       }
     }, 15);
     
     return () => clearInterval(typeInterval);
-  }, [onTripGenerated]);
+  }, [onTripGenerated, onGeneratingChange]);
 
   const handleSendMessage = useCallback((text: string) => {
     if (!text.trim()) return;
