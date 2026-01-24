@@ -693,42 +693,53 @@ export default function ActivityDetails() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-40"
+        className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-40 safe-area-inset-bottom"
       >
-        <div className="container mx-auto px-4 py-4 max-w-4xl flex items-center justify-between gap-4">
-          {/* Date */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>{dayPlan?.date}, {dayPlan?.dayOfWeek}</span>
-          </div>
+        <div className="container mx-auto px-4 py-3 md:py-4 max-w-4xl">
+          {/* Mobile: Stack vertically, Desktop: Row */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+            {/* Date Badge - More prominent on mobile */}
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 bg-secondary/60 rounded-full px-3 py-1.5">
+                <Calendar className="h-4 w-4 text-primary" />
+                <span className="font-medium text-foreground">{dayPlan?.date}</span>
+                <span className="text-muted-foreground">{dayPlan?.dayOfWeek}</span>
+              </div>
+            </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  {isAddedToTrip ? (
-                    <>
-                      <Check className="h-4 w-4 text-green-600" />
-                      Added to Trip
-                    </>
-                  ) : (
-                    "Add to Trip"
-                  )}
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsAddedToTrip(!isAddedToTrip)}>
-                  {isAddedToTrip ? "Remove from Trip" : "Add to Trip"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Actions - Full width buttons on mobile */}
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 md:flex-none gap-2 h-11 md:h-10 rounded-xl md:rounded-lg"
+                  >
+                    {isAddedToTrip ? (
+                      <>
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="hidden sm:inline">Added to Trip</span>
+                        <span className="sm:hidden">Added</span>
+                      </>
+                    ) : (
+                      <span>Add to Trip</span>
+                    )}
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsAddedToTrip(!isAddedToTrip)}>
+                    {isAddedToTrip ? "Remove from Trip" : "Add to Trip"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            <Button className="gap-2">
-              Explore Options
-              <ExternalLink className="h-4 w-4" />
-            </Button>
+              <Button className="flex-1 md:flex-none gap-2 h-11 md:h-10 rounded-xl md:rounded-lg">
+                <span className="hidden sm:inline">Explore Options</span>
+                <span className="sm:hidden">Explore</span>
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>
