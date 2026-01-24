@@ -573,19 +573,17 @@ export default function ActivityDetails() {
           {/* Ratings Breakdown */}
           <div className="bg-card rounded-xl border border-border p-4 md:p-6 mb-4">
             <h3 className="text-sm font-medium text-foreground mb-4">Rating Breakdown</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-3">
               {Object.entries(reviews.breakdown).map(([category, score]) => (
-                <div key={category} className="flex items-center justify-between gap-2">
-                  <span className="text-sm text-muted-foreground">{category}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-amber-400 rounded-full"
-                        style={{ width: `${(score / 5) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-foreground w-6">{score}</span>
+                <div key={category} className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground w-24 shrink-0">{category}</span>
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-amber-400 rounded-full"
+                      style={{ width: `${(score / 5) * 100}%` }}
+                    />
                   </div>
+                  <span className="text-sm font-medium text-foreground w-6 text-right">{score}</span>
                 </div>
               ))}
             </div>
