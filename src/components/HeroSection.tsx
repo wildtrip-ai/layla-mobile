@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Mic, Send } from "lucide-react";
@@ -6,6 +7,7 @@ import heroImage from "@/assets/hero-japan.jpg";
 
 export function HeroSection() {
   const [tripQuery, setTripQuery] = useState("");
+  const navigate = useNavigate();
   const sectionRef = useRef(null);
   
   const { scrollYProgress } = useScroll({
@@ -82,7 +84,18 @@ export function HeroSection() {
                     <Mic className="h-5 w-5" />
                   </motion.button>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="hero" size="lg" className="gap-2">
+                    <Button 
+                      variant="hero" 
+                      size="lg" 
+                      className="gap-2"
+                      onClick={() => {
+                        if (tripQuery.trim()) {
+                          navigate(`/new-trip-planner?message=${encodeURIComponent(tripQuery)}`);
+                        } else {
+                          navigate("/new-trip-planner");
+                        }
+                      }}
+                    >
                       <Send className="h-4 w-4" />
                       Plan my trip
                     </Button>
@@ -100,12 +113,20 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="hero-outline" size="default">
+              <Button 
+                variant="hero-outline" 
+                size="default"
+                onClick={() => navigate("/new-trip-planner")}
+              >
                 Create a new trip
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="hero-outline" size="default">
+              <Button 
+                variant="hero-outline" 
+                size="default"
+                onClick={() => navigate("/new-trip-planner?mode=inspire")}
+              >
                 Inspire me where to go
               </Button>
             </motion.div>
