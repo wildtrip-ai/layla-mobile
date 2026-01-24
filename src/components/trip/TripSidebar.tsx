@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Mic, Send, Calendar, Undo2 } from "lucide-react";
+import { Mic, Send, Undo2, Sparkles } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 interface ChatMessage {
@@ -189,177 +189,172 @@ export function TripSidebar({ onRemoveFlights, onAddCity, onApplyBudgetChanges, 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-card rounded-2xl border border-border p-6 sticky top-24 flex flex-col h-[calc(100vh-120px)]"
+      className="bg-card rounded-2xl border border-border shadow-lg h-[calc(100vh-180px)] sticky top-24 flex flex-col overflow-hidden"
     >
-      {/* AI Avatar & Intro - Always visible */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl">🌍</span>
-          <h2 className="text-xl font-serif text-foreground">
-            Hey, I'm Voyager, your AI trip planner.
-          </h2>
+      {/* Header */}
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground text-sm">Voyager</h3>
+            <p className="text-xs text-muted-foreground">AI Trip Planner</p>
+          </div>
         </div>
-        {!hasMessages && (
-          <>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-              This is a sample trip — I can add cities, find flights, activities, and local tips.
-            </p>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Tell me your style and budget, and I'll design a trip just for you.
-            </p>
-          </>
+        {canUndo && (
+          <button 
+            type="button"
+            onClick={handleUndo}
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary"
+            title="Undo last change"
+          >
+            <Undo2 className="h-4 w-4" />
+          </button>
         )}
       </div>
 
-      {/* Chat Messages Area */}
-      {hasMessages && (
-        <div className="flex-1 overflow-y-auto mb-4 space-y-3 min-h-0 max-h-64 scrollbar-hide">
-          <AnimatePresence>
-            {messages.map((msg, msgIndex) => (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-2"
-              >
-                <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-foreground"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                  </div>
-                </div>
-                
-                {/* Show chips after assistant message if it's the last message */}
-                {msg.role === "assistant" && msg.chips && msgIndex === messages.length - 1 && !isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.2 }}
-                    className="flex flex-wrap gap-2 pl-1"
-                  >
-                    {msg.chips.map((chip, chipIndex) => (
-                      <motion.button
-                        key={chipIndex}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.2, delay: 0.3 + chipIndex * 0.1 }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSendMessage(chip.label)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-background hover:bg-secondary hover:border-primary/30 transition-colors text-sm"
-                      >
-                        <span>{chip.emoji}</span>
-                        <span className="text-foreground">{chip.label}</span>
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Intro Message */}
+        {!hasMessages && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <div className="bg-secondary/50 rounded-2xl rounded-tl-md p-4">
+              <p className="text-foreground text-sm leading-relaxed">
+                👋 Hi there! I can help modify your trip — add cities, find cheaper options, remove flights, and more. Just ask!
+              </p>
+            </div>
+          </motion.div>
+        )}
 
-          {/* Typing indicator / Live response */}
-          {isTyping && (
+        {/* Message History */}
+        <AnimatePresence mode="popLayout">
+          {messages.map((msg, msgIndex) => (
             <motion.div
+              key={msg.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-2"
             >
-              <div className="max-w-[90%] rounded-xl px-3 py-2 text-sm bg-secondary text-foreground">
-                {displayedResponse ? (
-                  <p className="whitespace-pre-wrap">{displayedResponse}<span className="animate-pulse">▊</span></p>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                )}
+              <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[85%] rounded-2xl p-3 text-sm ${
+                    msg.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-md"
+                      : "bg-secondary/50 text-foreground rounded-tl-md"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                </div>
               </div>
+              
+              {/* Show chips after assistant message if it's the last message */}
+              {msg.role === "assistant" && msg.chips && msgIndex === messages.length - 1 && !isTyping && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                  className="flex flex-wrap gap-2 pl-1"
+                >
+                  {msg.chips.map((chip, chipIndex) => (
+                    <motion.button
+                      key={chipIndex}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2, delay: 0.3 + chipIndex * 0.1 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleSendMessage(chip.label)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-background hover:bg-secondary hover:border-primary/30 transition-colors text-sm"
+                    >
+                      <span>{chip.emoji}</span>
+                      <span className="text-foreground">{chip.label}</span>
+                    </motion.button>
+                  ))}
+                </motion.div>
+              )}
             </motion.div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-      )}
-
-      {/* Quick Suggestions - Only show if no messages */}
-      {!hasMessages && (
-        <div className="space-y-2 mb-4">
-          {suggestions.map((suggestion, index) => (
-            <motion.button
-              key={index}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleSuggestionClick(suggestion.text)}
-              disabled={isTyping}
-              className="w-full text-left px-4 py-3 rounded-lg border border-border bg-background hover:bg-secondary transition-colors text-sm disabled:opacity-50"
-            >
-              <span className="mr-2">{suggestion.emoji}</span>
-              {suggestion.text}
-            </motion.button>
           ))}
+        </AnimatePresence>
+
+        {/* Typing Indicator */}
+        {isTyping && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-start"
+          >
+            <div className="max-w-[85%] bg-secondary/50 rounded-2xl rounded-tl-md p-3 text-sm">
+              {displayedResponse ? (
+                <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                  {displayedResponse}
+                  <span className="inline-block w-1.5 h-4 bg-primary/60 ml-0.5 animate-pulse" />
+                </p>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Suggestions */}
+      {!hasMessages && (
+        <div className="px-4 pb-3">
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion.text)}
+                disabled={isTyping}
+                className="text-xs px-3 py-1.5 bg-secondary/70 hover:bg-secondary text-foreground rounded-full transition-colors disabled:opacity-50"
+              >
+                {suggestion.emoji} {suggestion.text}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Chat Input */}
-      <div className="border-t border-border pt-4 mt-auto">
-        <form onSubmit={handleSubmit}>
-          <div className="bg-background rounded-xl border border-border p-3">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ask anything..."
-              disabled={isTyping}
-              className="w-full bg-transparent border-none focus:outline-none text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-50"
-            />
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex items-center gap-2">
-                <button 
-                  type="button"
-                  onClick={handleUndo}
-                  disabled={!canUndo}
-                  className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="Undo last change"
-                >
-                  <Undo2 className="h-4 w-4" />
-                </button>
-                <button 
-                  type="button"
-                  className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary"
-                >
-                  <Calendar className="h-4 w-4" />
-                </button>
-                <button 
-                  type="button"
-                  className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary"
-                >
-                  <Mic className="h-4 w-4" />
-                </button>
-              </div>
-              <Button 
-                type="submit" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg"
-                disabled={!message.trim() || isTyping}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </form>
-        <p className="text-xs text-muted-foreground text-center mt-3">
-          Instant replies, no wait time ⚡
-        </p>
-      </div>
+      {/* Input Area */}
+      <form onSubmit={handleSubmit} className="p-4 border-t border-border">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary"
+          >
+            <Mic className="h-5 w-5" />
+          </button>
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Ask anything..."
+            className="flex-1 bg-secondary/50 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            disabled={isTyping}
+          />
+          <Button
+            type="submit"
+            size="icon"
+            variant="hero"
+            className="rounded-full h-9 w-9"
+            disabled={!message.trim() || isTyping}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </form>
     </motion.div>
   );
 }
