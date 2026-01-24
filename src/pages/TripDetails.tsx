@@ -168,21 +168,6 @@ export default function TripDetails() {
 
       <main className="pt-20 pb-24">
         <div className="container mx-auto px-4">
-          {/* Back Button */}
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mb-6"
-          >
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to home
-              </Button>
-            </Link>
-          </motion.div>
-
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
             {/* Sidebar - Hidden on mobile */}
