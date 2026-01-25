@@ -19,6 +19,8 @@ import { getDestinationExtras, TransportOption, BudgetInfo, PackingCategory, Loc
 import { ImageGallery, GalleryImage } from "@/components/trip/ImageGallery";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareButton } from "@/components/ShareButton";
+import { TripCostCalculator } from "@/components/destination/TripCostCalculator";
+import { BestTimeCalendar } from "@/components/destination/BestTimeCalendar";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -1227,7 +1229,23 @@ export default function DestinationDetails() {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Trip Cost Calculator */}
               <FadeIn delay={0.2}>
+                <TripCostCalculator 
+                  budget={extras.budget} 
+                  destinationName={destination.name} 
+                />
+              </FadeIn>
+
+              {/* Best Time to Visit */}
+              <FadeIn delay={0.25}>
+                <BestTimeCalendar 
+                  weather={extendedData.weather} 
+                  destinationName={destination.name} 
+                />
+              </FadeIn>
+
+              <FadeIn delay={0.3}>
                 <div className="bg-card border border-border rounded-xl p-5 sticky top-24">
                   <h3 className="font-semibold text-foreground mb-4">Plan Your Trip</h3>
                   <p className="text-sm text-muted-foreground mb-4">
