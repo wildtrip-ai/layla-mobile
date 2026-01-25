@@ -1020,17 +1020,6 @@ export default function DestinationDetails() {
             transition={{ duration: 0.8 }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          
-          {/* Favorite Button */}
-          {countrySlug && destinationId && (
-            <FavoriteButton
-              category="destinations"
-              countrySlug={countrySlug}
-              itemId={destinationId}
-              itemName={destination.name}
-              className="absolute top-4 right-4 h-11 w-11 z-10"
-            />
-          )}
 
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
             <div className="container mx-auto">
@@ -1047,9 +1036,20 @@ export default function DestinationDetails() {
                     </Badge>
                   )}
                 </div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-                  {destination.name}
-                </h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
+                    {destination.name}
+                  </h1>
+                  {countrySlug && destinationId && (
+                    <FavoriteButton
+                      category="destinations"
+                      countrySlug={countrySlug}
+                      itemId={destinationId}
+                      itemName={destination.name}
+                      className="h-10 w-10 shrink-0"
+                    />
+                  )}
+                </div>
                 {destination.description && (
                   <p className="mt-2 text-lg text-muted-foreground max-w-2xl">
                     {destination.description}
