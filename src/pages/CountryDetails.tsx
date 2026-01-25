@@ -12,23 +12,35 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { FavoriteCategory } from "@/hooks/useFavorites";
 
 interface PlaceCardProps {
   place: CountryPlace;
   showRating?: boolean;
   href?: string;
+  countrySlug: string;
+  category: FavoriteCategory;
 }
 
-function PlaceCard({ place, showRating = true, href }: PlaceCardProps) {
+function PlaceCard({ place, showRating = true, href, countrySlug, category }: PlaceCardProps) {
   const cardContent = (
     <div className="group relative overflow-hidden rounded-xl bg-card border border-border shadow-sm hover:shadow-lg transition-shadow duration-300">
-      <div className="aspect-[4/3] overflow-hidden">
+      <div className="aspect-[4/3] overflow-hidden relative">
         <motion.img
           src={place.image}
           alt={place.name}
           className="w-full h-full object-cover"
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.4 }}
+        />
+        <FavoriteButton
+          category={category}
+          countrySlug={countrySlug}
+          itemId={place.id}
+          itemName={place.name}
+          size="sm"
+          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
         />
       </div>
       <div className="p-4">
@@ -76,9 +88,11 @@ interface CategorySectionProps {
   showViewAll?: boolean;
   gridCols?: string;
   getHref?: (place: CountryPlace) => string;
+  countrySlug: string;
+  category: FavoriteCategory;
 }
 
-function CategorySection({ title, icon, places, showViewAll = true, gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", getHref }: CategorySectionProps) {
+function CategorySection({ title, icon, places, showViewAll = true, gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", getHref, countrySlug, category }: CategorySectionProps) {
   return (
     <section className="mb-12">
       <FadeIn>
@@ -103,7 +117,12 @@ function CategorySection({ title, icon, places, showViewAll = true, gridCols = "
       <StaggerContainer className={`grid ${gridCols} gap-4 md:gap-6`} staggerDelay={0.05}>
         {places.map((place) => (
           <StaggerItem key={place.id}>
-            <PlaceCard place={place} href={getHref?.(place)} />
+            <PlaceCard 
+              place={place} 
+              href={getHref?.(place)} 
+              countrySlug={countrySlug}
+              category={category}
+            />
           </StaggerItem>
         ))}
       </StaggerContainer>
@@ -176,6 +195,8 @@ export default function CountryDetails() {
             icon={<MapPin className="h-5 w-5" />}
             places={country.destinations}
             getHref={(place) => `/country/${country.slug}/destination/${place.id}`}
+            countrySlug={country.slug}
+            category="destinations"
           />
 
           <CategorySection
@@ -183,36 +204,48 @@ export default function CountryDetails() {
             icon={<Building2 className="h-5 w-5" />}
             places={country.cities}
             gridCols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            countrySlug={country.slug}
+            category="cities"
           />
 
           <CategorySection
             title="Top Restaurants"
             icon={<UtensilsCrossed className="h-5 w-5" />}
             places={country.restaurants}
+            countrySlug={country.slug}
+            category="restaurants"
           />
 
           <CategorySection
             title="Popular Amenities"
             icon={<TreePine className="h-5 w-5" />}
             places={country.amenities}
+            countrySlug={country.slug}
+            category="amenities"
           />
 
           <CategorySection
             title="Museums"
             icon={<Palette className="h-5 w-5" />}
             places={country.museums}
+            countrySlug={country.slug}
+            category="museums"
           />
 
           <CategorySection
             title="Historical Sites"
             icon={<Landmark className="h-5 w-5" />}
             places={country.historicalSites}
+            countrySlug={country.slug}
+            category="historicalSites"
           />
 
           <CategorySection
             title="Natural Attractions"
             icon={<Mountain className="h-5 w-5" />}
             places={country.naturalAttractions}
+            countrySlug={country.slug}
+            category="naturalAttractions"
           />
         </div>
       </main>
