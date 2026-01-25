@@ -16,6 +16,7 @@ import Countries from "./pages/Countries";
 import CountryDetails from "./pages/CountryDetails";
 import DestinationDetails from "./pages/DestinationDetails";
 import MyFavorites from "./pages/MyFavorites";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/countries" element={<Countries />} />
           <Route path="/country/:slug" element={<CountryDetails />} />
           <Route path="/country/:countrySlug/destination/:destinationId" element={<DestinationDetails />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
