@@ -1,6 +1,6 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, ArrowRight, Building2, UtensilsCrossed, TreePine, Landmark, Mountain, Palette } from "lucide-react";
+import { Star, ArrowRight, Building2, UtensilsCrossed, TreePine, Landmark, Mountain, Palette, MapPin } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleOnHover } from "@/components/ui/scroll-animations";
@@ -155,6 +155,12 @@ export default function CountryDetails() {
           </FadeIn>
 
           {/* Categories */}
+          <CategorySection
+            title="Top Destinations"
+            icon={<MapPin className="h-5 w-5" />}
+            places={country.destinations}
+          />
+
           <CategorySection
             title="Popular Cities"
             icon={<Building2 className="h-5 w-5" />}
