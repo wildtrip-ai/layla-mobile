@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { X, Plane, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { BookingItemCard } from "@/components/booking/BookingItemCard";
 import { BookingStickyBar } from "@/components/booking/BookingStickyBar";
 import { useTripData } from "@/hooks/useTripData";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 
 // Booking URLs based on user requirements
 const SKYSCANNER_BASE = "https://www.skyscanner.net/transport/flights";
@@ -28,7 +29,7 @@ interface RemovedItems {
 
 export default function BookingReview() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const { localizedPath } = useLanguage();
   const { tripData } = useTripData();
   const { toast } = useToast();
 
@@ -68,6 +69,10 @@ export default function BookingReview() {
     filteredTransports.filter(t => t.type === "flight"),
     [filteredTransports]
   );
+
+  const handleClose = () => {
+    window.location.href = localizedPath(`/trip/${id}`);
+  };
 
   const handleRemoveTransport = (id: string) => {
     setRemovedItems(prev => ({
@@ -109,7 +114,7 @@ export default function BookingReview() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(`/trip/${id}`)}
+              onClick={handleClose}
               className="rounded-full"
             >
               <X className="h-5 w-5" />

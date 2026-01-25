@@ -1,9 +1,9 @@
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRecentlyViewed, RecentlyViewedItem } from "@/hooks/useRecentlyViewed";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animations";
+import { LocalizedLink } from "@/components/LocalizedLink";
 
 export function RecentlyViewedSection() {
   const { items, clearAll, hasItems } = useRecentlyViewed();
@@ -58,7 +58,7 @@ export function RecentlyViewedSection() {
 
 function RecentlyViewedCard({ item }: { item: RecentlyViewedItem }) {
   return (
-    <Link to={`/country/${item.countrySlug}/destination/${item.destinationId}`}>
+    <LocalizedLink to={`/country/${item.countrySlug}/destination/${item.destinationId}`}>
       <motion.div
         className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-card shadow-sm hover:shadow-lg transition-shadow"
         whileHover={{ y: -4 }}
@@ -86,6 +86,6 @@ function RecentlyViewedCard({ item }: { item: RecentlyViewedItem }) {
           </p>
         </div>
       </motion.div>
-    </Link>
+    </LocalizedLink>
   );
 }

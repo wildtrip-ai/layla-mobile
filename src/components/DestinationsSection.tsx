@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleOnHover } from "@/components/ui/scroll-animations";
+import { LocalizedLink } from "@/components/LocalizedLink";
 import italyImage from "@/assets/destination-italy.jpg";
 import jordanImage from "@/assets/destination-jordan.jpg";
 import irelandImage from "@/assets/destination-ireland.jpg";
@@ -42,7 +42,7 @@ export function DestinationsSection() {
           {destinations.map((destination) => (
             <StaggerItem key={destination.id}>
               <ScaleOnHover scale={1.02}>
-                <Link to={`/trip/${destination.slug}`} className="group cursor-pointer block">
+                <LocalizedLink to={`/trip/${destination.slug}`} className="group cursor-pointer block">
                   {/* Image */}
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
                     <motion.img
@@ -74,7 +74,7 @@ export function DestinationsSection() {
                     Start planning
                     <ArrowRight className="h-4 w-4" />
                   </motion.span>
-                </Link>
+                </LocalizedLink>
               </ScaleOnHover>
             </StaggerItem>
           ))}

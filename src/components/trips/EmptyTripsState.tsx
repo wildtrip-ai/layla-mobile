@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Compass, Clock, FileEdit, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LocalizedLink } from "@/components/LocalizedLink";
 
 interface EmptyTripsStateProps {
   tab: "all" | "upcoming" | "past" | "drafts";
@@ -74,12 +74,12 @@ export function EmptyTripsState({ tab }: EmptyTripsStateProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        <Link to="/new-trip-planner">
+        <LocalizedLink to="/new-trip-planner">
           <Button variant="hero" size="lg">
             <Plus className="mr-2 h-4 w-4" />
             Create New Trip
           </Button>
-        </Link>
+        </LocalizedLink>
       </motion.div>
     </motion.div>
   );
