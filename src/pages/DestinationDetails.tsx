@@ -1,6 +1,6 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass, Plane, Train, Bus, Ship, Wallet, Bed, UtensilsCrossed, Ticket } from "lucide-react";
+import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass, Plane, Train, Bus, Ship, Wallet, Bed, UtensilsCrossed, Ticket, Backpack, MessageCircle, Volume2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
-import { getDestinationExtras, TransportOption, BudgetInfo } from "@/data/destinationExtras";
+import { getDestinationExtras, TransportOption, BudgetInfo, PackingCategory, LocalPhrase } from "@/data/destinationExtras";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -902,6 +902,91 @@ function BudgetSection({ budget, destinationName }: { budget: BudgetInfo; destin
   );
 }
 
+// Packing List Section Component
+function PackingListSection({ packingList, destinationName, climate }: { packingList: PackingCategory[]; destinationName: string; climate: string }) {
+  const getCategoryIcon = (category: string) => {
+    if (category.toLowerCase().includes('beach') || category.toLowerCase().includes('swim')) return '🏖️';
+    if (category.toLowerCase().includes('hik') || category.toLowerCase().includes('adventure')) return '🥾';
+    if (category.toLowerCase().includes('evening') || category.toLowerCase().includes('night')) return '🌙';
+    if (category.toLowerCase().includes('temple') || category.toLowerCase().includes('culture')) return '🏛️';
+    if (category.toLowerCase().includes('wine') || category.toLowerCase().includes('food')) return '🍷';
+    if (category.toLowerCase().includes('dive') || category.toLowerCase().includes('snorkel')) return '🤿';
+    if (category.toLowerCase().includes('photo')) return '📸';
+    if (category.toLowerCase().includes('weather') || category.toLowerCase().includes('rain')) return '🌧️';
+    if (category.toLowerCase().includes('essential')) return '✅';
+    return '🎒';
+  };
+
+  return (
+    <FadeIn delay={0.35}>
+      <section>
+        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Backpack className="h-5 w-5 text-primary" />
+          Packing List
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Recommended items for {destinationName}'s {climate} climate
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {packingList.map((category, index) => (
+            <div key={index} className="bg-card border border-border rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">{getCategoryIcon(category.category)}</span>
+                <h3 className="font-medium text-foreground">{category.category}</h3>
+              </div>
+              <ul className="space-y-2">
+                {category.items.map((item, itemIndex) => (
+                  <li key={itemIndex} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    </FadeIn>
+  );
+}
+
+// Local Phrases Section Component
+function LocalPhrasesSection({ localPhrases }: { localPhrases: { language: string; phrases: LocalPhrase[] } }) {
+  return (
+    <FadeIn delay={0.4}>
+      <section>
+        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <MessageCircle className="h-5 w-5 text-primary" />
+          Local Phrases
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Useful {localPhrases.language} phrases for your trip
+        </p>
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="grid grid-cols-1 divide-y divide-border">
+            {localPhrases.phrases.map((phrase, index) => (
+              <div key={index} className="p-4 hover:bg-muted/50 transition-colors">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground text-lg">{phrase.phrase}</p>
+                    <p className="text-muted-foreground">{phrase.translation}</p>
+                  </div>
+                  {phrase.pronunciation && (
+                    <div className="flex items-center gap-1.5 text-sm text-primary bg-primary/10 px-2.5 py-1 rounded-full shrink-0">
+                      <Volume2 className="h-3.5 w-3.5" />
+                      <span className="italic">{phrase.pronunciation}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </FadeIn>
+  );
+}
+
 export default function DestinationDetails() {
   const { countrySlug, destinationId } = useParams<{ countrySlug: string; destinationId: string }>();
   
@@ -1068,6 +1153,12 @@ export default function DestinationDetails() {
 
               {/* Nearby Attractions */}
               <NearbyAttractionsSection attractions={extendedData.nearbyAttractions} />
+
+              {/* Packing List */}
+              <PackingListSection packingList={extras.packingList} destinationName={destination.name} climate={extendedData.weather.climate} />
+
+              {/* Local Phrases */}
+              <LocalPhrasesSection localPhrases={extras.localPhrases} />
 
               {/* Budget Estimate */}
               <BudgetSection budget={extras.budget} destinationName={destination.name} />

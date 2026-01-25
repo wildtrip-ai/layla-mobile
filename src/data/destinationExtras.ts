@@ -1,4 +1,4 @@
-// Transport and Budget data for destinations
+// Transport, Budget, Packing List, and Local Phrases data for destinations
 
 export interface TransportOption {
   type: "airport" | "train" | "bus" | "ferry";
@@ -15,9 +15,22 @@ export interface BudgetInfo {
   transportBudget: number;
 }
 
+export interface PackingCategory {
+  category: string;
+  items: string[];
+}
+
+export interface LocalPhrase {
+  phrase: string;
+  translation: string;
+  pronunciation?: string;
+}
+
 export interface DestinationExtras {
   transport: TransportOption[];
   budget: BudgetInfo;
+  packingList: PackingCategory[];
+  localPhrases: { language: string; phrases: LocalPhrase[] };
 }
 
 export const destinationExtras: Record<string, DestinationExtras> = {
@@ -35,6 +48,22 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 40, high: 100 },
       transportBudget: 15,
     },
+    packingList: [
+      { category: "Beach Essentials", items: ["Swimsuit", "Beach towel", "Sunscreen SPF 50+", "Sunglasses", "Flip flops"] },
+      { category: "Clothing", items: ["Light summer clothes", "Evening wear for restaurants", "Comfortable walking shoes", "Light cardigan"] },
+      { category: "Activities", items: ["Water shoes for rocky beaches", "Snorkeling gear", "Golf attire if playing", "Hiking boots for villages"] },
+    ],
+    localPhrases: {
+      language: "Spanish",
+      phrases: [
+        { phrase: "Hola", translation: "Hello", pronunciation: "OH-lah" },
+        { phrase: "Gracias", translation: "Thank you", pronunciation: "GRAH-see-ahs" },
+        { phrase: "¿Cuánto cuesta?", translation: "How much does it cost?", pronunciation: "KWAHN-toh KWES-tah" },
+        { phrase: "La cuenta, por favor", translation: "The bill, please", pronunciation: "lah KWEN-tah por fah-VOR" },
+        { phrase: "¿Dónde está la playa?", translation: "Where is the beach?", pronunciation: "DON-deh es-TAH lah PLAH-yah" },
+        { phrase: "Una cerveza, por favor", translation: "A beer, please", pronunciation: "OO-nah ser-VEH-sah por fah-VOR" },
+      ],
+    },
   },
   "ibiza": {
     transport: [
@@ -47,6 +76,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 35, mid: 70, high: 150 },
       activitiesBudget: { low: 30, mid: 80, high: 200 },
       transportBudget: 20,
+    },
+    packingList: [
+      { category: "Party Essentials", items: ["Stylish club outfits", "Comfortable dancing shoes", "Earplugs for clubs", "Portable phone charger"] },
+      { category: "Beach & Pool", items: ["Designer swimwear", "Beach cover-ups", "Waterproof bag", "Sunglasses"] },
+      { category: "Day Activities", items: ["Boat-friendly sandals", "Snorkeling gear", "Light linen clothes", "Wide-brim hat"] },
+    ],
+    localPhrases: {
+      language: "Spanish/Catalan",
+      phrases: [
+        { phrase: "Bon dia", translation: "Good morning (Catalan)", pronunciation: "bon DEE-ah" },
+        { phrase: "Gràcies", translation: "Thank you (Catalan)", pronunciation: "GRAH-see-es" },
+        { phrase: "¿A qué hora abre el club?", translation: "What time does the club open?", pronunciation: "ah keh OH-rah AH-breh el kloob" },
+        { phrase: "¿Dónde está la cala?", translation: "Where is the cove?", pronunciation: "DON-deh es-TAH lah KAH-lah" },
+        { phrase: "Una copa, por favor", translation: "A drink, please", pronunciation: "OO-nah KOH-pah por fah-VOR" },
+      ],
     },
   },
   "canary-islands": {
@@ -62,6 +106,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 35, high: 80 },
       transportBudget: 12,
     },
+    packingList: [
+      { category: "Year-Round Essentials", items: ["Light layers for varying microclimates", "Windbreaker", "Sunscreen", "Comfortable walking shoes"] },
+      { category: "Nature & Hiking", items: ["Sturdy hiking boots", "Backpack with hydration", "Warm fleece for Teide", "Camera for stargazing"] },
+      { category: "Beach", items: ["Swimsuit", "Beach sandals", "Reef-safe sunscreen", "Snorkeling gear"] },
+    ],
+    localPhrases: {
+      language: "Spanish",
+      phrases: [
+        { phrase: "¡Muyayo!", translation: "Cool!/Great! (Canarian slang)", pronunciation: "moo-YAH-yoh" },
+        { phrase: "Papas arrugadas", translation: "Wrinkled potatoes (local dish)", pronunciation: "PAH-pahs ah-roo-GAH-dahs" },
+        { phrase: "¿Hay guagua?", translation: "Is there a bus?", pronunciation: "eye GWAH-gwah" },
+        { phrase: "Un barraquito", translation: "A local coffee drink", pronunciation: "oon bah-rah-KEE-toh" },
+        { phrase: "¿Cómo llego al Teide?", translation: "How do I get to Teide?", pronunciation: "KOH-moh YEH-goh al TEY-deh" },
+      ],
+    },
   },
   "balearic-islands": {
     transport: [
@@ -75,6 +134,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 30, mid: 60, high: 120 },
       activitiesBudget: { low: 20, mid: 50, high: 120 },
       transportBudget: 18,
+    },
+    packingList: [
+      { category: "Island Hopping", items: ["Lightweight luggage", "Quick-dry clothing", "Multiple swimsuits", "Universal adapter"] },
+      { category: "Mallorca Mountains", items: ["Hiking boots", "Breathable layers", "Rain jacket", "Trekking poles"] },
+      { category: "Beach & Sea", items: ["Snorkeling set", "Waterproof phone case", "Beach shoes", "Reef-safe sunscreen"] },
+    ],
+    localPhrases: {
+      language: "Spanish/Catalan",
+      phrases: [
+        { phrase: "Bon dia", translation: "Good morning (Catalan)", pronunciation: "bon DEE-ah" },
+        { phrase: "Moltes gràcies", translation: "Thank you very much (Catalan)", pronunciation: "MOL-tes GRAH-see-es" },
+        { phrase: "On és la platja?", translation: "Where is the beach? (Catalan)", pronunciation: "on es la PLAH-jah" },
+        { phrase: "Ensaïmada", translation: "Local spiral pastry", pronunciation: "en-sigh-MAH-dah" },
+        { phrase: "Sobrassada", translation: "Cured sausage spread", pronunciation: "so-brah-SAH-dah" },
+      ],
     },
   },
   // Italy destinations
@@ -92,6 +166,22 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 20, mid: 50, high: 120 },
       transportBudget: 20,
     },
+    packingList: [
+      { category: "Coastal Essentials", items: ["Comfortable walking sandals", "Light sundresses/linen clothes", "Sunhat", "Seasickness pills for ferries"] },
+      { category: "Hiking", items: ["Sturdy hiking shoes for Path of Gods", "Backpack with water", "Trekking poles", "Light layers"] },
+      { category: "Evening", items: ["Smart casual attire", "Comfortable heels/nice shoes", "Light cardigan", "Small crossbody bag"] },
+    ],
+    localPhrases: {
+      language: "Italian",
+      phrases: [
+        { phrase: "Buongiorno", translation: "Good morning", pronunciation: "bwon-JOR-no" },
+        { phrase: "Grazie mille", translation: "Thank you very much", pronunciation: "GRAH-tsee-eh MEE-leh" },
+        { phrase: "Il conto, per favore", translation: "The bill, please", pronunciation: "eel KON-toh per fah-VOR-eh" },
+        { phrase: "Un limoncello, per favore", translation: "A limoncello, please", pronunciation: "oon lee-mon-CHEL-loh per fah-VOR-eh" },
+        { phrase: "Che bella vista!", translation: "What a beautiful view!", pronunciation: "keh BEL-lah VEE-stah" },
+        { phrase: "Dov'è il porto?", translation: "Where is the port?", pronunciation: "doh-VEH eel POR-toh" },
+      ],
+    },
   },
   "tuscany": {
     transport: [
@@ -106,6 +196,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 40, high: 100 },
       transportBudget: 15,
     },
+    packingList: [
+      { category: "Art & Culture", items: ["Comfortable museum shoes", "Light scarf for churches", "Small binoculars for frescoes", "Sketchbook"] },
+      { category: "Wine Country", items: ["Casual chic clothing", "Layers for cellar visits", "Camera", "Wine journal"] },
+      { category: "Countryside", items: ["Driving sunglasses", "Hiking shoes", "Picnic blanket", "Reusable water bottle"] },
+    ],
+    localPhrases: {
+      language: "Italian",
+      phrases: [
+        { phrase: "Salute!", translation: "Cheers!", pronunciation: "sah-LOO-teh" },
+        { phrase: "Un bicchiere di Chianti", translation: "A glass of Chianti", pronunciation: "oon beek-KYEH-reh dee kee-AHN-tee" },
+        { phrase: "Posso assaggiare?", translation: "Can I taste?", pronunciation: "POS-soh ahs-sahd-JAH-reh" },
+        { phrase: "È delizioso!", translation: "It's delicious!", pronunciation: "eh deh-lee-tsee-OH-zoh" },
+        { phrase: "Quanto costa l'ingresso?", translation: "How much is the entrance?", pronunciation: "KWAHN-toh KOS-tah leen-GRES-soh" },
+      ],
+    },
   },
   "sardinia": {
     transport: [
@@ -119,6 +224,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 30, mid: 55, high: 120 },
       activitiesBudget: { low: 20, mid: 45, high: 100 },
       transportBudget: 25,
+    },
+    packingList: [
+      { category: "Beach Paradise", items: ["Multiple swimsuits", "Beach umbrella (some beaches don't have rentals)", "Snorkeling gear", "Waterproof bag"] },
+      { category: "Exploration", items: ["4x4 friendly clothes", "Hiking sandals", "Binoculars", "Insect repellent"] },
+      { category: "Evening", items: ["Resort wear", "Light jacket for sea breezes", "Comfortable sandals", "Sun hat"] },
+    ],
+    localPhrases: {
+      language: "Italian/Sardinian",
+      phrases: [
+        { phrase: "Ajò!", translation: "Let's go! (Sardinian)", pronunciation: "ah-YOH" },
+        { phrase: "Porceddu", translation: "Roast suckling pig", pronunciation: "por-CHED-doo" },
+        { phrase: "Mirto", translation: "Local myrtle liqueur", pronunciation: "MEER-toh" },
+        { phrase: "Dov'è la spiaggia?", translation: "Where is the beach?", pronunciation: "doh-VEH lah spee-AHD-jah" },
+        { phrase: "Una bottiglia d'acqua", translation: "A bottle of water", pronunciation: "OO-nah bot-TEEL-yah DAHK-wah" },
+      ],
     },
   },
   "sicily": {
@@ -135,6 +255,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 35, high: 80 },
       transportBudget: 18,
     },
+    packingList: [
+      { category: "Volcano Ready", items: ["Sturdy hiking boots for Etna", "Warm layers for summit", "Dust mask", "Windproof jacket"] },
+      { category: "Historical Sites", items: ["Comfortable walking shoes", "Hat for sun protection", "Guidebook", "Binoculars"] },
+      { category: "Street Food", items: ["Wet wipes", "Small backpack", "Cash for markets", "Reusable water bottle"] },
+    ],
+    localPhrases: {
+      language: "Italian/Sicilian",
+      phrases: [
+        { phrase: "Minchia!", translation: "Wow! (Sicilian exclamation)", pronunciation: "MEEN-kyah" },
+        { phrase: "Arancino o arancina?", translation: "Rice ball (varies by region)", pronunciation: "ah-rahn-CHEE-noh / ah-rahn-CHEE-nah" },
+        { phrase: "Un cannolo, per favore", translation: "A cannoli, please", pronunciation: "oon kah-NOH-loh per fah-VOR-eh" },
+        { phrase: "Quanto costa il tour dell'Etna?", translation: "How much is the Etna tour?", pronunciation: "KWAHN-toh KOS-tah eel toor del-LET-nah" },
+        { phrase: "Che buono!", translation: "How delicious!", pronunciation: "keh BWOH-noh" },
+      ],
+    },
   },
   // Portugal destinations
   "algarve": {
@@ -150,6 +285,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 35, high: 80 },
       transportBudget: 12,
     },
+    packingList: [
+      { category: "Coastal Adventures", items: ["Kayaking clothes", "Water shoes for caves", "Dry bag", "GoPro or waterproof camera"] },
+      { category: "Beach", items: ["Sunscreen SPF 50", "Wide-brim hat", "Beach towel", "Reading material"] },
+      { category: "Cliff Walks", items: ["Hiking shoes", "Light layers", "Binoculars", "Sun protection"] },
+    ],
+    localPhrases: {
+      language: "Portuguese",
+      phrases: [
+        { phrase: "Bom dia", translation: "Good morning", pronunciation: "bom DEE-ah" },
+        { phrase: "Obrigado/Obrigada", translation: "Thank you (m/f)", pronunciation: "oh-bree-GAH-doo / oh-bree-GAH-dah" },
+        { phrase: "Uma cerveja, por favor", translation: "A beer, please", pronunciation: "OO-mah ser-VEH-zhah poor fah-VOR" },
+        { phrase: "Onde fica a praia?", translation: "Where is the beach?", pronunciation: "ON-deh FEE-kah ah PRAH-yah" },
+        { phrase: "Uma cataplana para dois", translation: "A cataplana for two", pronunciation: "OO-mah kah-tah-PLAH-nah PAH-rah doysh" },
+      ],
+    },
   },
   "madeira-dest": {
     transport: [
@@ -162,6 +312,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 20, mid: 40, high: 90 },
       activitiesBudget: { low: 15, mid: 35, high: 80 },
       transportBudget: 15,
+    },
+    packingList: [
+      { category: "Levada Hiking", items: ["Waterproof hiking boots", "Rain jacket", "Trekking poles", "Headlamp for tunnels"] },
+      { category: "Layers", items: ["Fleece jacket", "Windbreaker", "Long pants", "Moisture-wicking shirts"] },
+      { category: "Essentials", items: ["Daypack", "Reusable water bottle", "Camera", "First aid kit"] },
+    ],
+    localPhrases: {
+      language: "Portuguese",
+      phrases: [
+        { phrase: "Uma poncha, por favor", translation: "A poncha (local drink), please", pronunciation: "OO-mah PON-shah poor fah-VOR" },
+        { phrase: "Espetada", translation: "Beef skewers on laurel stick", pronunciation: "esh-peh-TAH-dah" },
+        { phrase: "Bolo do caco", translation: "Traditional bread", pronunciation: "BOH-loo doo KAH-koo" },
+        { phrase: "Onde começa a levada?", translation: "Where does the levada start?", pronunciation: "ON-deh koh-MEH-sah ah leh-VAH-dah" },
+        { phrase: "Que vista linda!", translation: "What a beautiful view!", pronunciation: "keh VEESH-tah LEEN-dah" },
+      ],
     },
   },
   "azores-dest": {
@@ -177,6 +342,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 20, mid: 50, high: 120 },
       transportBudget: 20,
     },
+    packingList: [
+      { category: "Weather Ready", items: ["Waterproof everything", "Multiple layers", "Quick-dry clothing", "Compact umbrella"] },
+      { category: "Adventure", items: ["Swimsuit for hot springs", "Hiking boots", "Whale watching binoculars", "Wetsuit for diving"] },
+      { category: "Photography", items: ["Camera with rain cover", "Extra batteries", "Tripod for waterfalls", "Lens cleaning kit"] },
+    ],
+    localPhrases: {
+      language: "Portuguese",
+      phrases: [
+        { phrase: "Cozido das Furnas", translation: "Volcanic-cooked stew", pronunciation: "koh-ZEE-doo dahsh FOOR-nahsh" },
+        { phrase: "Queijadas", translation: "Traditional cheese tarts", pronunciation: "kay-JAH-dahsh" },
+        { phrase: "Onde posso ver baleias?", translation: "Where can I see whales?", pronunciation: "ON-deh POS-soo vehr bah-LAY-ahsh" },
+        { phrase: "Uma bica, por favor", translation: "An espresso, please", pronunciation: "OO-mah BEE-kah poor fah-VOR" },
+        { phrase: "A que horas é a maré baixa?", translation: "What time is low tide?", pronunciation: "ah keh OH-rahsh eh ah mah-REH BIGH-shah" },
+      ],
+    },
   },
   "douro": {
     transport: [
@@ -190,6 +370,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 25, mid: 50, high: 100 },
       activitiesBudget: { low: 20, mid: 60, high: 150 },
       transportBudget: 15,
+    },
+    packingList: [
+      { category: "Wine Tasting", items: ["Smart casual attire", "Comfortable walking shoes", "Wine journal", "Camera"] },
+      { category: "River Cruise", items: ["Layers for boat", "Sunglasses", "Sunhat", "Light jacket for evenings"] },
+      { category: "Vineyards", items: ["Comfortable shoes for terraces", "Sun protection", "Small backpack", "Cash for small quintas"] },
+    ],
+    localPhrases: {
+      language: "Portuguese",
+      phrases: [
+        { phrase: "Um cálice de Porto", translation: "A glass of Port wine", pronunciation: "oom KAH-lee-seh deh POR-too" },
+        { phrase: "Quinta", translation: "Wine estate", pronunciation: "KEEN-tah" },
+        { phrase: "Vinho do Porto", translation: "Port wine", pronunciation: "VEEN-yoo doo POR-too" },
+        { phrase: "Posso provar?", translation: "Can I taste?", pronunciation: "POS-soo proo-VAR" },
+        { phrase: "Saúde!", translation: "Cheers!", pronunciation: "sah-OO-deh" },
+      ],
     },
   },
   // Indonesia destinations
@@ -205,6 +400,22 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 40, high: 100 },
       transportBudget: 10,
     },
+    packingList: [
+      { category: "Temple Visits", items: ["Sarong (or buy locally)", "Modest clothing covering shoulders/knees", "Sash for temples", "Comfortable walking shoes"] },
+      { category: "Tropical Climate", items: ["Light breathable clothes", "Rain jacket", "Insect repellent", "Sunscreen"] },
+      { category: "Adventures", items: ["Swimsuit", "Water shoes", "Reef-safe sunscreen", "Dry bag"] },
+    ],
+    localPhrases: {
+      language: "Indonesian/Balinese",
+      phrases: [
+        { phrase: "Terima kasih", translation: "Thank you", pronunciation: "teh-REE-mah KAH-see" },
+        { phrase: "Om Swastiastu", translation: "Balinese greeting", pronunciation: "om swas-tee-AHS-too" },
+        { phrase: "Berapa harganya?", translation: "How much is it?", pronunciation: "beh-RAH-pah har-GAH-nyah" },
+        { phrase: "Nasi goreng", translation: "Fried rice", pronunciation: "NAH-see go-RENG" },
+        { phrase: "Bintang, satu", translation: "One Bintang (beer)", pronunciation: "BEEN-tahng SAH-too" },
+        { phrase: "Di mana pantai?", translation: "Where is the beach?", pronunciation: "dee MAH-nah PAN-tai" },
+      ],
+    },
   },
   "raja-ampat-dest": {
     transport: [
@@ -217,6 +428,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 15, mid: 35, high: 80 },
       activitiesBudget: { low: 50, mid: 150, high: 400 },
       transportBudget: 30,
+    },
+    packingList: [
+      { category: "Diving Essentials", items: ["Dive certification card", "Own mask and snorkel", "Dive computer", "Reef-safe sunscreen"] },
+      { category: "Remote Location", items: ["First aid kit", "Medications", "Cash (no ATMs)", "Extra batteries"] },
+      { category: "Protection", items: ["Rash guard", "Water shoes", "Insect repellent", "Waterproof bags"] },
+    ],
+    localPhrases: {
+      language: "Indonesian/Papuan",
+      phrases: [
+        { phrase: "Selamat pagi", translation: "Good morning", pronunciation: "seh-LAH-maht PAH-gee" },
+        { phrase: "Tolong", translation: "Please/Help", pronunciation: "TOH-long" },
+        { phrase: "Bagus sekali!", translation: "Very beautiful!", pronunciation: "BAH-goos seh-KAH-lee" },
+        { phrase: "Saya mau menyelam", translation: "I want to dive", pronunciation: "SAH-yah mau men-yeh-LAHM" },
+        { phrase: "Di mana manta?", translation: "Where are the mantas?", pronunciation: "dee MAH-nah MAN-tah" },
+      ],
     },
   },
   "komodo-dest": {
@@ -231,6 +457,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 50, mid: 120, high: 300 },
       transportBudget: 25,
     },
+    packingList: [
+      { category: "Dragon Trekking", items: ["Closed-toe hiking shoes", "Long pants", "Walking stick provided", "Camera with zoom lens"] },
+      { category: "Island Hopping", items: ["Multiple swimsuits", "Snorkeling gear", "Reef-safe sunscreen", "Waterproof camera"] },
+      { category: "Boat Life", items: ["Motion sickness pills", "Quick-dry towel", "Dry bag", "Sunhat with strap"] },
+    ],
+    localPhrases: {
+      language: "Indonesian",
+      phrases: [
+        { phrase: "Hati-hati!", translation: "Be careful!", pronunciation: "HAH-tee HAH-tee" },
+        { phrase: "Komodo", translation: "Komodo dragon", pronunciation: "koh-MOH-doh" },
+        { phrase: "Pulau", translation: "Island", pronunciation: "poo-LAU" },
+        { phrase: "Saya ingin snorkeling", translation: "I want to snorkel", pronunciation: "SAH-yah EEN-geen SNOR-kel-ing" },
+        { phrase: "Kapan kita berangkat?", translation: "When do we leave?", pronunciation: "KAH-pan KEE-tah beh-RAHNG-kaht" },
+      ],
+    },
   },
   "lombok-dest": {
     transport: [
@@ -244,6 +485,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 8, mid: 20, high: 50 },
       activitiesBudget: { low: 20, mid: 50, high: 150 },
       transportBudget: 12,
+    },
+    packingList: [
+      { category: "Rinjani Trekking", items: ["Sturdy hiking boots", "Warm sleeping bag", "Headlamp", "Trekking poles"] },
+      { category: "Gili Islands", items: ["Swimsuit", "Reef shoes", "Snorkeling gear", "Underwater camera"] },
+      { category: "General", items: ["Light clothes", "Modest wear for villages", "Insect repellent", "Sunscreen"] },
+    ],
+    localPhrases: {
+      language: "Indonesian/Sasak",
+      phrases: [
+        { phrase: "Sugeng rawuh", translation: "Welcome (Sasak)", pronunciation: "SOO-geng RAH-woo" },
+        { phrase: "Gili", translation: "Small island", pronunciation: "GEE-lee" },
+        { phrase: "Pantai", translation: "Beach", pronunciation: "PAN-tai" },
+        { phrase: "Saya mau ke Rinjani", translation: "I want to go to Rinjani", pronunciation: "SAH-yah mau keh rin-JAH-nee" },
+        { phrase: "Enak!", translation: "Delicious!", pronunciation: "EH-nak" },
+      ],
     },
   },
   // Germany destinations
@@ -260,6 +516,22 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 35, high: 80 },
       transportBudget: 15,
     },
+    packingList: [
+      { category: "Alpine Adventures", items: ["Hiking boots", "Rain jacket", "Warm layers", "Trekking poles"] },
+      { category: "Castle Visits", items: ["Comfortable walking shoes", "Camera", "Light jacket", "Small backpack"] },
+      { category: "Beer Garden Ready", items: ["Casual comfortable clothes", "Light cardigan for evenings", "Cash for traditional venues", "Appetite for pretzels"] },
+    ],
+    localPhrases: {
+      language: "German/Bavarian",
+      phrases: [
+        { phrase: "Grüß Gott", translation: "Hello (Bavarian greeting)", pronunciation: "groos got" },
+        { phrase: "Ein Maß, bitte", translation: "One liter of beer, please", pronunciation: "ayn mahs BIT-teh" },
+        { phrase: "Prost!", translation: "Cheers!", pronunciation: "prohst" },
+        { phrase: "Danke schön", translation: "Thank you very much", pronunciation: "DAHN-keh shurn" },
+        { phrase: "Wo ist das Schloss?", translation: "Where is the castle?", pronunciation: "voh ist dahs shloss" },
+        { phrase: "Die Rechnung, bitte", translation: "The bill, please", pronunciation: "dee REKH-noong BIT-teh" },
+      ],
+    },
   },
   "black-forest-dest": {
     transport: [
@@ -273,6 +545,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       foodBudget: { low: 22, mid: 45, high: 90 },
       activitiesBudget: { low: 12, mid: 30, high: 70 },
       transportBudget: 15,
+    },
+    packingList: [
+      { category: "Forest Hiking", items: ["Waterproof hiking boots", "Rain gear", "Layered clothing", "Trail map or GPS"] },
+      { category: "Spa & Wellness", items: ["Swimsuit", "Flip flops", "Robe (or rent)", "Reading material"] },
+      { category: "Photography", items: ["Camera with good low-light", "Tripod for waterfalls", "Extra batteries", "Weather protection"] },
+    ],
+    localPhrases: {
+      language: "German/Alemannic",
+      phrases: [
+        { phrase: "Guten Tag", translation: "Good day", pronunciation: "GOO-ten tahk" },
+        { phrase: "Schwarzwälder Kirschtorte", translation: "Black Forest cake", pronunciation: "SHVARTS-vel-der KIRSH-tor-teh" },
+        { phrase: "Ein Stück Kuchen, bitte", translation: "A piece of cake, please", pronunciation: "ayn shtook KOO-khen BIT-teh" },
+        { phrase: "Wo beginnt der Wanderweg?", translation: "Where does the hiking trail start?", pronunciation: "voh beh-GINNT dehr VAN-der-vehk" },
+        { phrase: "Kuckucksuhr", translation: "Cuckoo clock", pronunciation: "KOO-kooks-oor" },
+      ],
     },
   },
   "rhine-dest": {
@@ -289,6 +576,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 15, mid: 40, high: 100 },
       transportBudget: 18,
     },
+    packingList: [
+      { category: "River Cruise", items: ["Smart casual attire", "Comfortable deck shoes", "Binoculars", "Light jacket for breezes"] },
+      { category: "Castle Exploration", items: ["Comfortable walking shoes", "Camera with zoom lens", "Small backpack", "Layers"] },
+      { category: "Wine Tasting", items: ["Comfortable clothes", "Wine journal", "Cash for small wineries", "Light cardigan"] },
+    ],
+    localPhrases: {
+      language: "German",
+      phrases: [
+        { phrase: "Ein Glas Riesling, bitte", translation: "A glass of Riesling, please", pronunciation: "ayn glahs REES-ling BIT-teh" },
+        { phrase: "Welches Weingut empfehlen Sie?", translation: "Which winery do you recommend?", pronunciation: "VEL-khes VINE-goot emp-FEH-len zee" },
+        { phrase: "Wo ist die Burg?", translation: "Where is the castle?", pronunciation: "voh ist dee boork" },
+        { phrase: "Schöne Aussicht!", translation: "Beautiful view!", pronunciation: "SHUR-neh OWS-zikht" },
+        { phrase: "Wann fährt das Schiff?", translation: "When does the boat leave?", pronunciation: "vahn fehrt dahs shif" },
+      ],
+    },
   },
   "baltic-coast": {
     transport: [
@@ -304,6 +606,21 @@ export const destinationExtras: Record<string, DestinationExtras> = {
       activitiesBudget: { low: 10, mid: 25, high: 60 },
       transportBudget: 12,
     },
+    packingList: [
+      { category: "Beach Season", items: ["Windbreaker", "Swimsuit", "Beach blanket", "Sand-free towel"] },
+      { category: "Weather", items: ["Rain jacket", "Warm sweater", "Comfortable walking shoes", "Beanie for windy days"] },
+      { category: "Cycling", items: ["Cycling shorts", "Helmet (or rent)", "Bike lock", "Repair kit"] },
+    ],
+    localPhrases: {
+      language: "German/Low German",
+      phrases: [
+        { phrase: "Moin", translation: "Hello (Northern greeting)", pronunciation: "moyn" },
+        { phrase: "Fischbrötchen", translation: "Fish sandwich", pronunciation: "FISH-brurt-khen" },
+        { phrase: "Strandkorb", translation: "Beach basket chair", pronunciation: "SHTRAHNT-korb" },
+        { phrase: "Wo kann ich Fahrräder mieten?", translation: "Where can I rent bicycles?", pronunciation: "voh kahn ikh FAR-reh-der MEE-ten" },
+        { phrase: "Das Meer ist kalt!", translation: "The sea is cold!", pronunciation: "dahs mehr ist kahlt" },
+      ],
+    },
   },
 };
 
@@ -318,6 +635,20 @@ export const defaultDestinationExtras: DestinationExtras = {
     foodBudget: { low: 25, mid: 50, high: 100 },
     activitiesBudget: { low: 20, mid: 50, high: 100 },
     transportBudget: 15,
+  },
+  packingList: [
+    { category: "Essentials", items: ["Passport and documents", "Travel adapter", "Comfortable shoes", "Weather-appropriate clothing"] },
+    { category: "Health & Safety", items: ["First aid kit", "Medications", "Hand sanitizer", "Sunscreen"] },
+    { category: "Travel Comfort", items: ["Reusable water bottle", "Day backpack", "Portable charger", "Travel pillow"] },
+  ],
+  localPhrases: {
+    language: "Local Language",
+    phrases: [
+      { phrase: "Hello", translation: "Greeting", pronunciation: "Check locally" },
+      { phrase: "Thank you", translation: "Expression of gratitude", pronunciation: "Check locally" },
+      { phrase: "How much?", translation: "Asking for price", pronunciation: "Check locally" },
+      { phrase: "Where is...?", translation: "Asking for directions", pronunciation: "Check locally" },
+    ],
   },
 };
 
