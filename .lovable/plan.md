@@ -1,253 +1,268 @@
 
-# Trip Actions & Booking Page Implementation Plan
+# Country Places API Integration Plan
 
 ## Overview
-Add Share, Download, and Book action buttons next to the "Customize this trip" button on the trip details page. When clicking "Book", navigate to a dedicated booking review page that displays all bookable items (flights, hotels, transfers, activities) with "Reserve Now" links that open external booking sites.
+Replace the static country data on the CountryDetails page (`/country/:slug`) with dynamic data from the API endpoint `http://internal-api.emiratesescape.com/v1.0/countries/{slug}/places`. The implementation will include skeleton loading states and localStorage caching with weekly eviction, following the established pattern from `useCountries`.
 
-## Page Structure
+## API Response Analysis
 
-### TripDescription Component - Action Buttons Layout
-```text
-+---------------------------------------------------------------+
-|                      Amman Experience                          |
-|        [Trip description paragraph text...]                    |
-|                                                                |
-| +----------------------------------------------------------+  |
-| | [Customize this trip]  [Share] [Download] [Book]         |  |
-| +----------------------------------------------------------+  |
-+---------------------------------------------------------------+
-```
-
-### Booking Review Page - `/trip/:id/booking`
-```text
-+------------------------------------------------------------------+
-| [X Close]         Review Bookings                                 |
-|              ESTIMATED PRICES (May 1 - 9)                        |
-+------------------------------------------------------------------+
-|                                                                   |
-| Hotels & Transport                                                |
-| Amman, Jordan (Days 1-3)                                         |
-| +-------------------------------------------------------------+  |
-| | [Flight Badge]                                               |  |
-| | [Thumbnail]    Fly Berlin → Amman                            |  |
-| |  Estimated     6h 25m                                        |  |
-| |                1 Stop, 2 people                              |  |
-| |                BER → AMM                   ~UAH 20,425       |  |
-| |                                                              |  |
-| |                [🔗 Reserve Now]              [🗑 Remove]     |  |
-| +-------------------------------------------------------------+  |
-|                                                                   |
-| +-------------------------------------------------------------+  |
-| | [Accommodation Badge]                                        |  |
-| | [Hotel Photo] W Amman Hotel                                  |  |
-| |               1 rooms                                        |  |
-| |               2 people                                       |  |
-| |               May 1 - May 3               UAH 17,437         |  |
-| |                                                              |  |
-| |               [🔗 Reserve Now]              [🗑 Remove]      |  |
-| +-------------------------------------------------------------+  |
-|                                                                   |
-| Optional Activities                                              |
-| Amman, Jordan (Days 1-3)                                        |
-| +-------------------------------------------------------------+  |
-| | [Transfer Badge]                                             |  |
-| | [Photo]     Airport Transfer To and From Amman               |  |
-| |             60 minutes                                       |  |
-| |             2 people                                         |  |
-| |                                                              |  |
-| |             [🔗 Reserve Now]                [🗑 Remove]      |  |
-| +-------------------------------------------------------------+  |
-|                                                                   |
-| +-------------------------------------------------------------+  |
-| | [Activity Badge]                                             |  |
-| | [Photo]     Amman Walking Tour: Hidden Gems                  |  |
-| |             180 minutes                                      |  |
-| |             2 people                                         |  |
-| |             From UAH 2,854 /person                           |  |
-| |                                                              |  |
-| |             [🔗 Reserve Now]                [🗑 Remove]      |  |
-| +-------------------------------------------------------------+  |
-|                                                                   |
-+------------------------------------------------------------------+
-|                                                                   |
-| [Share Icon]          [Download]          [Book - Primary]       |
-|                                                                   |
-+------------------------------------------------------------------+
-```
-
-## Files to Create
-
-### 1. `src/pages/BookingReview.tsx`
-Full-page booking review with all trip items grouped by city.
-
-**Key Features:**
-- Close button (X) that navigates back to trip details
-- Header with "Review Bookings" title and date range
-- Two sections: "Hotels & Transport" and "Optional Activities"
-- Items grouped by city stop with subheadings
-- Each item shows thumbnail, details, price, and action buttons
-- "Reserve Now" opens external booking URL in new tab
-- "Remove" button with delete confirmation
-- Sticky bottom bar with Share, Download, Book actions
-
-### 2. `src/components/booking/BookingItemCard.tsx`
-Reusable card component for displaying bookable items.
-
-**Props:**
+The endpoint returns a flat list of places with an `is_featured` flag:
 ```typescript
-interface BookingItemCardProps {
-  type: "flight" | "accommodation" | "transfer" | "activity" | "restaurant";
-  title: string;
-  subtitle?: string;
-  details: string[];
-  price?: string;
-  image?: string;
-  estimatedBadge?: boolean;
-  reserveUrl?: string;
-  onRemove?: () => void;
+{
+  items: [
+    {
+      id: string;
+      name: string;
+      slug: string;
+      image_url: string;
+      thumbnail_url: string | null;
+      description: string;
+      short_description: string | null;
+      rating: string;  // Note: string not number
+      review_count: number;
+      city: string | null;
+      region: string | null;
+      is_featured: boolean;
+      tags: string[] | null;
+    }
+  ],
+  next_cursor: string | null;
+  has_more: boolean;
 }
 ```
 
-**Behavior:**
-- Displays badge based on type (Flight, Accommodation, Transfer, Activity)
-- Shows "Estimated" badge for flights
-- "Reserve Now" button opens `reserveUrl` in new tab with `target="_blank"` and `rel="noopener noreferrer"`
-- Remove button triggers confirmation and calls `onRemove`
+Based on the sample data:
+- **Featured places** (`is_featured: true`) include destinations, cities, and island regions (Costa del Sol, Madrid, Barcelona, Ibiza, Seville, Canary Islands, Balearic Islands)
+- **Non-featured places** include additional cities and restaurants (Valencia, Granada, Bilbao, El Celler de Can Roca, Tickets, Asador Etxebarri, DiverXO)
 
-### 3. `src/components/booking/BookingStickyBar.tsx`
-Sticky bottom action bar for the booking page.
+## Implementation Approach
+
+Since the API returns a flat list without explicit categories, we'll use the `is_featured` flag combined with name/slug pattern matching to categorize places:
+
+### Categorization Logic
+```typescript
+// Featured items become "Top Destinations" (destinations + island regions)
+// Cities are identified by known city patterns or all non-restaurant featured items
+// Restaurants are identified by restaurant-specific data patterns
+```
+
+Given the current API structure doesn't provide explicit category types, we'll simplify:
+- **"Featured Places"** section: All `is_featured: true` items
+- **"More to Explore"** section: All `is_featured: false` items
+
+This matches the screenshot showing "Top Destinations" and "Popular Cities" which are essentially featured vs. non-featured splits.
+
+## Files to Create
+
+### 1. `src/hooks/useCountryPlaces.ts`
+Custom hook for fetching and caching country places.
 
 **Features:**
-- Share icon button (uses existing ShareButton component)
-- Download outline button
-- Primary "Book" button (opens confirmation or summary)
-- Mobile-responsive with safe area insets
+- Accepts `countrySlug` parameter
+- localStorage cache with key `country_places_{slug}`
+- Weekly cache eviction (7 days)
+- Returns `{ places, isLoading, error }`
+- Transforms API response to match existing `CountryPlace` interface
+
+**Interface:**
+```typescript
+interface ApiPlace {
+  id: string;
+  name: string;
+  slug: string;
+  image_url: string;
+  thumbnail_url: string | null;
+  description: string;
+  short_description: string | null;
+  rating: string;
+  review_count: number;
+  city: string | null;
+  region: string | null;
+  is_featured: boolean;
+  tags: string[] | null;
+}
+
+interface CountryPlacesResult {
+  featuredPlaces: CountryPlace[];
+  otherPlaces: CountryPlace[];
+  isLoading: boolean;
+  error: string | null;
+}
+```
+
+### 2. `src/components/PlaceCardSkeleton.tsx`
+Skeleton component for place cards during loading.
+
+**Layout:**
+```text
++----------------------------------+
+|  [Image Skeleton - 4:3 aspect]   |
++----------------------------------+
+| [Title skeleton]    [Rating]     |
+| [Description skeleton line 1]    |
+| [Description skeleton line 2]    |
++----------------------------------+
+```
+
+**Exports:**
+- `PlaceCardSkeleton` - Single card skeleton
+- `PlacesSectionSkeleton` - Section with 4 skeleton cards
 
 ## Files to Modify
 
-### 1. `src/components/trip/TripDescription.tsx`
-Add Share, Download, Book buttons next to "Customize this trip".
+### 1. `src/pages/CountryDetails.tsx`
 
 **Changes:**
-- Add Share icon button (reuses ShareButton pattern)
-- Add Download outline button
-- Add Book primary button that navigates to `/trip/:id/booking`
-- Responsive layout: horizontal on desktop, stacked on mobile
+1. Import `useCountryPlaces` hook
+2. Replace `getCountryBySlug(slug)` with hook data
+3. Use basic country info from `useCountries` for header (flag, name)
+4. Show skeleton loading state while places are loading
+5. Update `CategorySection` to handle dynamic places
 
-**Updated Layout:**
-```tsx
-<div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-  <Button variant="hero" size="lg" className="gap-2">
-    Customize this trip
-    <ArrowRight className="h-4 w-4" />
-  </Button>
-  <ShareButton 
-    title={title} 
-    text={description}
-    className="bg-card border border-border"
-  />
-  <Button variant="outline" size="lg" className="gap-2">
-    <Download className="h-4 w-4" />
-    Download
-  </Button>
-  <Button 
-    variant="default" 
-    size="lg" 
-    className="gap-2 bg-primary"
-    onClick={() => navigate(`/trip/${tripId}/booking`)}
-  >
-    <ShoppingCart className="h-4 w-4" />
-    Book
-  </Button>
-</div>
-```
-
-### 2. `src/App.tsx`
-Add route for booking page.
-
-**Change:**
-```tsx
-<Route path="/trip/:id/booking" element={<BookingReview />} />
-```
-
-### 3. `src/pages/TripDetails.tsx`
-Pass `tripId` to TripDescription component for navigation.
-
-### 4. `src/data/tripData.ts`
-Add `bookingUrl` optional field to Transport, Accommodation, and Activity interfaces for external reservation links.
-
-## External Booking URLs
-
-Based on user requirements, implement URL pattern matching:
-
-**Flights → Skyscanner:**
-```typescript
-const getFlightBookingUrl = (from: string, to: string, date: string, travelers: number) => {
-  // Pattern from user: https://www.skyscanner.net/transport/flights/{fromCode}/{toCode}/{date}/?adultsv2={travelers}&...
-  return `https://www.skyscanner.net/transport/flights/${from.toLowerCase()}/${to.toLowerCase()}/${formatDate(date)}/?adultsv2=${travelers}&cabinclass=economy&...`;
-};
-```
-
-**Activities/Transfers → GetYourGuide:**
-```typescript
-const getActivityBookingUrl = (activityId: string) => {
-  // Pattern: https://www.getyourguide.com/...?partner_id=...
-  return `https://www.getyourguide.com/...?partner_id=79D3GBH&psrc=partner_api&currency=UAH`;
-};
-```
-
-**Hotels → Trip.com or Booking.com:**
-- Use hotel provider URL from accommodation data
-
-## Component Details
-
-### BookingItemCard Layout
+**Updated Structure:**
 ```text
-+------------------------------------------------------------------+
-| [Type Badge]                                                      |
-+------------------------------------------------------------------+
-| +----------+                                                      |
-| |          |  Title                                     Price     |
-| |  Image   |  Detail 1                                           |
-| |          |  Detail 2                                           |
-| |          |  Detail 3                                           |
-| +----------+                                                      |
-|                                                                   |
-| [🔗 Reserve Now]                                    [🗑 Remove]   |
-+------------------------------------------------------------------+
++-----------------------------------------------+
+| [Hero with country flag and name]             |
+| (Uses useCountries for basic info)            |
++-----------------------------------------------+
+| [Breadcrumb]                                  |
++-----------------------------------------------+
+| Top Destinations (Featured)                   |
+| [PlaceCard] [PlaceCard] [PlaceCard] [PlaceCard]|
+| (if loading: [Skeleton] [Skeleton]...)        |
++-----------------------------------------------+
+| Popular Cities (Featured cities)              |
+| [PlaceCard] [PlaceCard] [PlaceCard]           |
++-----------------------------------------------+
+| Top Restaurants (Non-featured restaurants)    |
+| [PlaceCard] [PlaceCard] [PlaceCard] [PlaceCard]|
++-----------------------------------------------+
 ```
 
-### Data Flow
-1. `BookingReview` page receives trip data via `useTripData` hook
-2. Groups items by city using `cityStops` and date ranges
-3. Separates into "Hotels & Transport" (flights, hotels) and "Optional Activities" (transfers, activities)
-4. Passes each item to `BookingItemCard` with appropriate booking URL
-5. "Reserve Now" opens external site in new tab
-6. "Remove" updates local state (not persisted without backend)
+**Key Logic:**
+```typescript
+const { slug } = useParams();
+const { countries } = useCountries(); // For basic country info
+const { featuredPlaces, otherPlaces, isLoading, error } = useCountryPlaces(slug);
+
+// Get country basic info (name, flag) from countries list
+const countryInfo = countries.find(c => c.slug === slug);
+
+// Separate featured into destinations vs cities based on is_featured
+// Restaurants identified from otherPlaces (non-featured with restaurant patterns)
+```
+
+### 2. `src/data/countriesData.ts`
+
+**Changes:**
+- Update `hasDetailedData()` function to return `true` for all countries (since API provides data)
+- Keep the function but make it always return true, or remove the check
+
+## Data Flow
+
+```text
+User navigates to /en/country/spain
+         |
+         v
++---------------------------+
+| CountryDetails component  |
+| calls useCountryPlaces()  |
++---------------------------+
+         |
+         v
++---------------------------+
+| Check localStorage for    |
+| country_places_spain      |
++---------------------------+
+    |           |
+  Cached      Not cached
+    |           |
+    v           v
+Return     Fetch from API
+cached     POST /countries/spain/places
+    |           |
+    |           v
+    |     Cache response
+    |     in localStorage
+    |           |
+    +-----+-----+
+          |
+          v
++---------------------------+
+| Transform API response:   |
+| - Split by is_featured    |
+| - Map to CountryPlace     |
++---------------------------+
+          |
+          v
++---------------------------+
+| Render CategorySection    |
+| with places or skeletons  |
++---------------------------+
+```
+
+## Technical Details
+
+### Cache Key Pattern
+```typescript
+const CACHE_KEY_PREFIX = "country_places_";
+const getCacheKey = (slug: string) => `${CACHE_KEY_PREFIX}${slug}`;
+```
+
+### Transformation Function
+```typescript
+const transformApiPlace = (apiPlace: ApiPlace): CountryPlace => ({
+  id: apiPlace.id,
+  name: apiPlace.name,
+  image: apiPlace.image_url,
+  description: apiPlace.description || apiPlace.short_description || "",
+  rating: parseFloat(apiPlace.rating) || undefined,
+});
+```
+
+### Fallback for Country Info
+Since `useCountryPlaces` only returns places (not country metadata), we need the country name/flag from either:
+1. The existing `useCountries` hook (has flag_emoji, name)
+2. The static `allCountries` array in countriesData.ts
+
+We'll use `useCountries` as primary source.
+
+## Skeleton Loading Layout
+
+```text
++-----------------------------------------------+
+| [Hero - Uses country info from useCountries]  |
++-----------------------------------------------+
+| [Breadcrumb]                                  |
++-----------------------------------------------+
+| Top Destinations                              |
+| +--------+ +--------+ +--------+ +--------+   |
+| |skeleton| |skeleton| |skeleton| |skeleton|   |
+| +--------+ +--------+ +--------+ +--------+   |
++-----------------------------------------------+
+| Popular Cities                                |
+| +--------+ +--------+ +--------+              |
+| |skeleton| |skeleton| |skeleton|              |
+| +--------+ +--------+ +--------+              |
++-----------------------------------------------+
+```
 
 ## Implementation Sequence
 
-1. Create `BookingItemCard` component with type badges and actions
-2. Create `BookingStickyBar` component
-3. Create `BookingReview` page with grouped sections
-4. Add route to `App.tsx`
-5. Update `TripDescription.tsx` with action buttons
-6. Update `TripDetails.tsx` to pass tripId
-7. Add optional `bookingUrl` fields to data interfaces
+1. Create `PlaceCardSkeleton.tsx` component
+2. Create `useCountryPlaces.ts` hook with caching
+3. Update `CountryDetails.tsx` to use the new hook
+4. Update `countriesData.ts` to enable all countries
+5. Test loading states and error handling
+
+## Error Handling
+
+- Show error message if API fails
+- Fallback to static data if available (for countries with existing data)
+- Retry button for failed requests
 
 ## Mobile Responsiveness
 
-- Booking page uses full-width layout
-- Cards stack vertically on mobile
-- Sticky bar adapts with `pb-[env(safe-area-inset-bottom)]`
-- Touch-friendly tap targets (min 44px)
-- Download button shows only icon on mobile
-
-## Styling Notes
-
-- Match existing card styling: `bg-card rounded-xl border border-border`
-- Badge styles: `<Badge variant="outline">` for type indicators
-- "Estimated" badge uses `<Badge variant="secondary">`
-- Reserve Now link: flex with `ExternalLink` icon
-- Trash button: ghost variant with muted color, destructive on hover
-- Section headers use existing font-serif styling
+- Skeleton cards match the responsive grid layout
+- 1 column on mobile, 2 on sm, 3 on lg, 4 on xl
+- Same dimensions as actual PlaceCard component
