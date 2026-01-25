@@ -101,14 +101,18 @@ export function Header() {
                       <span>My Favorites</span>
                     </DropdownMenuItem>
                   </Link>
-                  <DropdownMenuItem className="gap-3 py-3">
-                    <Crown className="h-4 w-4" />
-                    <span>Manage Subscription</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-3 py-3">
-                    <Settings className="h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
+                  <Link to="/settings">
+                    <DropdownMenuItem className="gap-3 py-3">
+                      <Crown className="h-4 w-4" />
+                      <span>Manage Subscription</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to="/settings">
+                    <DropdownMenuItem className="gap-3 py-3">
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="gap-3 py-3">
                     <HelpCircle className="h-4 w-4" />
