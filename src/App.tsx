@@ -7,6 +7,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
 import TripDetails from "./pages/TripDetails";
+import BookingReview from "./pages/BookingReview";
 import AccommodationResults from "./pages/AccommodationResults";
 import AccommodationDetails from "./pages/AccommodationDetails";
 import ActivityDetails from "./pages/ActivityDetails";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/my-favorites" element={<MyFavorites />} />
           <Route path="/new-trip-planner" element={<NewTripPlanner />} />
           <Route path="/trip/:id" element={<TripDetails />} />
+          <Route path="/trip/:id/booking" element={<BookingReview />} />
           <Route path="/trip/:id/accommodations" element={<AccommodationResults />} />
           <Route path="/trip/:id/accommodation/:accommodationId" element={<AccommodationDetails />} />
           <Route path="/trip/:id/activity/:activityId" element={<ActivityDetails />} />

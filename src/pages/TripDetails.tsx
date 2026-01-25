@@ -207,7 +207,8 @@ export default function TripDetails() {
               {/* Description */}
               <TripDescription 
                 title={`${currentCityName} Experience`} 
-                description={tripData.description} 
+                description={tripData.description}
+                tripId={tripData.id}
               />
 
               {/* Image Gallery - Filtered */}
