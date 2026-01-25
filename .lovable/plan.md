@@ -1,194 +1,253 @@
 
-
-# Quick Actions Implementation Plan
+# Trip Actions & Booking Page Implementation Plan
 
 ## Overview
-Add interactive quick action chips to the VoyagerChat component that display contextual follow-up options (regions, interests, destinations) in the assistant's responses. When clicked, these chips will trigger trip generation or continue the conversation flow. The feature will work on both the `/new-trip-planner` page (create mode) and be reusable for the future.
+Add Share, Download, and Book action buttons next to the "Customize this trip" button on the trip details page. When clicking "Book", navigate to a dedicated booking review page that displays all bookable items (flights, hotels, transfers, activities) with "Reserve Now" links that open external booking sites.
 
-## Current State Analysis
+## Page Structure
 
-The VoyagerChat component already has:
-- A `chips` property on `ChatMessage` interface for interactive buttons
-- Chip rendering logic for modify mode (lines 416-440) that displays clickable buttons after assistant messages
-- Response logic in `getCreateModeResponse()` that returns text with emoji-prefixed options (beach regions, cultural interests, adventure destinations)
-
-However, the chips are only rendered in modify mode and the create mode responses just display the options as plain text.
-
-## Implementation Approach
-
-### 1. Extend Create Mode with Interactive Chips
-
-Modify `getCreateModeResponse()` to return chips alongside responses for:
-
-**Beach Vacation Response:**
-```typescript
-chips: [
-  { emoji: "🌴", label: "Caribbean" },
-  { emoji: "🏝️", label: "Southeast Asia" },
-  { emoji: "🌊", label: "Mediterranean" },
-  { emoji: "🐚", label: "Pacific Islands" }
-]
+### TripDescription Component - Action Buttons Layout
+```text
++---------------------------------------------------------------+
+|                      Amman Experience                          |
+|        [Trip description paragraph text...]                    |
+|                                                                |
+| +----------------------------------------------------------+  |
+| | [Customize this trip]  [Share] [Download] [Book]         |  |
+| +----------------------------------------------------------+  |
++---------------------------------------------------------------+
 ```
 
-**Cultural Exploration Response:**
-```typescript
-chips: [
-  { emoji: "🏰", label: "Medieval castles and ancient ruins" },
-  { emoji: "🎨", label: "Art and museums" },
-  { emoji: "🍷", label: "Food and wine experiences" },
-  { emoji: "🏙️", label: "Vibrant city life" }
-]
+### Booking Review Page - `/trip/:id/booking`
+```text
++------------------------------------------------------------------+
+| [X Close]         Review Bookings                                 |
+|              ESTIMATED PRICES (May 1 - 9)                        |
++------------------------------------------------------------------+
+|                                                                   |
+| Hotels & Transport                                                |
+| Amman, Jordan (Days 1-3)                                         |
+| +-------------------------------------------------------------+  |
+| | [Flight Badge]                                               |  |
+| | [Thumbnail]    Fly Berlin → Amman                            |  |
+| |  Estimated     6h 25m                                        |  |
+| |                1 Stop, 2 people                              |  |
+| |                BER → AMM                   ~UAH 20,425       |  |
+| |                                                              |  |
+| |                [🔗 Reserve Now]              [🗑 Remove]     |  |
+| +-------------------------------------------------------------+  |
+|                                                                   |
+| +-------------------------------------------------------------+  |
+| | [Accommodation Badge]                                        |  |
+| | [Hotel Photo] W Amman Hotel                                  |  |
+| |               1 rooms                                        |  |
+| |               2 people                                       |  |
+| |               May 1 - May 3               UAH 17,437         |  |
+| |                                                              |  |
+| |               [🔗 Reserve Now]              [🗑 Remove]      |  |
+| +-------------------------------------------------------------+  |
+|                                                                   |
+| Optional Activities                                              |
+| Amman, Jordan (Days 1-3)                                        |
+| +-------------------------------------------------------------+  |
+| | [Transfer Badge]                                             |  |
+| | [Photo]     Airport Transfer To and From Amman               |  |
+| |             60 minutes                                       |  |
+| |             2 people                                         |  |
+| |                                                              |  |
+| |             [🔗 Reserve Now]                [🗑 Remove]      |  |
+| +-------------------------------------------------------------+  |
+|                                                                   |
+| +-------------------------------------------------------------+  |
+| | [Activity Badge]                                             |  |
+| | [Photo]     Amman Walking Tour: Hidden Gems                  |  |
+| |             180 minutes                                      |  |
+| |             2 people                                         |  |
+| |             From UAH 2,854 /person                           |  |
+| |                                                              |  |
+| |             [🔗 Reserve Now]                [🗑 Remove]      |  |
+| +-------------------------------------------------------------+  |
+|                                                                   |
++------------------------------------------------------------------+
+|                                                                   |
+| [Share Icon]          [Download]          [Book - Primary]       |
+|                                                                   |
++------------------------------------------------------------------+
 ```
 
-**Adventure Trip Response:**
+## Files to Create
+
+### 1. `src/pages/BookingReview.tsx`
+Full-page booking review with all trip items grouped by city.
+
+**Key Features:**
+- Close button (X) that navigates back to trip details
+- Header with "Review Bookings" title and date range
+- Two sections: "Hotels & Transport" and "Optional Activities"
+- Items grouped by city stop with subheadings
+- Each item shows thumbnail, details, price, and action buttons
+- "Reserve Now" opens external booking URL in new tab
+- "Remove" button with delete confirmation
+- Sticky bottom bar with Share, Download, Book actions
+
+### 2. `src/components/booking/BookingItemCard.tsx`
+Reusable card component for displaying bookable items.
+
+**Props:**
 ```typescript
-chips: [
-  { emoji: "🏔️", label: "Nepal - Himalayan treks" },
-  { emoji: "🇳🇿", label: "New Zealand - Ultimate adventure playground" },
-  { emoji: "🇮🇸", label: "Iceland - Glaciers and volcanoes" },
-  { emoji: "🇵🇪", label: "Peru - Machu Picchu and beyond" }
-]
+interface BookingItemCardProps {
+  type: "flight" | "accommodation" | "transfer" | "activity" | "restaurant";
+  title: string;
+  subtitle?: string;
+  details: string[];
+  price?: string;
+  image?: string;
+  estimatedBadge?: boolean;
+  reserveUrl?: string;
+  onRemove?: () => void;
+}
 ```
 
-### 2. Enable Chip Rendering in Create Mode
+**Behavior:**
+- Displays badge based on type (Flight, Accommodation, Transfer, Activity)
+- Shows "Estimated" badge for flights
+- "Reserve Now" button opens `reserveUrl` in new tab with `target="_blank"` and `rel="noopener noreferrer"`
+- Remove button triggers confirmation and calls `onRemove`
 
-Update the chip rendering condition (currently line 417) to also show chips in create mode:
+### 3. `src/components/booking/BookingStickyBar.tsx`
+Sticky bottom action bar for the booking page.
 
-```typescript
-// Before: !isCreateMode && msg.role === "assistant" && msg.chips
-// After: msg.role === "assistant" && msg.chips
+**Features:**
+- Share icon button (uses existing ShareButton component)
+- Download outline button
+- Primary "Book" button (opens confirmation or summary)
+- Mobile-responsive with safe area insets
+
+## Files to Modify
+
+### 1. `src/components/trip/TripDescription.tsx`
+Add Share, Download, Book buttons next to "Customize this trip".
+
+**Changes:**
+- Add Share icon button (reuses ShareButton pattern)
+- Add Download outline button
+- Add Book primary button that navigates to `/trip/:id/booking`
+- Responsive layout: horizontal on desktop, stacked on mobile
+
+**Updated Layout:**
+```tsx
+<div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+  <Button variant="hero" size="lg" className="gap-2">
+    Customize this trip
+    <ArrowRight className="h-4 w-4" />
+  </Button>
+  <ShareButton 
+    title={title} 
+    text={description}
+    className="bg-card border border-border"
+  />
+  <Button variant="outline" size="lg" className="gap-2">
+    <Download className="h-4 w-4" />
+    Download
+  </Button>
+  <Button 
+    variant="default" 
+    size="lg" 
+    className="gap-2 bg-primary"
+    onClick={() => navigate(`/trip/${tripId}/booking`)}
+  >
+    <ShoppingCart className="h-4 w-4" />
+    Book
+  </Button>
+</div>
 ```
 
-### 3. Add Chip-to-Trip Generation Mapping
+### 2. `src/App.tsx`
+Add route for booking page.
 
-Create a mapping in create mode that detects when a user clicks a specific chip and generates a trip:
+**Change:**
+```tsx
+<Route path="/trip/:id/booking" element={<BookingReview />} />
+```
 
+### 3. `src/pages/TripDetails.tsx`
+Pass `tripId` to TripDescription component for navigation.
+
+### 4. `src/data/tripData.ts`
+Add `bookingUrl` optional field to Transport, Accommodation, and Activity interfaces for external reservation links.
+
+## External Booking URLs
+
+Based on user requirements, implement URL pattern matching:
+
+**Flights → Skyscanner:**
 ```typescript
-const createModeChipActions: Record<string, boolean> = {
-  "Caribbean": true,
-  "Southeast Asia": true,
-  "Mediterranean": true,
-  "Pacific Islands": true,
-  "Medieval castles and ancient ruins": true,
-  "Art and museums": true,
-  // ... etc
-  "Nepal - Himalayan treks": true,
-  "New Zealand - Ultimate adventure playground": true,
-  "Iceland - Glaciers and volcanoes": true,
-  "Peru - Machu Picchu and beyond": true,
+const getFlightBookingUrl = (from: string, to: string, date: string, travelers: number) => {
+  // Pattern from user: https://www.skyscanner.net/transport/flights/{fromCode}/{toCode}/{date}/?adultsv2={travelers}&...
+  return `https://www.skyscanner.net/transport/flights/${from.toLowerCase()}/${to.toLowerCase()}/${formatDate(date)}/?adultsv2=${travelers}&cabinclass=economy&...`;
 };
 ```
 
-When a chip is clicked, if it's in this mapping, the response should include `generateTrip: true` to trigger the trip preview.
-
-### 4. Update Response Logic for Chip Clicks
-
-Modify `getCreateModeResponse()` to handle chip clicks as specific destination selections that trigger trip generation:
-
+**Activities/Transfers → GetYourGuide:**
 ```typescript
-// Check if this is a chip click (specific destination)
-if (createModeChipActions[lowerMessage]) {
-  return {
-    response: `Excellent choice! I've crafted a personalized ${lowerMessage} itinerary for you...`,
-    generateTrip: true,
-    chips: undefined // No follow-up chips needed
-  };
-}
+const getActivityBookingUrl = (activityId: string) => {
+  // Pattern: https://www.getyourguide.com/...?partner_id=...
+  return `https://www.getyourguide.com/...?partner_id=79D3GBH&psrc=partner_api&currency=UAH`;
+};
 ```
 
-## Technical Details
+**Hotels → Trip.com or Booking.com:**
+- Use hotel provider URL from accommodation data
 
-### Files to Modify
+## Component Details
 
-**`src/components/trip/VoyagerChat.tsx`**
-
-1. Update `getCreateModeResponse()` return type to include optional `chips`:
-```typescript
-interface CreateModeResponseResult {
-  response: string;
-  generateTrip: boolean;
-  chips?: { emoji: string; label: string }[];
-}
-```
-
-2. Update each response branch in `getCreateModeResponse()` to return appropriate chips
-
-3. Modify the chip rendering condition to work in both modes
-
-4. Update `startTypingAnimation()` call in create mode to pass chips
-
-5. Add create mode chip action handling in `handleSendMessage()`
-
-### Response Text Updates
-
-Remove the inline emoji options from response text since they'll now be interactive chips:
-
-**Before:**
-```
-"A beach getaway sounds perfect! I'm thinking crystal-clear waters and white sand. Let me know your preferred region:\n\n🌴 Caribbean\n🏝️ Southeast Asia\n🌊 Mediterranean\n🐚 Pacific Islands\n\nOr share your budget and dates, and I'll find the ideal spot!"
-```
-
-**After:**
-```
-"A beach getaway sounds perfect! I'm thinking crystal-clear waters and white sand. Let me know your preferred region:\n\nOr share your budget and dates, and I'll find the ideal spot!"
-```
-
-The emoji options become clickable chips below the message.
-
-## Component Flow
-
+### BookingItemCard Layout
 ```text
-User types "beach vacation"
-       |
-       v
-+---------------------------+
-| getCreateModeResponse()   |
-| Returns:                  |
-| - response text           |
-| - generateTrip: false     |
-| - chips: [Caribbean, ...]|
-+---------------------------+
-       |
-       v
-+---------------------------+
-| startTypingAnimation()    |
-| Animates response         |
-| Then shows chip buttons   |
-+---------------------------+
-       |
-       v
-User clicks "Caribbean" chip
-       |
-       v
-+---------------------------+
-| handleSendMessage()       |
-| Detects chip action       |
-| Calls getCreateModeResponse|
-| with "Caribbean"          |
-+---------------------------+
-       |
-       v
-+---------------------------+
-| Returns generateTrip: true|
-| Triggers TripPreview      |
-+---------------------------+
++------------------------------------------------------------------+
+| [Type Badge]                                                      |
++------------------------------------------------------------------+
+| +----------+                                                      |
+| |          |  Title                                     Price     |
+| |  Image   |  Detail 1                                           |
+| |          |  Detail 2                                           |
+| |          |  Detail 3                                           |
+| +----------+                                                      |
+|                                                                   |
+| [🔗 Reserve Now]                                    [🗑 Remove]   |
++------------------------------------------------------------------+
 ```
+
+### Data Flow
+1. `BookingReview` page receives trip data via `useTripData` hook
+2. Groups items by city using `cityStops` and date ranges
+3. Separates into "Hotels & Transport" (flights, hotels) and "Optional Activities" (transfers, activities)
+4. Passes each item to `BookingItemCard` with appropriate booking URL
+5. "Reserve Now" opens external site in new tab
+6. "Remove" updates local state (not persisted without backend)
 
 ## Implementation Sequence
 
-1. Update `getCreateModeResponse()` return type to include chips
-2. Add chip data to beach/cultural/adventure responses
-3. Simplify response text (remove inline emoji lists)
-4. Remove `!isCreateMode &&` condition from chip rendering
-5. Add chip action mapping for create mode
-6. Update `handleSendMessage()` to recognize chip clicks in create mode
-7. Test the full flow from chip click to trip generation
+1. Create `BookingItemCard` component with type badges and actions
+2. Create `BookingStickyBar` component
+3. Create `BookingReview` page with grouped sections
+4. Add route to `App.tsx`
+5. Update `TripDescription.tsx` with action buttons
+6. Update `TripDetails.tsx` to pass tripId
+7. Add optional `bookingUrl` fields to data interfaces
+
+## Mobile Responsiveness
+
+- Booking page uses full-width layout
+- Cards stack vertically on mobile
+- Sticky bar adapts with `pb-[env(safe-area-inset-bottom)]`
+- Touch-friendly tap targets (min 44px)
+- Download button shows only icon on mobile
 
 ## Styling Notes
 
-The existing chip styling (lines 433) will be reused:
-- Rounded pill buttons with border
-- Hover effects with scale and background color change
-- Staggered animation on reveal
-- Same visual style as modify mode chips
-
+- Match existing card styling: `bg-card rounded-xl border border-border`
+- Badge styles: `<Badge variant="outline">` for type indicators
+- "Estimated" badge uses `<Badge variant="secondary">`
+- Reserve Now link: flex with `ExternalLink` icon
+- Trash button: ghost variant with muted color, destructive on hover
+- Section headers use existing font-serif styling
