@@ -39,7 +39,7 @@ export default function MyTrips() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <h1 className="text-3xl md:text-4xl font-serif font-medium text-foreground">
+            <h1 className="text-2xl font-serif font-medium text-foreground">
               My Trips
             </h1>
             <Link to="/new-trip-planner">
