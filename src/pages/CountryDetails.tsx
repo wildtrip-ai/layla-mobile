@@ -1,6 +1,6 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, ArrowRight, Building2, UtensilsCrossed, TreePine, Landmark, Mountain, Palette, MapPin } from "lucide-react";
+import { Star, ArrowRight, MapPin, Compass } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleOnHover } from "@/components/ui/scroll-animations";
@@ -11,10 +11,14 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
+import { CountryPlace } from "@/data/countriesData";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareButton } from "@/components/ShareButton";
 import { FavoriteCategory } from "@/hooks/useFavorites";
+import { useCountries } from "@/hooks/useCountries";
+import { useCountryPlaces } from "@/hooks/useCountryPlaces";
+import { PlacesSectionSkeleton } from "@/components/PlaceCardSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PlaceCardProps {
   place: CountryPlace;
@@ -26,14 +30,12 @@ interface PlaceCardProps {
 }
 
 function PlaceCard({ place, showRating = true, href, countrySlug, category, countryName }: PlaceCardProps) {
-  // Generate a shareable URL for the place
   const getShareUrl = () => {
     if (typeof window === 'undefined') return '';
     const baseUrl = window.location.origin;
     if (category === 'destinations') {
       return `${baseUrl}/country/${countrySlug}/destination/${place.id}`;
     }
-    // For other categories, share the country page
     return `${baseUrl}/country/${countrySlug}`;
   };
 
@@ -111,9 +113,27 @@ interface CategorySectionProps {
   countrySlug: string;
   countryName: string;
   category: FavoriteCategory;
+  isLoading?: boolean;
+  skeletonCount?: number;
 }
 
-function CategorySection({ title, icon, places, showViewAll = true, gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", getHref, countrySlug, countryName, category }: CategorySectionProps) {
+function CategorySection({ 
+  title, 
+  icon, 
+  places, 
+  showViewAll = true, 
+  gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", 
+  getHref, 
+  countrySlug, 
+  countryName, 
+  category,
+  isLoading = false,
+  skeletonCount = 4
+}: CategorySectionProps) {
+  if (!isLoading && places.length === 0) {
+    return null;
+  }
+
   return (
     <section className="mb-12">
       <FadeIn>
@@ -126,7 +146,7 @@ function CategorySection({ title, icon, places, showViewAll = true, gridCols = "
               {title}
             </h2>
           </div>
-          {showViewAll && (
+          {showViewAll && places.length > 0 && (
             <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
               View All
               <ArrowRight className="h-4 w-4" />
@@ -135,30 +155,58 @@ function CategorySection({ title, icon, places, showViewAll = true, gridCols = "
         </div>
       </FadeIn>
 
-      <StaggerContainer className={`grid ${gridCols} gap-4 md:gap-6`} staggerDelay={0.05}>
-        {places.map((place) => (
-          <StaggerItem key={place.id}>
-            <PlaceCard 
-              place={place} 
-              href={getHref?.(place)} 
-              countrySlug={countrySlug}
-              countryName={countryName}
-              category={category}
-            />
-          </StaggerItem>
-        ))}
-      </StaggerContainer>
+      {isLoading ? (
+        <PlacesSectionSkeleton count={skeletonCount} gridCols={gridCols} />
+      ) : (
+        <StaggerContainer className={`grid ${gridCols} gap-4 md:gap-6`} staggerDelay={0.05}>
+          {places.map((place) => (
+            <StaggerItem key={place.id}>
+              <PlaceCard 
+                place={place} 
+                href={getHref?.(place)} 
+                countrySlug={countrySlug}
+                countryName={countryName}
+                category={category}
+              />
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
+      )}
     </section>
+  );
+}
+
+function HeroSkeleton() {
+  return (
+    <div className="relative h-[200px] md:h-[280px] overflow-hidden bg-muted">
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
+        <div className="container mx-auto">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 md:h-14 md:w-14 rounded-lg" />
+            <Skeleton className="h-8 md:h-10 w-48" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
 export default function CountryDetails() {
   const { slug } = useParams<{ slug: string }>();
-  const country = slug ? getCountryBySlug(slug) : undefined;
+  const { countries, isLoading: countriesLoading } = useCountries();
+  const { featuredPlaces, otherPlaces, isLoading: placesLoading, error } = useCountryPlaces(slug);
 
-  if (!country) {
+  // Get country info from the countries list
+  const countryInfo = countries.find(c => c.slug === slug);
+
+  // If countries have loaded and country not found, redirect
+  if (!countriesLoading && !countryInfo && countries.length > 0) {
     return <Navigate to="/countries" replace />;
   }
+
+  const countryName = countryInfo?.name || slug || "";
+  const countryFlag = countryInfo?.flag_emoji || countryInfo?.flag || "🏳️";
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,26 +214,25 @@ export default function CountryDetails() {
 
       <main>
         {/* Hero Section */}
-        <div className="relative h-[200px] md:h-[280px] overflow-hidden">
-          <img
-            src={country.heroImage}
-            alt={country.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
-            <div className="container mx-auto">
-              <FadeIn>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground flex items-center gap-3">
-                  <span className="bg-white rounded-lg p-1.5 md:p-2 shadow-sm text-2xl md:text-3xl">
-                    {country.flag}
-                  </span>
-                  {country.name}
-                </h1>
-              </FadeIn>
+        {countriesLoading ? (
+          <HeroSkeleton />
+        ) : (
+          <div className="relative h-[200px] md:h-[280px] overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
+              <div className="container mx-auto">
+                <FadeIn>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground flex items-center gap-3">
+                    <span className="bg-white rounded-lg p-1.5 md:p-2 shadow-sm text-2xl md:text-3xl">
+                      {countryFlag}
+                    </span>
+                    {countryName}
+                  </h1>
+                </FadeIn>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="container mx-auto px-4 py-6 md:py-8">
           {/* Breadcrumb */}
@@ -205,77 +252,53 @@ export default function CountryDetails() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <span className="text-foreground font-medium">{country.name}</span>
+                  <span className="text-foreground font-medium">{countryName}</span>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </FadeIn>
 
-          {/* Categories */}
-          <CategorySection
-            title="Top Destinations"
-            icon={<MapPin className="h-5 w-5" />}
-            places={country.destinations}
-            getHref={(place) => `/country/${country.slug}/destination/${place.id}`}
-            countrySlug={country.slug}
-            countryName={country.name}
-            category="destinations"
-          />
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-destructive mb-4">Failed to load places: {error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="text-primary hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          )}
 
-          <CategorySection
-            title="Popular Cities"
-            icon={<Building2 className="h-5 w-5" />}
-            places={country.cities}
-            gridCols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            countrySlug={country.slug}
-            countryName={country.name}
-            category="cities"
-          />
+          {/* Places Sections */}
+          {!error && (
+            <>
+              <CategorySection
+                title="Top Destinations"
+                icon={<MapPin className="h-5 w-5" />}
+                places={featuredPlaces}
+                getHref={(place) => `/country/${slug}/destination/${place.id}`}
+                countrySlug={slug || ""}
+                countryName={countryName}
+                category="destinations"
+                isLoading={placesLoading}
+                skeletonCount={4}
+              />
 
-          <CategorySection
-            title="Top Restaurants"
-            icon={<UtensilsCrossed className="h-5 w-5" />}
-            places={country.restaurants}
-            countrySlug={country.slug}
-            countryName={country.name}
-            category="restaurants"
-          />
-
-          <CategorySection
-            title="Popular Amenities"
-            icon={<TreePine className="h-5 w-5" />}
-            places={country.amenities}
-            countrySlug={country.slug}
-            countryName={country.name}
-            category="amenities"
-          />
-
-          <CategorySection
-            title="Museums"
-            icon={<Palette className="h-5 w-5" />}
-            places={country.museums}
-            countrySlug={country.slug}
-            countryName={country.name}
-            category="museums"
-          />
-
-          <CategorySection
-            title="Historical Sites"
-            icon={<Landmark className="h-5 w-5" />}
-            places={country.historicalSites}
-            countrySlug={country.slug}
-            countryName={country.name}
-            category="historicalSites"
-          />
-
-          <CategorySection
-            title="Natural Attractions"
-            icon={<Mountain className="h-5 w-5" />}
-            places={country.naturalAttractions}
-            countrySlug={country.slug}
-            countryName={country.name}
-            category="naturalAttractions"
-          />
+              <CategorySection
+                title="More to Explore"
+                icon={<Compass className="h-5 w-5" />}
+                places={otherPlaces}
+                gridCols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                countrySlug={slug || ""}
+                countryName={countryName}
+                category="cities"
+                isLoading={placesLoading}
+                skeletonCount={4}
+              />
+            </>
+          )}
         </div>
       </main>
 
