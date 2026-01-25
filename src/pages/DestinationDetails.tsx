@@ -732,6 +732,44 @@ function NearbyAttractionsSection({ attractions }: { attractions: NearbyAttracti
     }
   };
 
+  // Generate a placeholder image URL based on attraction name
+  const getAttractionImage = (name: string, type: string) => {
+    const searchTerm = encodeURIComponent(`${name} ${type} landmark`.toLowerCase());
+    return `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80&fit=crop`;
+  };
+
+  // Use different placeholder images based on type
+  const getTypeImage = (type: string, index: number) => {
+    const typeImages: Record<string, string[]> = {
+      natural: [
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&q=80",
+        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=200&q=80",
+      ],
+      historical: [
+        "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=200&q=80",
+        "https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?w=200&q=80",
+      ],
+      city: [
+        "https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=200&q=80",
+        "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=200&q=80",
+      ],
+      town: [
+        "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200&q=80",
+        "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=200&q=80",
+      ],
+      island: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&q=80",
+        "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=200&q=80",
+      ],
+      beach: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&q=80",
+        "https://images.unsplash.com/photo-1509840841025-9088ba78a826?w=200&q=80",
+      ],
+    };
+    const images = typeImages[type.toLowerCase()] || typeImages.natural;
+    return images[index % images.length];
+  };
+
   return (
     <FadeIn delay={0.35}>
       <section>
@@ -743,18 +781,31 @@ function NearbyAttractionsSection({ attractions }: { attractions: NearbyAttracti
           {attractions.map((attraction, index) => (
             <div 
               key={index}
-              className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow"
+              className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow group"
             >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h3 className="font-medium text-foreground">{attraction.name}</h3>
-                <Badge className={`text-xs shrink-0 ${getTypeColor(attraction.type)}`}>
-                  {attraction.type}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">{attraction.description}</p>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                {attraction.distance}
+              <div className="flex gap-4">
+                {/* Image thumbnail */}
+                <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
+                  <img
+                    src={getTypeImage(attraction.type, index)}
+                    alt={attraction.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 mb-1">
+                    <h3 className="font-medium text-foreground">{attraction.name}</h3>
+                    <Badge className={`text-xs shrink-0 ${getTypeColor(attraction.type)}`}>
+                      {attraction.type}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2 line-clamp-1">{attraction.description}</p>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    {attraction.distance}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -786,6 +837,17 @@ function TransportSection({ transport }: { transport: TransportOption[] }) {
     }
   };
 
+  // Transport type images
+  const getTransportImage = (type: string) => {
+    const images: Record<string, string> = {
+      airport: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&q=80",
+      train: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=200&q=80",
+      bus: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=200&q=80",
+      ferry: "https://images.unsplash.com/photo-1500534623283-312aade485b7?w=200&q=80",
+    };
+    return images[type] || images.bus;
+  };
+
   return (
     <FadeIn delay={0.2}>
       <section>
@@ -797,21 +859,32 @@ function TransportSection({ transport }: { transport: TransportOption[] }) {
           {transport.map((option, index) => (
             <div 
               key={index}
-              className="bg-card border border-border rounded-xl p-4"
+              className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow group"
             >
-              <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-lg ${getTransportColor(option.type)}`}>
-                  {getTransportIcon(option.type)}
+              <div className="flex gap-4">
+                {/* Image thumbnail */}
+                <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-muted">
+                  <img
+                    src={getTransportImage(option.type)}
+                    alt={option.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-                <div className="flex-1">
+                {/* Content */}
+                <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-medium text-foreground">{option.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-md ${getTransportColor(option.type)}`}>
+                        {getTransportIcon(option.type)}
+                      </div>
+                      <h3 className="font-medium text-foreground">{option.name}</h3>
+                    </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
                       <Clock className="h-3 w-3 mr-1" />
                       {option.travelTime}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-1">{option.description}</p>
                 </div>
               </div>
             </div>
@@ -1169,10 +1242,16 @@ export default function DestinationDetails() {
                     {extendedData.highlights.map((highlight, index) => (
                       <div 
                         key={index}
-                        className="flex items-center gap-3 bg-card border border-border rounded-lg p-3"
+                        className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow group"
                       >
-                        <ChevronRight className="h-4 w-4 text-primary shrink-0" />
-                        <span className="text-foreground">{highlight}</span>
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-muted">
+                          <img
+                            src={extendedData.gallery[index % extendedData.gallery.length] || destination.image}
+                            alt={highlight}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        <span className="text-foreground font-medium">{highlight}</span>
                       </div>
                     ))}
                   </div>
