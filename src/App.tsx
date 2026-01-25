@@ -14,6 +14,7 @@ import NewTripPlanner from "./pages/NewTripPlanner";
 import MyTrips from "./pages/MyTrips";
 import Countries from "./pages/Countries";
 import CountryDetails from "./pages/CountryDetails";
+import DestinationDetails from "./pages/DestinationDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/trip/:id/activity/:activityId" element={<ActivityDetails />} />
           <Route path="/countries" element={<Countries />} />
           <Route path="/country/:slug" element={<CountryDetails />} />
+          <Route path="/country/:countrySlug/destination/:destinationId" element={<DestinationDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
