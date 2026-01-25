@@ -16,40 +16,55 @@ import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
 interface PlaceCardProps {
   place: CountryPlace;
   showRating?: boolean;
+  href?: string;
 }
 
-function PlaceCard({ place, showRating = true }: PlaceCardProps) {
-  return (
-    <ScaleOnHover scale={1.03}>
-      <div className="group relative overflow-hidden rounded-xl bg-card border border-border shadow-sm hover:shadow-lg transition-shadow duration-300">
-        <div className="aspect-[4/3] overflow-hidden">
-          <motion.img
-            src={place.image}
-            alt={place.name}
-            className="w-full h-full object-cover"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.4 }}
-          />
-        </div>
-        <div className="p-4">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-              {place.name}
-            </h3>
-            {showRating && place.rating && (
-              <div className="flex items-center gap-1 shrink-0">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                <span className="text-sm font-medium">{place.rating}</span>
-              </div>
-            )}
-          </div>
-          {place.description && (
-            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-              {place.description}
-            </p>
+function PlaceCard({ place, showRating = true, href }: PlaceCardProps) {
+  const cardContent = (
+    <div className="group relative overflow-hidden rounded-xl bg-card border border-border shadow-sm hover:shadow-lg transition-shadow duration-300">
+      <div className="aspect-[4/3] overflow-hidden">
+        <motion.img
+          src={place.image}
+          alt={place.name}
+          className="w-full h-full object-cover"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.4 }}
+        />
+      </div>
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+            {place.name}
+          </h3>
+          {showRating && place.rating && (
+            <div className="flex items-center gap-1 shrink-0">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+              <span className="text-sm font-medium">{place.rating}</span>
+            </div>
           )}
         </div>
+        {place.description && (
+          <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+            {place.description}
+          </p>
+        )}
       </div>
+    </div>
+  );
+
+  if (href) {
+    return (
+      <ScaleOnHover scale={1.03}>
+        <Link to={href}>
+          {cardContent}
+        </Link>
+      </ScaleOnHover>
+    );
+  }
+
+  return (
+    <ScaleOnHover scale={1.03}>
+      {cardContent}
     </ScaleOnHover>
   );
 }
@@ -60,9 +75,10 @@ interface CategorySectionProps {
   places: CountryPlace[];
   showViewAll?: boolean;
   gridCols?: string;
+  getHref?: (place: CountryPlace) => string;
 }
 
-function CategorySection({ title, icon, places, showViewAll = true, gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" }: CategorySectionProps) {
+function CategorySection({ title, icon, places, showViewAll = true, gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", getHref }: CategorySectionProps) {
   return (
     <section className="mb-12">
       <FadeIn>
@@ -87,7 +103,7 @@ function CategorySection({ title, icon, places, showViewAll = true, gridCols = "
       <StaggerContainer className={`grid ${gridCols} gap-4 md:gap-6`} staggerDelay={0.05}>
         {places.map((place) => (
           <StaggerItem key={place.id}>
-            <PlaceCard place={place} />
+            <PlaceCard place={place} href={getHref?.(place)} />
           </StaggerItem>
         ))}
       </StaggerContainer>
@@ -159,6 +175,7 @@ export default function CountryDetails() {
             title="Top Destinations"
             icon={<MapPin className="h-5 w-5" />}
             places={country.destinations}
+            getHref={(place) => `/country/${country.slug}/destination/${place.id}`}
           />
 
           <CategorySection
