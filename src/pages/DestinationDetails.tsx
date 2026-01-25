@@ -1,6 +1,7 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info } from "lucide-react";
+import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleOnHover } from "@/components/ui/scroll-animations";
@@ -15,79 +16,280 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
 
-// Extended destination data with more details
+// Extended destination data with more details and coordinates
 const destinationExtendedData: Record<string, {
   highlights: string[];
   bestTimeToVisit: string;
   averageStay: string;
+  idealFor: string;
   travelTips: string[];
   gallery: string[];
+  coordinates: [number, number]; // [lat, lng]
 }> = {
+  // Spain destinations
   "costa-del-sol": {
-    highlights: ["Marbella's luxury resorts", "Málaga's Picasso Museum", "Traditional white villages", "Golf courses"],
+    highlights: ["Marbella's luxury resorts", "Málaga's Picasso Museum", "Traditional white villages", "World-class golf courses"],
     bestTimeToVisit: "April - October",
     averageStay: "5-7 days",
-    travelTips: ["Book beach clubs in advance during summer", "Rent a car to explore nearby villages", "Try fresh seafood at chiringuitos"],
+    idealFor: "Beach lovers",
+    travelTips: ["Book beach clubs in advance during summer", "Rent a car to explore nearby white villages", "Try fresh seafood at chiringuitos on the beach", "Visit Nerja caves for a unique experience"],
     gallery: [
       "https://images.unsplash.com/photo-1509840841025-9088ba78a826?w=800&q=80",
       "https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&q=80",
       "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=800&q=80",
     ],
+    coordinates: [36.5108, -4.8858],
   },
+  "ibiza": {
+    highlights: ["World-famous nightclubs", "Hidden cove beaches", "Dalt Vila old town", "Sunset at Café del Mar"],
+    bestTimeToVisit: "May - October",
+    averageStay: "4-7 days",
+    idealFor: "Party lovers",
+    travelTips: ["Book club tickets online to avoid queues", "Rent a boat to explore hidden coves", "Visit Formentera for a day trip", "Stay in Santa Eulària for a quieter vibe"],
+    gallery: [
+      "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=800&q=80",
+      "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    ],
+    coordinates: [38.9067, 1.4206],
+  },
+  "canary-islands": {
+    highlights: ["Mount Teide volcano", "Year-round sunshine", "Black sand beaches", "Stargazing experiences"],
+    bestTimeToVisit: "Year-round",
+    averageStay: "7-10 days",
+    idealFor: "Nature lovers",
+    travelTips: ["Visit multiple islands for variety", "Book Teide cable car in advance", "Try papas arrugadas with mojo sauce", "Explore Lanzarote's volcanic landscapes"],
+    gallery: [
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80",
+      "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=800&q=80",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+    ],
+    coordinates: [28.2916, -16.6291],
+  },
+  "balearic-islands": {
+    highlights: ["Mallorca's Serra de Tramuntana", "Menorca's pristine beaches", "Mediterranean cuisine", "Historic Palma cathedral"],
+    bestTimeToVisit: "May - September",
+    averageStay: "5-10 days",
+    idealFor: "Island hoppers",
+    travelTips: ["Rent a car in Mallorca for mountain villages", "Visit Menorca for untouched nature", "Book restaurants in advance during peak season", "Take the Sóller train for scenic views"],
+    gallery: [
+      "https://images.unsplash.com/photo-1517627043994-b991abb62fc8?w=800&q=80",
+      "https://images.unsplash.com/photo-1559590070-5f94ff0f8c6c?w=800&q=80",
+      "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+    ],
+    coordinates: [39.5696, 2.6502],
+  },
+  // Italy destinations
   "amalfi-coast": {
-    highlights: ["Positano's colorful houses", "Ravello's gardens", "Path of the Gods hike", "Limoncello tasting"],
+    highlights: ["Positano's colorful houses", "Ravello's villa gardens", "Path of the Gods hike", "Limoncello tasting"],
     bestTimeToVisit: "May - September",
     averageStay: "3-5 days",
-    travelTips: ["Book ferries early in peak season", "Start hikes early to avoid heat", "Reserve restaurant tables in advance"],
+    idealFor: "Romantic trips",
+    travelTips: ["Book ferries early in peak season", "Start hikes early to avoid heat", "Reserve restaurant tables in advance", "Stay in Praiano for fewer crowds"],
     gallery: [
       "https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?w=800&q=80",
       "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&q=80",
       "https://images.unsplash.com/photo-1499678329028-101435549a4e?w=800&q=80",
     ],
+    coordinates: [40.6333, 14.6029],
   },
   "tuscany": {
-    highlights: ["Florence's Renaissance art", "Chianti wine region", "Siena's medieval center", "Truffle hunting"],
+    highlights: ["Florence's Renaissance art", "Chianti wine region", "Siena's medieval center", "Truffle hunting in San Miniato"],
     bestTimeToVisit: "April - June, September - October",
     averageStay: "7-10 days",
-    travelTips: ["Rent a villa for authentic experience", "Book winery tours ahead", "Visit smaller towns for fewer crowds"],
+    idealFor: "Culture seekers",
+    travelTips: ["Rent a villa for authentic experience", "Book winery tours ahead", "Visit smaller towns like San Gimignano", "Take cooking classes in the countryside"],
     gallery: [
       "https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=800&q=80",
       "https://images.unsplash.com/photo-1543429776-2782fc5d5ff8?w=800&q=80",
       "https://images.unsplash.com/photo-1541370976299-4d24ebbc9077?w=800&q=80",
     ],
+    coordinates: [43.3188, 11.3308],
   },
+  "sardinia": {
+    highlights: ["Costa Smeralda beaches", "Ancient nuraghi ruins", "Crystal-clear waters", "Pecorino cheese tasting"],
+    bestTimeToVisit: "May - September",
+    averageStay: "7-10 days",
+    idealFor: "Beach lovers",
+    travelTips: ["Rent a car to explore remote beaches", "Visit La Maddalena archipelago by boat", "Try traditional porceddu (roast pig)", "Book Costa Smeralda hotels early"],
+    gallery: [
+      "https://images.unsplash.com/photo-1527853787696-f7be74f2e39a?w=800&q=80",
+      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    ],
+    coordinates: [40.1209, 9.0129],
+  },
+  "sicily": {
+    highlights: ["Mount Etna volcano", "Valley of the Temples", "Baroque Noto", "Arancini and cannoli"],
+    bestTimeToVisit: "April - June, September - October",
+    averageStay: "7-10 days",
+    idealFor: "History buffs",
+    travelTips: ["Join an Etna hiking tour with a guide", "Visit the Greek theaters at sunset", "Try street food in Palermo's markets", "Explore the Aeolian Islands by ferry"],
+    gallery: [
+      "https://images.unsplash.com/photo-1523531294919-4bcd7c65e216?w=800&q=80",
+      "https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?w=800&q=80",
+      "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
+    ],
+    coordinates: [37.5994, 14.0154],
+  },
+  // Portugal destinations
   "algarve": {
-    highlights: ["Benagil Cave", "Lagos' dramatic cliffs", "Faro's old town", "Fresh seafood"],
+    highlights: ["Benagil Cave", "Lagos' dramatic cliffs", "Faro's old town", "Fresh grilled sardines"],
     bestTimeToVisit: "May - September",
     averageStay: "5-7 days",
-    travelTips: ["Kayak to hidden caves", "Visit beaches early morning", "Try cataplana seafood stew"],
+    idealFor: "Beach lovers",
+    travelTips: ["Kayak to hidden sea caves", "Visit beaches early morning", "Try cataplana seafood stew", "Book cliff walking tours in advance"],
     gallery: [
       "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
       "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     ],
+    coordinates: [37.0179, -7.9304],
   },
+  "madeira-dest": {
+    highlights: ["Levada walks", "Monte Palace gardens", "Funchal old town", "Poncha cocktails"],
+    bestTimeToVisit: "Year-round",
+    averageStay: "5-7 days",
+    idealFor: "Hikers",
+    travelTips: ["Wear proper hiking shoes for levadas", "Take the cable car to Monte", "Try espetada (beef skewers)", "Rent a car for scenic coastal drives"],
+    gallery: [
+      "https://images.unsplash.com/photo-1538582709604-cdd4c0c6f2b8?w=800&q=80",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+      "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80",
+    ],
+    coordinates: [32.6669, -16.9241],
+  },
+  "azores-dest": {
+    highlights: ["Sete Cidades crater lakes", "Whale watching", "Hot springs", "Cozido das Furnas"],
+    bestTimeToVisit: "May - September",
+    averageStay: "7-10 days",
+    idealFor: "Adventure seekers",
+    travelTips: ["Visit multiple islands if time allows", "Book whale watching tours early", "Try the volcanic-cooked stew", "Pack layers as weather changes quickly"],
+    gallery: [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+      "https://images.unsplash.com/photo-1538582709604-cdd4c0c6f2b8?w=800&q=80",
+    ],
+    coordinates: [37.7412, -25.6756],
+  },
+  "douro": {
+    highlights: ["Port wine tastings", "Scenic train journey", "River cruises", "Terraced vineyards"],
+    bestTimeToVisit: "May - October",
+    averageStay: "3-5 days",
+    idealFor: "Wine lovers",
+    travelTips: ["Take the historic Douro train line", "Book quinta stays for vineyard experience", "Join a sunset river cruise", "Visit during grape harvest in September"],
+    gallery: [
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+      "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
+      "https://images.unsplash.com/photo-1567253555255-58b06066df7c?w=800&q=80",
+    ],
+    coordinates: [41.1496, -7.7669],
+  },
+  // Indonesia destinations
   "bali-dest": {
-    highlights: ["Ubud's rice terraces", "Temple sunsets", "World-class surfing", "Wellness retreats"],
+    highlights: ["Ubud's rice terraces", "Temple sunsets at Tanah Lot", "World-class surfing", "Wellness retreats"],
     bestTimeToVisit: "April - October",
     averageStay: "10-14 days",
-    travelTips: ["Rent a scooter for flexibility", "Wake early for temple visits", "Negotiate taxi prices beforehand"],
+    idealFor: "All travelers",
+    travelTips: ["Rent a scooter for flexibility", "Wake early for temple visits", "Negotiate taxi prices beforehand", "Stay in Canggu for surf and cafes"],
     gallery: [
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80",
       "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
       "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
     ],
+    coordinates: [-8.3405, 115.0920],
   },
+  "raja-ampat-dest": {
+    highlights: ["World's best diving", "1,500+ fish species", "Remote island paradise", "Manta ray encounters"],
+    bestTimeToVisit: "October - April",
+    averageStay: "7-10 days",
+    idealFor: "Divers",
+    travelTips: ["Book liveaboard diving trips in advance", "Bring reef-safe sunscreen", "Carry cash as ATMs are rare", "Prepare for basic accommodations"],
+    gallery: [
+      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+      "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    ],
+    coordinates: [-0.2300, 130.5200],
+  },
+  "komodo-dest": {
+    highlights: ["Komodo dragons", "Pink Beach", "Padar Island viewpoint", "Manta ray diving"],
+    bestTimeToVisit: "April - December",
+    averageStay: "3-5 days",
+    idealFor: "Wildlife lovers",
+    travelTips: ["Join multi-day boat tours from Labuan Bajo", "Hire a ranger for dragon tours", "Snorkel at Pink Beach in the morning", "Hike Padar at sunrise for best views"],
+    gallery: [
+      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    ],
+    coordinates: [-8.5500, 119.4833],
+  },
+  "lombok-dest": {
+    highlights: ["Mount Rinjani trek", "Gili Islands", "Untouched beaches", "Traditional Sasak villages"],
+    bestTimeToVisit: "May - September",
+    averageStay: "5-7 days",
+    idealFor: "Adventure seekers",
+    travelTips: ["Book Rinjani treks with licensed guides", "Take fast boats to Gili Islands", "Visit Selong Belanak for beginner surfing", "Respect local Sasak customs"],
+    gallery: [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
+      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80",
+    ],
+    coordinates: [-8.5833, 116.1167],
+  },
+  // Germany destinations
   "bavaria": {
     highlights: ["Neuschwanstein Castle", "Oktoberfest", "Alpine hiking", "Traditional beer halls"],
     bestTimeToVisit: "May - October",
     averageStay: "5-7 days",
-    travelTips: ["Book castle tickets online", "Try local Bavarian cuisine", "Use regional train passes"],
+    idealFor: "Culture lovers",
+    travelTips: ["Book castle tickets online in advance", "Try local Bavarian cuisine like weisswurst", "Use regional Bayern ticket for trains", "Visit smaller towns like Füssen"],
     gallery: [
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
       "https://images.unsplash.com/photo-1595867818082-083862f3d630?w=800&q=80",
       "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80",
     ],
+    coordinates: [48.7904, 11.4979],
+  },
+  "black-forest-dest": {
+    highlights: ["Cuckoo clock villages", "Black Forest cake", "Scenic hiking trails", "Thermal spas"],
+    bestTimeToVisit: "May - October",
+    averageStay: "4-6 days",
+    idealFor: "Nature lovers",
+    travelTips: ["Rent a car for scenic drives", "Visit Triberg for its famous waterfall", "Try authentic Black Forest ham", "Stay in a traditional guesthouse"],
+    gallery: [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+      "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800&q=80",
+      "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80",
+    ],
+    coordinates: [48.0000, 8.0000],
+  },
+  "rhine-dest": {
+    highlights: ["Romantic castles", "Riesling wine tasting", "Lorelei rock", "River cruises"],
+    bestTimeToVisit: "May - September",
+    averageStay: "3-5 days",
+    idealFor: "Romance",
+    travelTips: ["Take a scenic train along the river", "Visit multiple castles with combo tickets", "Try local Riesling wines", "Book river cruises for sunset views"],
+    gallery: [
+      "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800&q=80",
+      "https://images.unsplash.com/photo-1568797629192-789acf8e4df3?w=800&q=80",
+      "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80",
+    ],
+    coordinates: [50.1109, 7.7367],
+  },
+  "baltic-coast": {
+    highlights: ["Sandy beaches", "Historic Rügen island", "Seaside resort architecture", "Smoked fish delicacies"],
+    bestTimeToVisit: "June - September",
+    averageStay: "4-6 days",
+    idealFor: "Beach families",
+    travelTips: ["Rent beach chairs (Strandkörbe) early", "Take the historic steam train on Rügen", "Try Fischbrötchen (fish sandwiches)", "Visit the white cliffs of Jasmund"],
+    gallery: [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+      "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800&q=80",
+      "https://images.unsplash.com/photo-1572621450911-c691a6a5e65a?w=800&q=80",
+    ],
+    coordinates: [54.1833, 12.0833],
   },
 };
 
@@ -96,8 +298,10 @@ const defaultExtendedData = {
   highlights: ["Beautiful landscapes", "Rich culture", "Local cuisine", "Historic sites"],
   bestTimeToVisit: "Spring & Autumn",
   averageStay: "4-7 days",
-  travelTips: ["Research local customs", "Book accommodations early", "Try local food"],
+  idealFor: "All travelers",
+  travelTips: ["Research local customs before visiting", "Book accommodations early in peak season", "Try local food and restaurants", "Learn a few phrases in the local language"],
   gallery: [] as string[],
+  coordinates: [0, 0] as [number, number],
 };
 
 function getDestinationFromCountry(countrySlug: string, destinationId: string): { country: ReturnType<typeof getCountryBySlug>, destination: CountryPlace | undefined } {
@@ -106,6 +310,91 @@ function getDestinationFromCountry(countrySlug: string, destinationId: string): 
   
   const destination = country.destinations.find(d => d.id === destinationId);
   return { country, destination };
+}
+
+// Map component for destination location
+function DestinationMap({ coordinates, destinationName }: { coordinates: [number, number]; destinationName: string }) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!mapRef.current || coordinates[0] === 0) return;
+
+    let map: any = null;
+
+    const loadMap = async () => {
+      const L = await import("leaflet");
+      await import("leaflet/dist/leaflet.css");
+
+      if (!mapRef.current) return;
+
+      map = L.map(mapRef.current, {
+        center: coordinates,
+        zoom: 8,
+        scrollWheelZoom: false,
+        zoomControl: true,
+      });
+
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Custom marker
+      const customIcon = L.divIcon({
+        className: "custom-destination-marker",
+        html: `<div style="
+          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+          width: 32px;
+          height: 32px;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          border: 2px solid white;
+        ">
+          <span style="transform: rotate(45deg); color: white; font-size: 14px;">📍</span>
+        </div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+      });
+
+      L.marker(coordinates, { icon: customIcon })
+        .addTo(map)
+        .bindPopup(`<strong>${destinationName}</strong>`)
+        .openPopup();
+
+      setMapLoaded(true);
+    };
+
+    loadMap();
+
+    return () => {
+      if (map) {
+        map.remove();
+      }
+    };
+  }, [coordinates, destinationName]);
+
+  if (coordinates[0] === 0) return null;
+
+  return (
+    <FadeIn delay={0.25}>
+      <section>
+        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Map className="h-5 w-5 text-primary" />
+          Location
+        </h2>
+        <div 
+          ref={mapRef} 
+          className="h-[250px] md:h-[300px] rounded-xl overflow-hidden border border-border"
+          style={{ background: "#f5f5f5" }}
+        />
+      </section>
+    </FadeIn>
+  );
 }
 
 export default function DestinationDetails() {
@@ -209,7 +498,7 @@ export default function DestinationDetails() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Best Time</p>
-                        <p className="font-medium text-foreground">{extendedData.bestTimeToVisit}</p>
+                        <p className="font-medium text-foreground text-sm">{extendedData.bestTimeToVisit}</p>
                       </div>
                     </div>
                   </div>
@@ -220,7 +509,7 @@ export default function DestinationDetails() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Average Stay</p>
-                        <p className="font-medium text-foreground">{extendedData.averageStay}</p>
+                        <p className="font-medium text-foreground text-sm">{extendedData.averageStay}</p>
                       </div>
                     </div>
                   </div>
@@ -231,7 +520,7 @@ export default function DestinationDetails() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Ideal For</p>
-                        <p className="font-medium text-foreground">All travelers</p>
+                        <p className="font-medium text-foreground text-sm">{extendedData.idealFor}</p>
                       </div>
                     </div>
                   </div>
@@ -259,9 +548,15 @@ export default function DestinationDetails() {
                 </section>
               </FadeIn>
 
+              {/* Map */}
+              <DestinationMap 
+                coordinates={extendedData.coordinates} 
+                destinationName={destination.name} 
+              />
+
               {/* Photo Gallery */}
               {galleryImages.length > 1 && (
-                <FadeIn delay={0.2}>
+                <FadeIn delay={0.3}>
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                       <Camera className="h-5 w-5 text-primary" />
@@ -287,7 +582,7 @@ export default function DestinationDetails() {
               )}
 
               {/* Travel Tips */}
-              <FadeIn delay={0.3}>
+              <FadeIn delay={0.4}>
                 <section>
                   <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                     <Info className="h-5 w-5 text-primary" />
