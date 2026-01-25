@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -92,6 +91,29 @@ export function ShareButton({
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
   const shareText = text || `Check out ${title}`;
 
+  // Check if native share is available (typically on mobile)
+  const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
+
+  const handleButtonClick = async () => {
+    // Use native share on mobile if available
+    if (canNativeShare) {
+      try {
+        await navigator.share({
+          title,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // User cancelled - don't show error
+        if ((err as Error).name === 'AbortError') return;
+        // If share failed for other reasons, fall through to dialog
+      }
+    }
+    // Open dialog on desktop or if native share failed
+    setOpen(true);
+  };
+
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -118,24 +140,23 @@ export function ShareButton({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleButtonClick}
+        className={cn(
+          "rounded-full bg-white/90 hover:bg-white shadow-md transition-all",
+          size === "sm" ? "h-8 w-8" : "h-10 w-10",
+          className
+        )}
+      >
+        <Share2
           className={cn(
-            "rounded-full bg-white/90 hover:bg-white shadow-md transition-all",
-            size === "sm" ? "h-8 w-8" : "h-10 w-10",
-            className
+            "text-muted-foreground transition-colors",
+            size === "sm" ? "h-4 w-4" : "h-5 w-5"
           )}
-        >
-          <Share2
-            className={cn(
-              "text-muted-foreground transition-colors",
-              size === "sm" ? "h-4 w-4" : "h-5 w-5"
-            )}
-          />
-        </Button>
-      </DialogTrigger>
+        />
+      </Button>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share "{title}"</DialogTitle>
