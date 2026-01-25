@@ -1,6 +1,6 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass, Plane, Train, Bus, Ship, Wallet, Bed, UtensilsCrossed, Ticket, Backpack, MessageCircle, Volume2 } from "lucide-react";
+import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass, Plane, Train, Bus, Ship, Wallet, Bed, UtensilsCrossed, Ticket, Backpack, MessageCircle, Volume2, Heart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
 import { getDestinationExtras, TransportOption, BudgetInfo, PackingCategory, LocalPhrase } from "@/data/destinationExtras";
 import { ImageGallery, GalleryImage } from "@/components/trip/ImageGallery";
+import { useToast } from "@/hooks/use-toast";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -990,10 +991,44 @@ function LocalPhrasesSection({ localPhrases }: { localPhrases: { language: strin
 
 export default function DestinationDetails() {
   const { countrySlug, destinationId } = useParams<{ countrySlug: string; destinationId: string }>();
+  const { toast } = useToast();
   
   const { country, destination } = countrySlug && destinationId 
     ? getDestinationFromCountry(countrySlug, destinationId)
     : { country: undefined, destination: undefined };
+
+  // Favorites state
+  const favoriteKey = countrySlug && destinationId ? `${countrySlug}-${destinationId}` : '';
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Load favorite status from localStorage
+  useEffect(() => {
+    if (!favoriteKey) return;
+    const favorites = JSON.parse(localStorage.getItem('favoriteDestinations') || '[]');
+    setIsFavorite(favorites.includes(favoriteKey));
+  }, [favoriteKey]);
+
+  const toggleFavorite = () => {
+    const favorites = JSON.parse(localStorage.getItem('favoriteDestinations') || '[]');
+    let newFavorites: string[];
+
+    if (isFavorite) {
+      newFavorites = favorites.filter((id: string) => id !== favoriteKey);
+      toast({
+        title: "Removed from favorites",
+        description: `${destination?.name} has been removed from your favorites.`,
+      });
+    } else {
+      newFavorites = [...favorites, favoriteKey];
+      toast({
+        title: "Added to favorites",
+        description: `${destination?.name} has been saved to your favorites.`,
+      });
+    }
+
+    localStorage.setItem('favoriteDestinations', JSON.stringify(newFavorites));
+    setIsFavorite(!isFavorite);
+  };
 
   if (!country || !destination) {
     return <Navigate to="/countries" replace />;
@@ -1019,6 +1054,23 @@ export default function DestinationDetails() {
             transition={{ duration: 0.8 }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          
+          {/* Favorite Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleFavorite}
+            className="absolute top-4 right-4 h-11 w-11 rounded-full bg-white/90 hover:bg-white shadow-lg z-10"
+          >
+            <Heart 
+              className={`h-5 w-5 transition-colors ${
+                isFavorite 
+                  ? "fill-red-500 text-red-500" 
+                  : "text-muted-foreground"
+              }`} 
+            />
+          </Button>
+
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
             <div className="container mx-auto">
               <FadeIn>
