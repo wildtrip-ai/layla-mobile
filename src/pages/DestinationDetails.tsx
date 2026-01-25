@@ -18,6 +18,7 @@ import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
 import { getDestinationExtras, TransportOption, BudgetInfo, PackingCategory, LocalPhrase } from "@/data/destinationExtras";
 import { ImageGallery, GalleryImage } from "@/components/trip/ImageGallery";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { ShareButton } from "@/components/ShareButton";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -1041,13 +1042,20 @@ export default function DestinationDetails() {
                     {destination.name}
                   </h1>
                   {countrySlug && destinationId && (
-                    <FavoriteButton
-                      category="destinations"
-                      countrySlug={countrySlug}
-                      itemId={destinationId}
-                      itemName={destination.name}
-                      className="h-10 w-10 shrink-0"
-                    />
+                    <>
+                      <FavoriteButton
+                        category="destinations"
+                        countrySlug={countrySlug}
+                        itemId={destinationId}
+                        itemName={destination.name}
+                        className="h-10 w-10 shrink-0"
+                      />
+                      <ShareButton
+                        title={destination.name}
+                        text={destination.description || `Check out ${destination.name} in ${country.name}`}
+                        className="h-10 w-10 shrink-0"
+                      />
+                    </>
                   )}
                 </div>
                 {destination.description && (
