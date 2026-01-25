@@ -1,6 +1,6 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass } from "lucide-react";
+import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass, Plane, Train, Bus, Ship, Wallet, Bed, UtensilsCrossed, Ticket } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
+import { getDestinationExtras, TransportOption, BudgetInfo } from "@/data/destinationExtras";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -757,6 +758,150 @@ function NearbyAttractionsSection({ attractions }: { attractions: NearbyAttracti
   );
 }
 
+// Transport section component
+function TransportSection({ transport }: { transport: TransportOption[] }) {
+  const getTransportIcon = (type: string) => {
+    switch (type) {
+      case "airport": return <Plane className="h-4 w-4" />;
+      case "train": return <Train className="h-4 w-4" />;
+      case "bus": return <Bus className="h-4 w-4" />;
+      case "ferry": return <Ship className="h-4 w-4" />;
+      default: return <MapPin className="h-4 w-4" />;
+    }
+  };
+
+  const getTransportColor = (type: string) => {
+    switch (type) {
+      case "airport": return "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
+      case "train": return "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400";
+      case "bus": return "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400";
+      case "ferry": return "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400";
+      default: return "bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400";
+    }
+  };
+
+  return (
+    <FadeIn delay={0.2}>
+      <section>
+        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Plane className="h-5 w-5 text-primary" />
+          How to Get There
+        </h2>
+        <div className="space-y-3">
+          {transport.map((option, index) => (
+            <div 
+              key={index}
+              className="bg-card border border-border rounded-xl p-4"
+            >
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-lg ${getTransportColor(option.type)}`}>
+                  {getTransportIcon(option.type)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-medium text-foreground">{option.name}</h3>
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {option.travelTime}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </FadeIn>
+  );
+}
+
+// Budget section component
+function BudgetSection({ budget, destinationName }: { budget: BudgetInfo; destinationName: string }) {
+  const dailyLow = budget.accommodationBudget.low + budget.foodBudget.low + budget.activitiesBudget.low + budget.transportBudget;
+  const dailyMid = budget.accommodationBudget.mid + budget.foodBudget.mid + budget.activitiesBudget.mid + budget.transportBudget;
+  const dailyHigh = budget.accommodationBudget.high + budget.foodBudget.high + budget.activitiesBudget.high + budget.transportBudget;
+
+  const formatCurrency = (amount: number) => {
+    return budget.currency === "USD" ? `$${amount}` : `€${amount}`;
+  };
+
+  return (
+    <FadeIn delay={0.38}>
+      <section>
+        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Wallet className="h-5 w-5 text-primary" />
+          Daily Budget Estimate
+        </h2>
+        <div className="bg-card border border-border rounded-xl p-4">
+          {/* Budget tiers */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-1">Budget</p>
+              <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(dailyLow)}</p>
+              <p className="text-xs text-muted-foreground">/day</p>
+            </div>
+            <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+              <p className="text-xs text-muted-foreground mb-1">Mid-Range</p>
+              <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(dailyMid)}</p>
+              <p className="text-xs text-muted-foreground">/day</p>
+            </div>
+            <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-1">Luxury</p>
+              <p className="text-lg font-bold text-purple-600 dark:text-purple-400">{formatCurrency(dailyHigh)}</p>
+              <p className="text-xs text-muted-foreground">/day</p>
+            </div>
+          </div>
+
+          {/* Breakdown */}
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between py-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Bed className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">Accommodation</span>
+              </div>
+              <span className="text-muted-foreground">
+                {formatCurrency(budget.accommodationBudget.low)} - {formatCurrency(budget.accommodationBudget.high)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">Food & Dining</span>
+              </div>
+              <span className="text-muted-foreground">
+                {formatCurrency(budget.foodBudget.low)} - {formatCurrency(budget.foodBudget.high)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Ticket className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">Activities</span>
+              </div>
+              <span className="text-muted-foreground">
+                {formatCurrency(budget.activitiesBudget.low)} - {formatCurrency(budget.activitiesBudget.high)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <div className="flex items-center gap-2">
+                <Bus className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">Local Transport</span>
+              </div>
+              <span className="text-muted-foreground">
+                ~{formatCurrency(budget.transportBudget)}
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-4 text-xs text-muted-foreground italic">
+            * Estimates are per person per day in {destinationName}. Actual costs may vary by season and preferences.
+          </p>
+        </div>
+      </section>
+    </FadeIn>
+  );
+}
+
 export default function DestinationDetails() {
   const { countrySlug, destinationId } = useParams<{ countrySlug: string; destinationId: string }>();
   
@@ -769,6 +914,7 @@ export default function DestinationDetails() {
   }
 
   const extendedData = destinationExtendedData[destination.id] || defaultExtendedData;
+  const extras = getDestinationExtras(destination.id);
   const galleryImages = extendedData.gallery.length > 0 ? extendedData.gallery : [destination.image];
 
   return (
@@ -911,6 +1057,9 @@ export default function DestinationDetails() {
               {/* Weather & Climate */}
               <WeatherSection weather={extendedData.weather} />
 
+              {/* How to Get There */}
+              <TransportSection transport={extras.transport} />
+
               {/* Map */}
               <DestinationMap 
                 coordinates={extendedData.coordinates} 
@@ -919,6 +1068,9 @@ export default function DestinationDetails() {
 
               {/* Nearby Attractions */}
               <NearbyAttractionsSection attractions={extendedData.nearbyAttractions} />
+
+              {/* Budget Estimate */}
+              <BudgetSection budget={extras.budget} destinationName={destination.name} />
 
               {/* Photo Gallery */}
               {galleryImages.length > 1 && (
