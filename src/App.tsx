@@ -15,6 +15,7 @@ import MyTrips from "./pages/MyTrips";
 import Countries from "./pages/Countries";
 import CountryDetails from "./pages/CountryDetails";
 import DestinationDetails from "./pages/DestinationDetails";
+import MyFavorites from "./pages/MyFavorites";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/my-trips" element={<MyTrips />} />
+          <Route path="/my-favorites" element={<MyFavorites />} />
           <Route path="/new-trip-planner" element={<NewTripPlanner />} />
           <Route path="/trip/:id" element={<TripDetails />} />
           <Route path="/trip/:id/accommodations" element={<AccommodationResults />} />

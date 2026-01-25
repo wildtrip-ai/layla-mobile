@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown } from "lucide-react";
+import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown, Heart } from "lucide-react";
 import { LoginDialog } from "@/components/auth/LoginDialog";
 import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -93,6 +93,12 @@ export function Header() {
                     <DropdownMenuItem className="gap-3 py-3">
                       <MapPin className="h-4 w-4" />
                       <span>My Trips</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to="/my-favorites">
+                    <DropdownMenuItem className="gap-3 py-3">
+                      <Heart className="h-4 w-4" />
+                      <span>My Favorites</span>
                     </DropdownMenuItem>
                   </Link>
                   <DropdownMenuItem className="gap-3 py-3">
