@@ -11,7 +11,7 @@ import { ImageGallery } from "@/components/trip/ImageGallery";
 import { TransportSection } from "@/components/trip/TransportSection";
 import { AccommodationSection } from "@/components/trip/AccommodationSection";
 import { DayPlanSection } from "@/components/trip/DayPlanSection";
-import { TripSidebar } from "@/components/trip/TripSidebar";
+import { VoyagerChat } from "@/components/trip/VoyagerChat";
 import { TripDetailsDialog, type EditableTripData } from "@/components/trip/TripDetailsDialog";
 import { PremiumUpgradeDrawer } from "@/components/trip/PremiumUpgradeDrawer";
 import { useTripData } from "@/hooks/useTripData";
@@ -172,7 +172,8 @@ export default function TripDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
             {/* Sidebar - Hidden on mobile */}
             <div className="hidden lg:block">
-              <TripSidebar 
+              <VoyagerChat 
+                mode="modify"
                 onRemoveFlights={removeFlights}
                 onAddCity={addCity}
                 onApplyBudgetChanges={applyBudgetChanges}

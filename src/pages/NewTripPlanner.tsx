@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
-import { NewTripSidebar } from "@/components/trip/NewTripSidebar";
+import { VoyagerChat } from "@/components/trip/VoyagerChat";
 import { EmptyTripState } from "@/components/trip/EmptyTripState";
 import { TripPreview } from "@/components/trip/TripPreview";
 import { TripPreviewSkeleton } from "@/components/trip/TripPreviewSkeleton";
@@ -35,9 +35,10 @@ export default function NewTripPlanner() {
           {/* Two Column Layout - Desktop */}
           <div className="hidden lg:grid lg:grid-cols-[340px_1fr] gap-6">
             {/* Chat Sidebar */}
-            <NewTripSidebar
+            <VoyagerChat
+              mode="create"
               initialMessage={initialMessage}
-              mode={mode}
+              inspireMode={mode === "inspire"}
               onTripGenerated={handleTripGenerated}
               onGeneratingChange={handleGeneratingChange}
             />
