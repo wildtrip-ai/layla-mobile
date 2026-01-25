@@ -21,6 +21,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareButton } from "@/components/ShareButton";
 import { TripCostCalculator } from "@/components/destination/TripCostCalculator";
 import { BestTimeCalendar } from "@/components/destination/BestTimeCalendar";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -994,10 +995,25 @@ function LocalPhrasesSection({ localPhrases }: { localPhrases: { language: strin
 
 export default function DestinationDetails() {
   const { countrySlug, destinationId } = useParams<{ countrySlug: string; destinationId: string }>();
+  const { addItem } = useRecentlyViewed();
   
   const { country, destination } = countrySlug && destinationId 
     ? getDestinationFromCountry(countrySlug, destinationId)
     : { country: undefined, destination: undefined };
+
+  // Track this destination as recently viewed
+  useEffect(() => {
+    if (country && destination && countrySlug && destinationId) {
+      addItem({
+        countrySlug,
+        destinationId,
+        name: destination.name,
+        image: destination.image,
+        countryName: country.name,
+        countryFlag: country.flag,
+      });
+    }
+  }, [country, destination, countrySlug, destinationId, addItem]);
 
   if (!country || !destination) {
     return <Navigate to="/countries" replace />;
