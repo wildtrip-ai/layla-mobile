@@ -49,7 +49,7 @@ export default function Countries() {
 
         {/* Countries Grid */}
         <StaggerContainer 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3"
+          className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-2 sm:gap-y-3"
           staggerDelay={0.02}
         >
           {allCountries.map((country) => (
