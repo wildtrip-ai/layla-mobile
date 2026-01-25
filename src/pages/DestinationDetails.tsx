@@ -1,6 +1,6 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map } from "lucide-react";
+import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -16,6 +16,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
 
+interface WeatherInfo {
+  summer: { high: number; low: number };
+  winter: { high: number; low: number };
+  climate: string;
+  rainyMonths: string;
+}
+
+interface NearbyAttraction {
+  name: string;
+  type: string;
+  distance: string;
+  description: string;
+}
+
 // Extended destination data with more details and coordinates
 const destinationExtendedData: Record<string, {
   highlights: string[];
@@ -24,7 +38,9 @@ const destinationExtendedData: Record<string, {
   idealFor: string;
   travelTips: string[];
   gallery: string[];
-  coordinates: [number, number]; // [lat, lng]
+  coordinates: [number, number];
+  weather: WeatherInfo;
+  nearbyAttractions: NearbyAttraction[];
 }> = {
   // Spain destinations
   "costa-del-sol": {
@@ -39,6 +55,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=800&q=80",
     ],
     coordinates: [36.5108, -4.8858],
+    weather: {
+      summer: { high: 32, low: 21 },
+      winter: { high: 17, low: 8 },
+      climate: "Mediterranean",
+      rainyMonths: "November - February",
+    },
+    nearbyAttractions: [
+      { name: "Alhambra Palace", type: "Historical", distance: "1.5h drive", description: "Stunning Moorish palace complex in Granada" },
+      { name: "Ronda", type: "Town", distance: "1h drive", description: "Dramatic clifftop town with ancient bridge" },
+      { name: "Gibraltar", type: "Landmark", distance: "1h drive", description: "British territory with famous rock" },
+      { name: "Nerja Caves", type: "Natural", distance: "45min drive", description: "Spectacular underground caverns" },
+    ],
   },
   "ibiza": {
     highlights: ["World-famous nightclubs", "Hidden cove beaches", "Dalt Vila old town", "Sunset at Café del Mar"],
@@ -52,6 +80,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     ],
     coordinates: [38.9067, 1.4206],
+    weather: {
+      summer: { high: 30, low: 22 },
+      winter: { high: 15, low: 8 },
+      climate: "Mediterranean",
+      rainyMonths: "October - March",
+    },
+    nearbyAttractions: [
+      { name: "Formentera Island", type: "Island", distance: "30min ferry", description: "Pristine beaches and crystal waters" },
+      { name: "Es Vedrà", type: "Natural", distance: "30min drive", description: "Mystical rocky islet with legends" },
+      { name: "Dalt Vila", type: "Historical", distance: "In town", description: "UNESCO-listed old town fortress" },
+      { name: "Cala Comte", type: "Beach", distance: "20min drive", description: "Famous sunset beach with turquoise waters" },
+    ],
   },
   "canary-islands": {
     highlights: ["Mount Teide volcano", "Year-round sunshine", "Black sand beaches", "Stargazing experiences"],
@@ -65,6 +105,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
     ],
     coordinates: [28.2916, -16.6291],
+    weather: {
+      summer: { high: 28, low: 20 },
+      winter: { high: 21, low: 14 },
+      climate: "Subtropical",
+      rainyMonths: "November - February",
+    },
+    nearbyAttractions: [
+      { name: "Teide National Park", type: "Natural", distance: "Central Tenerife", description: "Spain's highest peak and UNESCO site" },
+      { name: "Timanfaya Park", type: "Natural", distance: "Lanzarote", description: "Surreal volcanic landscape" },
+      { name: "Maspalomas Dunes", type: "Natural", distance: "Gran Canaria", description: "Sahara-like sand dunes by the sea" },
+      { name: "La Gomera Rainforest", type: "Natural", distance: "Ferry from Tenerife", description: "Ancient laurel forest" },
+    ],
   },
   "balearic-islands": {
     highlights: ["Mallorca's Serra de Tramuntana", "Menorca's pristine beaches", "Mediterranean cuisine", "Historic Palma cathedral"],
@@ -78,6 +130,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
     ],
     coordinates: [39.5696, 2.6502],
+    weather: {
+      summer: { high: 31, low: 21 },
+      winter: { high: 15, low: 6 },
+      climate: "Mediterranean",
+      rainyMonths: "October - March",
+    },
+    nearbyAttractions: [
+      { name: "Palma Cathedral", type: "Historical", distance: "Palma city", description: "Gothic masterpiece by the sea" },
+      { name: "Drach Caves", type: "Natural", distance: "1h from Palma", description: "Underground lake concerts" },
+      { name: "Valldemossa", type: "Town", distance: "30min from Palma", description: "Charming mountain village" },
+      { name: "Cala Macarella", type: "Beach", distance: "Menorca", description: "Turquoise bay paradise" },
+    ],
   },
   // Italy destinations
   "amalfi-coast": {
@@ -92,6 +156,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1499678329028-101435549a4e?w=800&q=80",
     ],
     coordinates: [40.6333, 14.6029],
+    weather: {
+      summer: { high: 30, low: 22 },
+      winter: { high: 13, low: 6 },
+      climate: "Mediterranean",
+      rainyMonths: "November - February",
+    },
+    nearbyAttractions: [
+      { name: "Pompeii", type: "Historical", distance: "45min drive", description: "Ancient Roman city preserved by volcanic ash" },
+      { name: "Capri Island", type: "Island", distance: "30min ferry", description: "Glamorous island with Blue Grotto" },
+      { name: "Naples", type: "City", distance: "1.5h drive", description: "Vibrant city, birthplace of pizza" },
+      { name: "Vesuvius", type: "Natural", distance: "1h drive", description: "Active volcano with stunning views" },
+    ],
   },
   "tuscany": {
     highlights: ["Florence's Renaissance art", "Chianti wine region", "Siena's medieval center", "Truffle hunting in San Miniato"],
@@ -105,6 +181,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1541370976299-4d24ebbc9077?w=800&q=80",
     ],
     coordinates: [43.3188, 11.3308],
+    weather: {
+      summer: { high: 32, low: 18 },
+      winter: { high: 10, low: 2 },
+      climate: "Mediterranean continental",
+      rainyMonths: "October - December",
+    },
+    nearbyAttractions: [
+      { name: "Florence", type: "City", distance: "Central", description: "Renaissance capital with Uffizi Gallery" },
+      { name: "San Gimignano", type: "Town", distance: "45min from Florence", description: "Medieval towers and gelato" },
+      { name: "Pisa", type: "City", distance: "1h from Florence", description: "Famous leaning tower" },
+      { name: "Val d'Orcia", type: "Natural", distance: "1.5h from Florence", description: "Rolling hills and cypress trees" },
+    ],
   },
   "sardinia": {
     highlights: ["Costa Smeralda beaches", "Ancient nuraghi ruins", "Crystal-clear waters", "Pecorino cheese tasting"],
@@ -118,6 +206,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     ],
     coordinates: [40.1209, 9.0129],
+    weather: {
+      summer: { high: 31, low: 20 },
+      winter: { high: 14, low: 6 },
+      climate: "Mediterranean",
+      rainyMonths: "October - December",
+    },
+    nearbyAttractions: [
+      { name: "La Maddalena", type: "Island", distance: "Ferry from Palau", description: "Archipelago with pink sand beaches" },
+      { name: "Neptune's Grotto", type: "Natural", distance: "Near Alghero", description: "Stunning sea cave formations" },
+      { name: "Su Nuraxi", type: "Historical", distance: "Central Sardinia", description: "UNESCO Bronze Age fortress" },
+      { name: "Gorropu Canyon", type: "Natural", distance: "Eastern Sardinia", description: "Europe's deepest canyon" },
+    ],
   },
   "sicily": {
     highlights: ["Mount Etna volcano", "Valley of the Temples", "Baroque Noto", "Arancini and cannoli"],
@@ -131,6 +231,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     ],
     coordinates: [37.5994, 14.0154],
+    weather: {
+      summer: { high: 33, low: 22 },
+      winter: { high: 15, low: 8 },
+      climate: "Mediterranean",
+      rainyMonths: "October - February",
+    },
+    nearbyAttractions: [
+      { name: "Mount Etna", type: "Natural", distance: "Near Catania", description: "Europe's highest active volcano" },
+      { name: "Valley of Temples", type: "Historical", distance: "Agrigento", description: "Ancient Greek temple complex" },
+      { name: "Taormina", type: "Town", distance: "Eastern coast", description: "Hilltop town with Greek theater" },
+      { name: "Aeolian Islands", type: "Island", distance: "Ferry from Milazzo", description: "Volcanic islands with Stromboli" },
+    ],
   },
   // Portugal destinations
   "algarve": {
@@ -145,6 +257,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     ],
     coordinates: [37.0179, -7.9304],
+    weather: {
+      summer: { high: 29, low: 18 },
+      winter: { high: 16, low: 8 },
+      climate: "Mediterranean",
+      rainyMonths: "November - February",
+    },
+    nearbyAttractions: [
+      { name: "Benagil Cave", type: "Natural", distance: "Near Lagoa", description: "Iconic sea cave with skylight" },
+      { name: "Ponta da Piedade", type: "Natural", distance: "Lagos", description: "Dramatic limestone cliffs" },
+      { name: "Ria Formosa", type: "Natural", distance: "Near Faro", description: "Coastal lagoon nature reserve" },
+      { name: "Sagres Fortress", type: "Historical", distance: "Western tip", description: "Historic fort at Europe's edge" },
+    ],
   },
   "madeira-dest": {
     highlights: ["Levada walks", "Monte Palace gardens", "Funchal old town", "Poncha cocktails"],
@@ -158,6 +282,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80",
     ],
     coordinates: [32.6669, -16.9241],
+    weather: {
+      summer: { high: 25, low: 18 },
+      winter: { high: 19, low: 13 },
+      climate: "Subtropical oceanic",
+      rainyMonths: "October - March",
+    },
+    nearbyAttractions: [
+      { name: "Pico do Arieiro", type: "Natural", distance: "30min from Funchal", description: "Madeira's third-highest peak" },
+      { name: "Cabo Girão", type: "Natural", distance: "20min from Funchal", description: "Europe's highest sea cliff" },
+      { name: "Porto Moniz", type: "Natural", distance: "1.5h from Funchal", description: "Natural volcanic swimming pools" },
+      { name: "Santana", type: "Town", distance: "40min from Funchal", description: "Traditional A-frame houses" },
+    ],
   },
   "azores-dest": {
     highlights: ["Sete Cidades crater lakes", "Whale watching", "Hot springs", "Cozido das Furnas"],
@@ -171,6 +307,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1538582709604-cdd4c0c6f2b8?w=800&q=80",
     ],
     coordinates: [37.7412, -25.6756],
+    weather: {
+      summer: { high: 25, low: 17 },
+      winter: { high: 17, low: 11 },
+      climate: "Oceanic",
+      rainyMonths: "October - March",
+    },
+    nearbyAttractions: [
+      { name: "Sete Cidades", type: "Natural", distance: "São Miguel", description: "Twin lakes in volcanic crater" },
+      { name: "Furnas Valley", type: "Natural", distance: "São Miguel", description: "Hot springs and volcanic cooking" },
+      { name: "Pico Mountain", type: "Natural", distance: "Pico Island", description: "Portugal's highest peak" },
+      { name: "Angra do Heroísmo", type: "Historical", distance: "Terceira", description: "UNESCO World Heritage city" },
+    ],
   },
   "douro": {
     highlights: ["Port wine tastings", "Scenic train journey", "River cruises", "Terraced vineyards"],
@@ -184,6 +332,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1567253555255-58b06066df7c?w=800&q=80",
     ],
     coordinates: [41.1496, -7.7669],
+    weather: {
+      summer: { high: 33, low: 17 },
+      winter: { high: 12, low: 3 },
+      climate: "Mediterranean continental",
+      rainyMonths: "November - February",
+    },
+    nearbyAttractions: [
+      { name: "Porto", type: "City", distance: "1.5h downstream", description: "Historic port wine city" },
+      { name: "Pinhão", type: "Town", distance: "Valley center", description: "Heart of wine country" },
+      { name: "Lamego", type: "Town", distance: "Near Régua", description: "Sanctuary and baroque architecture" },
+      { name: "Foz Côa", type: "Historical", distance: "Eastern valley", description: "Prehistoric rock art museum" },
+    ],
   },
   // Indonesia destinations
   "bali-dest": {
@@ -198,6 +358,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&q=80",
     ],
     coordinates: [-8.3405, 115.0920],
+    weather: {
+      summer: { high: 31, low: 24 },
+      winter: { high: 30, low: 23 },
+      climate: "Tropical",
+      rainyMonths: "November - March",
+    },
+    nearbyAttractions: [
+      { name: "Ubud Monkey Forest", type: "Natural", distance: "Central Bali", description: "Sacred temple and monkey sanctuary" },
+      { name: "Tegallalang Terraces", type: "Natural", distance: "Near Ubud", description: "Iconic rice terrace landscapes" },
+      { name: "Uluwatu Temple", type: "Historical", distance: "South Bali", description: "Clifftop temple with sunset views" },
+      { name: "Nusa Penida", type: "Island", distance: "45min boat", description: "Dramatic cliffs and manta rays" },
+    ],
   },
   "raja-ampat-dest": {
     highlights: ["World's best diving", "1,500+ fish species", "Remote island paradise", "Manta ray encounters"],
@@ -211,6 +383,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     ],
     coordinates: [-0.2300, 130.5200],
+    weather: {
+      summer: { high: 31, low: 24 },
+      winter: { high: 30, low: 24 },
+      climate: "Tropical",
+      rainyMonths: "June - September",
+    },
+    nearbyAttractions: [
+      { name: "Wayag Islands", type: "Natural", distance: "Northern Raja Ampat", description: "Iconic karst island viewpoint" },
+      { name: "Misool", type: "Island", distance: "Southern Raja Ampat", description: "Pristine lagoons and caves" },
+      { name: "Arborek Village", type: "Cultural", distance: "Central area", description: "Traditional Papuan village" },
+      { name: "Manta Sandy", type: "Natural", distance: "Dive site", description: "Famous manta cleaning station" },
+    ],
   },
   "komodo-dest": {
     highlights: ["Komodo dragons", "Pink Beach", "Padar Island viewpoint", "Manta ray diving"],
@@ -224,6 +408,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     ],
     coordinates: [-8.5500, 119.4833],
+    weather: {
+      summer: { high: 33, low: 24 },
+      winter: { high: 31, low: 23 },
+      climate: "Tropical savanna",
+      rainyMonths: "December - March",
+    },
+    nearbyAttractions: [
+      { name: "Padar Island", type: "Natural", distance: "In park", description: "Tri-colored beaches viewpoint" },
+      { name: "Pink Beach", type: "Natural", distance: "In park", description: "Rare pink sand beach" },
+      { name: "Rinca Island", type: "Natural", distance: "In park", description: "Komodo dragon habitat" },
+      { name: "Manta Point", type: "Natural", distance: "Dive site", description: "Manta ray snorkeling spot" },
+    ],
   },
   "lombok-dest": {
     highlights: ["Mount Rinjani trek", "Gili Islands", "Untouched beaches", "Traditional Sasak villages"],
@@ -237,6 +433,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80",
     ],
     coordinates: [-8.5833, 116.1167],
+    weather: {
+      summer: { high: 31, low: 22 },
+      winter: { high: 30, low: 22 },
+      climate: "Tropical",
+      rainyMonths: "November - March",
+    },
+    nearbyAttractions: [
+      { name: "Gili Trawangan", type: "Island", distance: "30min boat", description: "Car-free island with nightlife" },
+      { name: "Mount Rinjani", type: "Natural", distance: "Central Lombok", description: "Indonesia's second-highest volcano" },
+      { name: "Selong Belanak", type: "Beach", distance: "South Lombok", description: "Perfect beginner surf beach" },
+      { name: "Sasak Villages", type: "Cultural", distance: "South Lombok", description: "Traditional weaving communities" },
+    ],
   },
   // Germany destinations
   "bavaria": {
@@ -251,6 +459,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80",
     ],
     coordinates: [48.7904, 11.4979],
+    weather: {
+      summer: { high: 24, low: 13 },
+      winter: { high: 3, low: -4 },
+      climate: "Continental",
+      rainyMonths: "May - August",
+    },
+    nearbyAttractions: [
+      { name: "Neuschwanstein", type: "Historical", distance: "Near Füssen", description: "Fairy-tale castle of Ludwig II" },
+      { name: "Munich", type: "City", distance: "Central Bavaria", description: "Beer halls and art museums" },
+      { name: "Zugspitze", type: "Natural", distance: "Near Garmisch", description: "Germany's highest peak" },
+      { name: "Rothenburg ob der Tauber", type: "Town", distance: "2h from Munich", description: "Medieval walled town" },
+    ],
   },
   "black-forest-dest": {
     highlights: ["Cuckoo clock villages", "Black Forest cake", "Scenic hiking trails", "Thermal spas"],
@@ -264,6 +484,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80",
     ],
     coordinates: [48.0000, 8.0000],
+    weather: {
+      summer: { high: 24, low: 12 },
+      winter: { high: 4, low: -2 },
+      climate: "Temperate oceanic",
+      rainyMonths: "June - August",
+    },
+    nearbyAttractions: [
+      { name: "Triberg Waterfalls", type: "Natural", distance: "Central area", description: "Germany's highest waterfalls" },
+      { name: "Freiburg", type: "City", distance: "Western edge", description: "Sunny university town" },
+      { name: "Baden-Baden", type: "Town", distance: "Northern edge", description: "Historic spa resort town" },
+      { name: "Titisee Lake", type: "Natural", distance: "Central area", description: "Scenic glacial lake" },
+    ],
   },
   "rhine-dest": {
     highlights: ["Romantic castles", "Riesling wine tasting", "Lorelei rock", "River cruises"],
@@ -277,6 +509,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80",
     ],
     coordinates: [50.1109, 7.7367],
+    weather: {
+      summer: { high: 25, low: 14 },
+      winter: { high: 5, low: -1 },
+      climate: "Temperate",
+      rainyMonths: "June - August",
+    },
+    nearbyAttractions: [
+      { name: "Lorelei Rock", type: "Natural", distance: "St. Goarshausen", description: "Legendary cliff with river views" },
+      { name: "Marksburg Castle", type: "Historical", distance: "Braubach", description: "Best-preserved Rhine castle" },
+      { name: "Rüdesheim", type: "Town", distance: "Southern valley", description: "Wine town with cable car" },
+      { name: "Cologne", type: "City", distance: "1.5h north", description: "Gothic cathedral and old town" },
+    ],
   },
   "baltic-coast": {
     highlights: ["Sandy beaches", "Historic Rügen island", "Seaside resort architecture", "Smoked fish delicacies"],
@@ -290,6 +534,18 @@ const destinationExtendedData: Record<string, {
       "https://images.unsplash.com/photo-1572621450911-c691a6a5e65a?w=800&q=80",
     ],
     coordinates: [54.1833, 12.0833],
+    weather: {
+      summer: { high: 22, low: 14 },
+      winter: { high: 3, low: -2 },
+      climate: "Oceanic",
+      rainyMonths: "July - September",
+    },
+    nearbyAttractions: [
+      { name: "Jasmund Cliffs", type: "Natural", distance: "Rügen", description: "Dramatic white chalk cliffs" },
+      { name: "Binz", type: "Town", distance: "Rügen", description: "Elegant seaside resort" },
+      { name: "Rostock", type: "City", distance: "Coast", description: "Historic Hanseatic port city" },
+      { name: "Usedom Island", type: "Island", distance: "Eastern coast", description: "Sunny beach island" },
+    ],
   },
 };
 
@@ -302,6 +558,13 @@ const defaultExtendedData = {
   travelTips: ["Research local customs before visiting", "Book accommodations early in peak season", "Try local food and restaurants", "Learn a few phrases in the local language"],
   gallery: [] as string[],
   coordinates: [0, 0] as [number, number],
+  weather: {
+    summer: { high: 25, low: 15 },
+    winter: { high: 10, low: 2 },
+    climate: "Temperate",
+    rainyMonths: "Variable",
+  },
+  nearbyAttractions: [] as NearbyAttraction[],
 };
 
 function getDestinationFromCountry(countrySlug: string, destinationId: string): { country: ReturnType<typeof getCountryBySlug>, destination: CountryPlace | undefined } {
@@ -392,6 +655,103 @@ function DestinationMap({ coordinates, destinationName }: { coordinates: [number
           className="h-[250px] md:h-[300px] rounded-xl overflow-hidden border border-border"
           style={{ background: "#f5f5f5" }}
         />
+      </section>
+    </FadeIn>
+  );
+}
+
+// Weather section component
+function WeatherSection({ weather }: { weather: WeatherInfo }) {
+  return (
+    <FadeIn delay={0.15}>
+      <section>
+        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <CloudSun className="h-5 w-5 text-primary" />
+          Weather & Climate
+        </h2>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Thermometer className="h-4 w-4 text-orange-500" />
+                <span className="text-sm font-medium text-muted-foreground">Summer</span>
+              </div>
+              <p className="text-lg font-semibold text-foreground">
+                {weather.summer.high}°C / {weather.summer.low}°C
+              </p>
+              <p className="text-xs text-muted-foreground">High / Low</p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Thermometer className="h-4 w-4 text-blue-500" />
+                <span className="text-sm font-medium text-muted-foreground">Winter</span>
+              </div>
+              <p className="text-lg font-semibold text-foreground">
+                {weather.winter.high}°C / {weather.winter.low}°C
+              </p>
+              <p className="text-xs text-muted-foreground">High / Low</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Climate:</span>{" "}
+              <span className="font-medium text-foreground">{weather.climate}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Rainy Season:</span>{" "}
+              <span className="font-medium text-foreground">{weather.rainyMonths}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </FadeIn>
+  );
+}
+
+// Nearby attractions section component
+function NearbyAttractionsSection({ attractions }: { attractions: NearbyAttraction[] }) {
+  if (attractions.length === 0) return null;
+
+  const getTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "natural": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+      case "historical": return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+      case "city": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+      case "town": return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+      case "island": return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400";
+      case "beach": return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+      case "cultural": return "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400";
+      default: return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+    }
+  };
+
+  return (
+    <FadeIn delay={0.35}>
+      <section>
+        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Compass className="h-5 w-5 text-primary" />
+          Nearby Attractions
+        </h2>
+        <div className="space-y-3">
+          {attractions.map((attraction, index) => (
+            <div 
+              key={index}
+              className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h3 className="font-medium text-foreground">{attraction.name}</h3>
+                <Badge className={`text-xs shrink-0 ${getTypeColor(attraction.type)}`}>
+                  {attraction.type}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">{attraction.description}</p>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" />
+                {attraction.distance}
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
     </FadeIn>
   );
@@ -548,15 +908,21 @@ export default function DestinationDetails() {
                 </section>
               </FadeIn>
 
+              {/* Weather & Climate */}
+              <WeatherSection weather={extendedData.weather} />
+
               {/* Map */}
               <DestinationMap 
                 coordinates={extendedData.coordinates} 
                 destinationName={destination.name} 
               />
 
+              {/* Nearby Attractions */}
+              <NearbyAttractionsSection attractions={extendedData.nearbyAttractions} />
+
               {/* Photo Gallery */}
               {galleryImages.length > 1 && (
-                <FadeIn delay={0.3}>
+                <FadeIn delay={0.4}>
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                       <Camera className="h-5 w-5 text-primary" />
@@ -582,7 +948,7 @@ export default function DestinationDetails() {
               )}
 
               {/* Travel Tips */}
-              <FadeIn delay={0.4}>
+              <FadeIn delay={0.45}>
                 <section>
                   <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                     <Info className="h-5 w-5 text-primary" />
