@@ -1249,7 +1249,8 @@ export default function DestinationDetails() {
               <FadeIn delay={0.2}>
                 <TripCostCalculator 
                   budget={extras.budget} 
-                  destinationName={destination.name} 
+                  destinationName={destination.name}
+                  destinationRegion="europe"
                 />
               </FadeIn>
 
