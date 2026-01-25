@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { ArrowRight, Download, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShareButton } from "@/components/ShareButton";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface TripDescriptionProps {
   title: string;
@@ -11,11 +11,15 @@ interface TripDescriptionProps {
 }
 
 export function TripDescription({ title, description, tripId }: TripDescriptionProps) {
-  const navigate = useNavigate();
+  const { localizedPath } = useLanguage();
 
   const handleDownload = () => {
     // TODO: Implement PDF download
     console.log("Downloading trip...");
+  };
+
+  const handleBook = () => {
+    window.location.href = localizedPath(`/trip/${tripId}/booking`);
   };
 
   return (
@@ -66,7 +70,7 @@ export function TripDescription({ title, description, tripId }: TripDescriptionP
           variant="default" 
           size="lg" 
           className="gap-2"
-          onClick={() => navigate(`/trip/${tripId}/booking`)}
+          onClick={handleBook}
         >
           <ShoppingCart className="h-4 w-4" />
           Book

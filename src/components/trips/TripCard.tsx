@@ -1,11 +1,11 @@
 import { useState, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar, MapPin, Share2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShareTripDialog } from "@/components/trips/ShareTripDialog";
 import { DeleteTripDialog } from "@/components/trips/DeleteTripDialog";
+import { LocalizedLink } from "@/components/LocalizedLink";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import type { SavedTrip } from "@/data/savedTripsData";
@@ -295,7 +295,7 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
             onTouchEnd={handleTouchEnd}
             onTouchMove={handleTouchMove}
           >
-            <Link 
+            <LocalizedLink 
               to={linkTo} 
               className="block group"
               onClick={(e) => {
@@ -306,12 +306,12 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
               }}
             >
               {cardContent}
-            </Link>
+            </LocalizedLink>
           </motion.div>
         ) : (
-          <Link to={linkTo} className="block group">
+          <LocalizedLink to={linkTo} className="block group">
             {cardContent}
-          </Link>
+          </LocalizedLink>
         )}
       </motion.div>
 

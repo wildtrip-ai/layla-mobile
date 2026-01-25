@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animations";
+import { LocalizedLink } from "@/components/LocalizedLink";
 
 const footerLinks = {
   company: {
@@ -56,12 +56,12 @@ export function Footer() {
                     if (isCountryLink) {
                       return (
                         <li key={label}>
-                          <Link
+                          <LocalizedLink
                             to={href}
                             className="text-muted-foreground hover:text-foreground transition-colors text-sm inline-block hover:translate-x-1 transform duration-200"
                           >
                             {label}
-                          </Link>
+                          </LocalizedLink>
                         </li>
                       );
                     }

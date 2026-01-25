@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown, Heart } from "lucide-react";
 import { LoginDialog } from "@/components/auth/LoginDialog";
 import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { LocalizedLink } from "@/components/LocalizedLink";
+import { useLanguage, SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
 
 // Mock user state - replace with real auth later
 const mockUser = {
@@ -13,63 +15,85 @@ const mockUser = {
   email: "cooper@gmail.com",
   initials: "C"
 };
+
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
   const [isLoggedIn, setIsLoggedIn] = useState(true); // Toggle for demo
+  
+  const { lang, setLanguage } = useLanguage();
 
-  const currentLanguage = languages.find(l => l.code === selectedLanguage);
+  const currentLanguage = languages.find(l => l.code === lang);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
+  
   const handleSignOut = () => {
     setIsLoggedIn(false);
     setIsOpen(false);
   };
+  
   const handleLogin = () => {
     setLoginDialogOpen(true);
     setIsOpen(false);
   };
-  return <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
+
+  const handleLanguageSelect = (langCode: string) => {
+    if (SUPPORTED_LANGUAGES.includes(langCode as SupportedLanguage)) {
+      setLanguage(langCode as SupportedLanguage);
+    }
+  };
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
       <div className="container mx-auto flex items-center justify-between pointer-events-auto [&>*]:pointer-events-auto">
         {/* Logo */}
         <div className="flex items-center">
-          <a href="/">
+          <LocalizedLink to="/">
             <img src="/logo5.png" alt="Emirates Escape" className="h-14 object-contain" />
-          </a>
+          </LocalizedLink>
         </div>
 
         {/* Right side controls */}
         <div className="flex items-center gap-2">
           {/* Settings pills */}
           <div className="hidden sm:flex items-center bg-card/90 backdrop-blur-sm rounded-full px-1 py-1 shadow-lg">
-            <button className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors" onClick={() => setCurrencyDialogOpen(true)}>
+            <button 
+              className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors" 
+              onClick={() => setCurrencyDialogOpen(true)}
+            >
               {currentCurrency?.icon || "$"}
             </button>
-            <button className="px-3 py-1.5 text-sm bg-secondary text-foreground rounded-full transition-colors" onClick={() => setLanguageDialogOpen(true)}>
+            <button 
+              className="px-3 py-1.5 text-sm bg-secondary text-foreground rounded-full transition-colors" 
+              onClick={() => setLanguageDialogOpen(true)}
+            >
               {currentLanguage?.icon || "🇺🇸"}
             </button>
-            
           </div>
 
           {/* User menu */}
           <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
-              {isLoggedIn ? <Button variant="ghost" className="rounded-full h-10 px-1 gap-1 bg-primary hover:bg-primary/90">
+              {isLoggedIn ? (
+                <Button variant="ghost" className="rounded-full h-10 px-1 gap-1 bg-primary hover:bg-primary/90">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                       {mockUser.initials}
                     </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-4 w-4 text-primary-foreground" />
-                </Button> : <Button variant="hero-outline" size="icon" className="rounded-full h-10 w-10">
+                </Button>
+              ) : (
+                <Button variant="hero-outline" size="icon" className="rounded-full h-10 w-10">
                   <User className="h-5 w-5" />
-                </Button>}
+                </Button>
+              )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 mt-2">
-              {isLoggedIn ? <>
+              {isLoggedIn ? (
+                <>
                   {/* User info header */}
                   <div className="flex items-center gap-3 px-3 py-4">
                     <Avatar className="h-12 w-12">
@@ -83,36 +107,36 @@ export function Header() {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <Link to="/new-trip-planner">
+                  <LocalizedLink to="/new-trip-planner">
                     <DropdownMenuItem className="gap-3 py-3">
                       <Plus className="h-4 w-4" />
                       <span>New Trip</span>
                     </DropdownMenuItem>
-                  </Link>
-                  <Link to="/my-trips">
+                  </LocalizedLink>
+                  <LocalizedLink to="/my-trips">
                     <DropdownMenuItem className="gap-3 py-3">
                       <MapPin className="h-4 w-4" />
                       <span>My Trips</span>
                     </DropdownMenuItem>
-                  </Link>
-                  <Link to="/my-favorites">
+                  </LocalizedLink>
+                  <LocalizedLink to="/my-favorites">
                     <DropdownMenuItem className="gap-3 py-3">
                       <Heart className="h-4 w-4" />
                       <span>My Favorites</span>
                     </DropdownMenuItem>
-                  </Link>
-                  <Link to="/settings">
+                  </LocalizedLink>
+                  <LocalizedLink to="/settings">
                     <DropdownMenuItem className="gap-3 py-3">
                       <Crown className="h-4 w-4" />
                       <span>Manage Subscription</span>
                     </DropdownMenuItem>
-                  </Link>
-                  <Link to="/settings">
+                  </LocalizedLink>
+                  <LocalizedLink to="/settings">
                     <DropdownMenuItem className="gap-3 py-3">
                       <Settings className="h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
-                  </Link>
+                  </LocalizedLink>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="gap-3 py-3">
                     <HelpCircle className="h-4 w-4" />
@@ -131,17 +155,19 @@ export function Header() {
                     <LogOut className="h-4 w-4" />
                     <span>Sign out</span>
                   </DropdownMenuItem>
-                </> : <>
+                </>
+              ) : (
+                <>
                   <DropdownMenuItem className="gap-3 py-3" onClick={handleLogin}>
                     <LogIn className="h-4 w-4" />
                     <span>Login</span>
                   </DropdownMenuItem>
-                  <Link to="/new-trip-planner">
+                  <LocalizedLink to="/new-trip-planner">
                     <DropdownMenuItem className="gap-3 py-3">
                       <Plus className="h-4 w-4" />
                       <span>New Trip</span>
                     </DropdownMenuItem>
-                  </Link>
+                  </LocalizedLink>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="gap-3 py-3">
                     <HelpCircle className="h-4 w-4" />
@@ -155,7 +181,8 @@ export function Header() {
                     <FileText className="h-4 w-4" />
                     <span>Terms of service</span>
                   </DropdownMenuItem>
-                </>}
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -165,9 +192,24 @@ export function Header() {
       <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
 
       {/* Language Dialog */}
-      <SelectionDialog open={languageDialogOpen} onOpenChange={setLanguageDialogOpen} title="Choose language" items={languages} selectedValue={selectedLanguage} onSelect={setSelectedLanguage} />
+      <SelectionDialog 
+        open={languageDialogOpen} 
+        onOpenChange={setLanguageDialogOpen} 
+        title="Choose language" 
+        items={languages} 
+        selectedValue={lang} 
+        onSelect={handleLanguageSelect} 
+      />
 
       {/* Currency Dialog */}
-      <SelectionDialog open={currencyDialogOpen} onOpenChange={setCurrencyDialogOpen} title="Choose currency" items={currencies} selectedValue={selectedCurrency} onSelect={setSelectedCurrency} />
-    </header>;
+      <SelectionDialog 
+        open={currencyDialogOpen} 
+        onOpenChange={setCurrencyDialogOpen} 
+        title="Choose currency" 
+        items={currencies} 
+        selectedValue={selectedCurrency} 
+        onSelect={setSelectedCurrency} 
+      />
+    </header>
+  );
 }

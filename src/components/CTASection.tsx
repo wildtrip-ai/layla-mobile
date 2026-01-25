@@ -2,8 +2,15 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { FadeIn, Parallax } from "@/components/ui/scroll-animations";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export function CTASection() {
+  const { localizedPath } = useLanguage();
+
+  const handleClick = () => {
+    window.location.href = localizedPath("/new-trip-planner");
+  };
+
   return (
     <section className="py-12 md:py-20 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
@@ -40,7 +47,7 @@ export function CTASection() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button variant="hero" size="lg" className="gap-2">
+                <Button variant="hero" size="lg" className="gap-2" onClick={handleClick}>
                   Try Voyager now
                   <motion.span
                     animate={{ x: [0, 5, 0] }}

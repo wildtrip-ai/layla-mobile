@@ -1,13 +1,13 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Mic, Send } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 import heroImage from "@/assets/hero-japan.jpg";
 
 export function HeroSection() {
   const [tripQuery, setTripQuery] = useState("");
-  const navigate = useNavigate();
+  const { localizedPath } = useLanguage();
   const sectionRef = useRef(null);
   
   const { scrollYProgress } = useScroll({
@@ -19,6 +19,10 @@ export function HeroSection() {
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  const handleNavigate = (path: string) => {
+    window.location.href = localizedPath(path);
+  };
 
   return (
     <section ref={sectionRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -90,9 +94,9 @@ export function HeroSection() {
                       className="gap-2"
                       onClick={() => {
                         if (tripQuery.trim()) {
-                          navigate(`/new-trip-planner?message=${encodeURIComponent(tripQuery)}`);
+                          handleNavigate(`/new-trip-planner?message=${encodeURIComponent(tripQuery)}`);
                         } else {
-                          navigate("/new-trip-planner");
+                          handleNavigate("/new-trip-planner");
                         }
                       }}
                     >
@@ -116,7 +120,7 @@ export function HeroSection() {
               <Button 
                 variant="hero-outline" 
                 size="default"
-                onClick={() => navigate("/new-trip-planner")}
+                onClick={() => handleNavigate("/new-trip-planner")}
               >
                 Create a new trip
               </Button>
@@ -125,7 +129,7 @@ export function HeroSection() {
               <Button 
                 variant="hero-outline" 
                 size="default"
-                onClick={() => navigate("/new-trip-planner?mode=inspire")}
+                onClick={() => handleNavigate("/new-trip-planner?mode=inspire")}
               >
                 Inspire me where to go
               </Button>

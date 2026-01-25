@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Globe } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -11,6 +10,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { allCountries, hasDetailedData } from "@/data/countriesData";
+import { LocalizedLink } from "@/components/LocalizedLink";
 
 export default function Countries() {
   return (
@@ -24,7 +24,7 @@ export default function Countries() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/">Home</Link>
+                  <LocalizedLink to="/">Home</LocalizedLink>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -54,7 +54,7 @@ export default function Countries() {
         >
           {allCountries.map((country) => (
             <StaggerItem key={country.slug}>
-              <Link
+              <LocalizedLink
                 to={hasDetailedData(country.slug) ? `/country/${country.slug}` : "#"}
                 className={`group flex items-center gap-2 py-2 px-3 rounded-lg transition-all duration-200 ${
                   hasDetailedData(country.slug)
@@ -80,7 +80,7 @@ export default function Countries() {
                     View →
                   </span>
                 )}
-              </Link>
+              </LocalizedLink>
             </StaggerItem>
           ))}
         </StaggerContainer>

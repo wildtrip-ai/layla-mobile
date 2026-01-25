@@ -1,13 +1,13 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useFavorites } from "@/hooks/useFavorites";
-import { getCountryBySlug, CountryData, CountryPlace, allCountries } from "@/data/countriesData";
+import { getCountryBySlug, CountryData, CountryPlace } from "@/data/countriesData";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animations";
+import { LocalizedLink } from "@/components/LocalizedLink";
 
 interface RecommendedDestination {
   countrySlug: string;
@@ -181,12 +181,12 @@ export function RecommendationsSection() {
                 <p className="text-sm text-muted-foreground">Based on your interests</p>
               </div>
             </div>
-            <Link to="/countries">
+            <LocalizedLink to="/countries">
               <Button variant="ghost" size="sm" className="gap-1">
                 Explore All
                 <ChevronRight className="h-4 w-4" />
               </Button>
-            </Link>
+            </LocalizedLink>
           </div>
         </FadeIn>
 
@@ -206,7 +206,7 @@ function RecommendationCard({ recommendation }: { recommendation: RecommendedDes
   const { countrySlug, destinationId, destination, country, reason } = recommendation;
   
   return (
-    <Link to={`/country/${countrySlug}/destination/${destinationId}`}>
+    <LocalizedLink to={`/country/${countrySlug}/destination/${destinationId}`}>
       <motion.div
         className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-card shadow-sm hover:shadow-xl transition-all"
         whileHover={{ y: -6, scale: 1.02 }}
@@ -251,6 +251,6 @@ function RecommendationCard({ recommendation }: { recommendation: RecommendedDes
         {/* Hover shimmer effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
       </motion.div>
-    </Link>
+    </LocalizedLink>
   );
 }
