@@ -155,7 +155,7 @@ export function TripHeader({ trip, onOpenDialog, travelers, onCityClick, selecte
         <div
           ref={scrollRef}
           onScroll={checkScroll}
-          className="flex items-center gap-2 overflow-x-auto pb-2 px-2 scrollbar-hide"
+          className="flex items-center gap-2 overflow-x-auto p-2 scrollbar-hide"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
