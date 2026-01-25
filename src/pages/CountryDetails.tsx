@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { ShareButton } from "@/components/ShareButton";
 import { FavoriteCategory } from "@/hooks/useFavorites";
 
 interface PlaceCardProps {
@@ -21,9 +22,21 @@ interface PlaceCardProps {
   href?: string;
   countrySlug: string;
   category: FavoriteCategory;
+  countryName: string;
 }
 
-function PlaceCard({ place, showRating = true, href, countrySlug, category }: PlaceCardProps) {
+function PlaceCard({ place, showRating = true, href, countrySlug, category, countryName }: PlaceCardProps) {
+  // Generate a shareable URL for the place
+  const getShareUrl = () => {
+    if (typeof window === 'undefined') return '';
+    const baseUrl = window.location.origin;
+    if (category === 'destinations') {
+      return `${baseUrl}/country/${countrySlug}/destination/${place.id}`;
+    }
+    // For other categories, share the country page
+    return `${baseUrl}/country/${countrySlug}`;
+  };
+
   const cardContent = (
     <div className="group relative overflow-hidden rounded-xl bg-card border border-border shadow-sm hover:shadow-lg transition-shadow duration-300">
       <div className="aspect-[4/3] overflow-hidden relative">
@@ -34,14 +47,21 @@ function PlaceCard({ place, showRating = true, href, countrySlug, category }: Pl
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.4 }}
         />
-        <FavoriteButton
-          category={category}
-          countrySlug={countrySlug}
-          itemId={place.id}
-          itemName={place.name}
-          size="sm"
-          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
-        />
+        <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <ShareButton
+            title={place.name}
+            text={`Check out ${place.name} in ${countryName}`}
+            url={getShareUrl()}
+            size="sm"
+          />
+          <FavoriteButton
+            category={category}
+            countrySlug={countrySlug}
+            itemId={place.id}
+            itemName={place.name}
+            size="sm"
+          />
+        </div>
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
@@ -89,10 +109,11 @@ interface CategorySectionProps {
   gridCols?: string;
   getHref?: (place: CountryPlace) => string;
   countrySlug: string;
+  countryName: string;
   category: FavoriteCategory;
 }
 
-function CategorySection({ title, icon, places, showViewAll = true, gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", getHref, countrySlug, category }: CategorySectionProps) {
+function CategorySection({ title, icon, places, showViewAll = true, gridCols = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4", getHref, countrySlug, countryName, category }: CategorySectionProps) {
   return (
     <section className="mb-12">
       <FadeIn>
@@ -121,6 +142,7 @@ function CategorySection({ title, icon, places, showViewAll = true, gridCols = "
               place={place} 
               href={getHref?.(place)} 
               countrySlug={countrySlug}
+              countryName={countryName}
               category={category}
             />
           </StaggerItem>
@@ -196,6 +218,7 @@ export default function CountryDetails() {
             places={country.destinations}
             getHref={(place) => `/country/${country.slug}/destination/${place.id}`}
             countrySlug={country.slug}
+            countryName={country.name}
             category="destinations"
           />
 
@@ -205,6 +228,7 @@ export default function CountryDetails() {
             places={country.cities}
             gridCols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
             countrySlug={country.slug}
+            countryName={country.name}
             category="cities"
           />
 
@@ -213,6 +237,7 @@ export default function CountryDetails() {
             icon={<UtensilsCrossed className="h-5 w-5" />}
             places={country.restaurants}
             countrySlug={country.slug}
+            countryName={country.name}
             category="restaurants"
           />
 
@@ -221,6 +246,7 @@ export default function CountryDetails() {
             icon={<TreePine className="h-5 w-5" />}
             places={country.amenities}
             countrySlug={country.slug}
+            countryName={country.name}
             category="amenities"
           />
 
@@ -229,6 +255,7 @@ export default function CountryDetails() {
             icon={<Palette className="h-5 w-5" />}
             places={country.museums}
             countrySlug={country.slug}
+            countryName={country.name}
             category="museums"
           />
 
@@ -237,6 +264,7 @@ export default function CountryDetails() {
             icon={<Landmark className="h-5 w-5" />}
             places={country.historicalSites}
             countrySlug={country.slug}
+            countryName={country.name}
             category="historicalSites"
           />
 
@@ -245,6 +273,7 @@ export default function CountryDetails() {
             icon={<Mountain className="h-5 w-5" />}
             places={country.naturalAttractions}
             countrySlug={country.slug}
+            countryName={country.name}
             category="naturalAttractions"
           />
         </div>
