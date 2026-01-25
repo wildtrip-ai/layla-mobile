@@ -109,7 +109,7 @@ export function useCountryPlaces(countrySlug: string | undefined): UseCountryPla
 
       try {
         const response = await fetch(
-          `http://internal-api.emiratesescape.com/v1.0/countries/${countrySlug}/places`
+          `https://internal-api.emiratesescape.com/v1.0/countries/${countrySlug}/places`
         );
 
         if (!response.ok) {
