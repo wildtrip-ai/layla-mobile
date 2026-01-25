@@ -119,8 +119,8 @@ export default function CountryDetails() {
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
             <div className="container mx-auto">
               <FadeIn>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground flex items-center gap-4">
-                  <span className="bg-white rounded-lg p-2 shadow-sm text-5xl md:text-6xl">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground flex items-center gap-3">
+                  <span className="bg-white rounded-lg p-1.5 md:p-2 shadow-sm text-2xl md:text-3xl">
                     {country.flag}
                   </span>
                   {country.name}
