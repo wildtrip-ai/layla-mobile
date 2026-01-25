@@ -62,8 +62,41 @@ const createModeSuggestions: QuickSuggestion[] = [
   { emoji: "🍷", label: "Food & wine tour", message: "I'm looking for a food & wine tour" },
 ];
 
-const getCreateModeResponse = (message: string, inspireMode?: boolean): { response: string; generateTrip: boolean } => {
+// Chips that trigger trip generation when clicked
+const createModeChipActions: Set<string> = new Set([
+  // Beach regions
+  "Caribbean",
+  "Southeast Asia",
+  "Mediterranean",
+  "Pacific Islands",
+  // Cultural interests
+  "Medieval castles and ancient ruins",
+  "Art and museums",
+  "Food and wine experiences",
+  "Vibrant city life",
+  // Adventure destinations
+  "Nepal - Himalayan treks",
+  "New Zealand - Ultimate adventure playground",
+  "Iceland - Glaciers and volcanoes",
+  "Peru - Machu Picchu and beyond",
+]);
+
+interface CreateModeResponseResult {
+  response: string;
+  generateTrip: boolean;
+  chips?: { emoji: string; label: string }[];
+}
+
+const getCreateModeResponse = (message: string, inspireMode?: boolean): CreateModeResponseResult => {
   const lowerMessage = message.toLowerCase();
+  
+  // Check if this is a chip click that should trigger trip generation
+  if (createModeChipActions.has(message)) {
+    return {
+      response: `Excellent choice! I've crafted a personalized ${message} itinerary for you. Explore the highlights, unique experiences, and hidden gems. Take a look at your trip! ✨`,
+      generateTrip: true
+    };
+  }
   
   if (inspireMode) {
     return {
@@ -81,22 +114,40 @@ const getCreateModeResponse = (message: string, inspireMode?: boolean): { respon
   
   if (lowerMessage.includes("beach") || lowerMessage.includes("relax") || lowerMessage.includes("tropical")) {
     return {
-      response: "A beach getaway sounds perfect! I'm thinking crystal-clear waters and white sand. Let me know your preferred region:\n\n🌴 Caribbean\n🏝️ Southeast Asia\n🌊 Mediterranean\n🐚 Pacific Islands\n\nOr share your budget and dates, and I'll find the ideal spot!",
-      generateTrip: false
+      response: "A beach getaway sounds perfect! I'm thinking crystal-clear waters and white sand. Let me know your preferred region, or share your budget and dates!",
+      generateTrip: false,
+      chips: [
+        { emoji: "🌴", label: "Caribbean" },
+        { emoji: "🏝️", label: "Southeast Asia" },
+        { emoji: "🌊", label: "Mediterranean" },
+        { emoji: "🐚", label: "Pacific Islands" }
+      ]
     };
   }
   
   if (lowerMessage.includes("europe") || lowerMessage.includes("cultural") || lowerMessage.includes("history")) {
     return {
-      response: "Europe is a treasure trove of culture and history! Are you drawn to:\n\n🏰 Medieval castles and ancient ruins\n🎨 Art and museums\n🍷 Food and wine experiences\n🏙️ Vibrant city life\n\nShare your interests and I'll curate the perfect European adventure!",
-      generateTrip: false
+      response: "Europe is a treasure trove of culture and history! What draws you most? Share your interests and I'll curate the perfect adventure!",
+      generateTrip: false,
+      chips: [
+        { emoji: "🏰", label: "Medieval castles and ancient ruins" },
+        { emoji: "🎨", label: "Art and museums" },
+        { emoji: "🍷", label: "Food and wine experiences" },
+        { emoji: "🏙️", label: "Vibrant city life" }
+      ]
     };
   }
   
   if (lowerMessage.includes("adventure") || lowerMessage.includes("hiking") || lowerMessage.includes("outdoor")) {
     return {
-      response: "Adventure awaits! For outdoor enthusiasts, I recommend:\n\n🏔️ Nepal - Himalayan treks\n🇳🇿 New Zealand - Ultimate adventure playground\n🇮🇸 Iceland - Glaciers and volcanoes\n🇵🇪 Peru - Machu Picchu and beyond\n\nWhat's your fitness level and preferred climate?",
-      generateTrip: false
+      response: "Adventure awaits! For outdoor enthusiasts, here are some incredible destinations. What's your fitness level and preferred climate?",
+      generateTrip: false,
+      chips: [
+        { emoji: "🏔️", label: "Nepal - Himalayan treks" },
+        { emoji: "🇳🇿", label: "New Zealand - Ultimate adventure playground" },
+        { emoji: "🇮🇸", label: "Iceland - Glaciers and volcanoes" },
+        { emoji: "🇵🇪", label: "Peru - Machu Picchu and beyond" }
+      ]
     };
   }
   
@@ -266,8 +317,8 @@ export function VoyagerChat(props: VoyagerChatProps) {
     
     setTimeout(() => {
       if (isCreateMode) {
-        const { response, generateTrip } = getCreateModeResponse(text, inspireMode);
-        startTypingAnimation(response, { generateTrip });
+        const { response, generateTrip, chips } = getCreateModeResponse(text, inspireMode);
+        startTypingAnimation(response, { generateTrip, chips });
       } else {
         const response = modifyModeResponses[text] || defaultModifyResponse;
         const chips = modifyModeChips[text];
@@ -413,8 +464,8 @@ export function VoyagerChat(props: VoyagerChatProps) {
                 </div>
               </div>
               
-              {/* Chips for modify mode - show after last assistant message */}
-              {!isCreateMode && msg.role === "assistant" && msg.chips && msgIndex === messages.length - 1 && !isTyping && (
+              {/* Chips - show after last assistant message (works in both modes) */}
+              {msg.role === "assistant" && msg.chips && msgIndex === messages.length - 1 && !isTyping && (
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
