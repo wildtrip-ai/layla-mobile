@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MapPin, Trash2, ArrowLeft, Building2, UtensilsCrossed, Palette, Landmark, Mountain, TreePine } from "lucide-react";
+import { Heart, MapPin, Trash2, Building2, UtensilsCrossed, Palette, Landmark, Mountain, TreePine } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -91,12 +91,6 @@ export default function MyFavorites() {
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="mb-8">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="mb-4 -ml-2">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Heart className="h-6 w-6 text-primary" />
