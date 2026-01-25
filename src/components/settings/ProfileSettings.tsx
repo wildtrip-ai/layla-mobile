@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Trash2 } from "lucide-react";
+import { ChevronRight, Trash2, Camera, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
+import { ImageCropDialog } from "./ImageCropDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 // Mock user data - replace with real auth later
 const mockUser = {
@@ -32,6 +34,12 @@ export function ProfileSettings() {
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
+  
+  // Profile photo state
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentLanguage = languages.find(l => l.code === selectedLanguage);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
@@ -40,6 +48,65 @@ export function ProfileSettings() {
     // Handle account deletion
     console.log("Account deletion requested");
   };
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Read file and open crop dialog
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result as string);
+      setCropDialogOpen(true);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    setProfilePhoto(croppedImage);
+    toast({
+      title: "Photo updated",
+      description: "Your profile photo has been updated successfully.",
+    });
+  };
+
+  const handleRemovePhoto = () => {
+    setProfilePhoto(null);
+    toast({
+      title: "Photo removed",
+      description: "Your profile photo has been removed.",
+    });
+  };
+
+  // Get initials from current name
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || mockUser.initials;
 
   return (
     <motion.div
@@ -54,19 +121,66 @@ export function ProfileSettings() {
         <p className="text-muted-foreground mt-1">Manage your personal information</p>
       </div>
 
-      {/* User Header Card */}
+      {/* User Header Card with Photo Upload */}
       <div className="bg-card rounded-2xl border border-border p-6">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-medium">
-              {mockUser.initials}
-            </AvatarFallback>
-          </Avatar>
-          <div>
+          {/* Avatar with upload button */}
+          <div className="relative group">
+            <Avatar className="h-20 w-20 ring-2 ring-border ring-offset-2 ring-offset-background">
+              {profilePhoto ? (
+                <AvatarImage src={profilePhoto} alt="Profile photo" />
+              ) : null}
+              <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-medium">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Overlay button */}
+            <button
+              onClick={handlePhotoClick}
+              className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            >
+              <Camera className="h-6 w-6 text-white" />
+            </button>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
+
+          <div className="flex-1">
             <h2 className="text-xl font-semibold text-foreground">
               {firstName} {lastName}
             </h2>
             <p className="text-muted-foreground">{mockUser.email}</p>
+            
+            {/* Photo action buttons */}
+            <div className="flex gap-2 mt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-full text-xs h-7"
+                onClick={handlePhotoClick}
+              >
+                <Camera className="h-3 w-3 mr-1" />
+                {profilePhoto ? "Change photo" : "Add photo"}
+              </Button>
+              {profilePhoto && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-full text-xs h-7 text-muted-foreground hover:text-destructive"
+                  onClick={handleRemovePhoto}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -185,6 +299,18 @@ export function ProfileSettings() {
         selectedValue={selectedCurrency}
         onSelect={setSelectedCurrency}
       />
+
+      {/* Image Crop Dialog */}
+      {selectedImage && (
+        <ImageCropDialog
+          open={cropDialogOpen}
+          onOpenChange={setCropDialogOpen}
+          imageSrc={selectedImage}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+          cropShape="round"
+        />
+      )}
     </motion.div>
   );
 }
