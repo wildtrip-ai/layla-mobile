@@ -11,6 +11,7 @@ export interface CountryData {
   name: string;
   flag: string;
   heroImage: string;
+  destinations: CountryPlace[];
   cities: CountryPlace[];
   restaurants: CountryPlace[];
   amenities: CountryPlace[];
@@ -186,6 +187,12 @@ export const countriesData: Record<string, CountryData> = {
     name: "Spain",
     flag: "🇪🇸",
     heroImage: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=1200&q=80",
+    destinations: [
+      { id: "costa-del-sol", name: "Costa del Sol", image: "https://images.unsplash.com/photo-1509840841025-9088ba78a826?w=600&q=80", description: "Sun-drenched beaches and resort towns", rating: 4.6 },
+      { id: "ibiza", name: "Ibiza", image: "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=600&q=80", description: "World-famous nightlife and beaches", rating: 4.5 },
+      { id: "canary-islands", name: "Canary Islands", image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=600&q=80", description: "Year-round sunshine and volcanic landscapes", rating: 4.7 },
+      { id: "balearic-islands", name: "Balearic Islands", image: "https://images.unsplash.com/photo-1517627043994-b991abb62fc8?w=600&q=80", description: "Mediterranean paradise islands", rating: 4.6 },
+    ],
     cities: [
       { id: "madrid", name: "Madrid", image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600&q=80", description: "The vibrant capital with world-class art museums", rating: 4.7 },
       { id: "barcelona", name: "Barcelona", image: "https://images.unsplash.com/photo-1583422409516-2895a77efbed?w=600&q=80", description: "Gaudí's masterpieces and Mediterranean beaches", rating: 4.8 },
@@ -230,6 +237,12 @@ export const countriesData: Record<string, CountryData> = {
     name: "Italy",
     flag: "🇮🇹",
     heroImage: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1200&q=80",
+    destinations: [
+      { id: "amalfi-coast", name: "Amalfi Coast", image: "https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?w=600&q=80", description: "Stunning cliffside villages and azure waters", rating: 4.9 },
+      { id: "tuscany", name: "Tuscany", image: "https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=600&q=80", description: "Rolling hills, vineyards, and medieval towns", rating: 4.8 },
+      { id: "sardinia", name: "Sardinia", image: "https://images.unsplash.com/photo-1527853787696-f7be74f2e39a?w=600&q=80", description: "Crystal-clear waters and pristine beaches", rating: 4.7 },
+      { id: "sicily", name: "Sicily", image: "https://images.unsplash.com/photo-1523531294919-4bcd7c65e216?w=600&q=80", description: "Ancient ruins, Etna, and rich culture", rating: 4.6 },
+    ],
     cities: [
       { id: "rome", name: "Rome", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600&q=80", description: "The Eternal City with ancient wonders", rating: 4.8 },
       { id: "florence", name: "Florence", image: "https://images.unsplash.com/photo-1543429776-2782fc5d5ff8?w=600&q=80", description: "Renaissance art and architecture capital", rating: 4.8 },
@@ -274,6 +287,12 @@ export const countriesData: Record<string, CountryData> = {
     name: "Portugal",
     flag: "🇵🇹",
     heroImage: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&q=80",
+    destinations: [
+      { id: "algarve", name: "Algarve", image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&q=80", description: "Dramatic cliffs and golden beaches", rating: 4.8 },
+      { id: "madeira-dest", name: "Madeira", image: "https://images.unsplash.com/photo-1538582709604-cdd4c0c6f2b8?w=600&q=80", description: "Lush volcanic island paradise", rating: 4.7 },
+      { id: "azores-dest", name: "Azores", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", description: "Remote volcanic archipelago", rating: 4.8 },
+      { id: "douro", name: "Douro Valley", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", description: "Scenic wine region along the river", rating: 4.6 },
+    ],
     cities: [
       { id: "lisbon", name: "Lisbon", image: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=600&q=80", description: "Hilly capital with historic trams", rating: 4.7 },
       { id: "porto", name: "Porto", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", description: "Riverside city famous for port wine", rating: 4.8 },
@@ -318,6 +337,12 @@ export const countriesData: Record<string, CountryData> = {
     name: "Indonesia",
     flag: "🇮🇩",
     heroImage: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&q=80",
+    destinations: [
+      { id: "bali-dest", name: "Bali", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=80", description: "Island of temples, rice terraces, and beaches", rating: 4.8 },
+      { id: "raja-ampat-dest", name: "Raja Ampat", image: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=600&q=80", description: "World's best diving destination", rating: 4.9 },
+      { id: "komodo-dest", name: "Komodo", image: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=600&q=80", description: "Home to legendary dragons", rating: 4.7 },
+      { id: "lombok-dest", name: "Lombok", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", description: "Quiet beaches and Mount Rinjani", rating: 4.6 },
+    ],
     cities: [
       { id: "bali", name: "Bali", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=80", description: "Island of the gods with temples and beaches", rating: 4.8 },
       { id: "jakarta", name: "Jakarta", image: "https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=600&q=80", description: "Bustling capital with diverse culture", rating: 4.2 },
@@ -362,6 +387,12 @@ export const countriesData: Record<string, CountryData> = {
     name: "Germany",
     flag: "🇩🇪",
     heroImage: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1200&q=80",
+    destinations: [
+      { id: "bavaria", name: "Bavaria", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", description: "Alps, castles, and beer gardens", rating: 4.7 },
+      { id: "black-forest-dest", name: "Black Forest", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", description: "Dense forests and charming villages", rating: 4.5 },
+      { id: "rhine-dest", name: "Rhine Valley", image: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600&q=80", description: "Castles and vineyards along the river", rating: 4.6 },
+      { id: "baltic-coast", name: "Baltic Coast", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80", description: "Sandy beaches and historic resorts", rating: 4.4 },
+    ],
     cities: [
       { id: "berlin", name: "Berlin", image: "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=600&q=80", description: "Dynamic capital with rich history", rating: 4.7 },
       { id: "munich", name: "Munich", image: "https://images.unsplash.com/photo-1595867818082-083862f3d630?w=600&q=80", description: "Bavarian charm and beer gardens", rating: 4.6 },
