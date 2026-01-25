@@ -1,175 +1,140 @@
 
 
+# Settings Page Implementation Plan
+
 ## Overview
+Create a new Settings page with a two-column layout matching the AI Trip Planner structure. The left sidebar will contain navigation menu items (Profile, Notifications, Manage Subscription), while the right side displays the settings content for each section.
 
-Create a new "Explore Countries" feature with two pages:
-1. **All Countries Page** (`/countries`) - Lists all countries in a clean multi-column grid
-2. **Country Details Page** (`/country/:slug`) - Shows detailed breakdown of a country with categories
-
-The Footer's "Top Countries" links will navigate to individual country pages, and "All Countries" will link to the countries listing page.
-
-## New Pages Structure
-
-### All Countries Page (`/countries`)
-- Header with logo
-- Breadcrumb navigation: Home > All Countries
-- Title: "All Countries" with a world icon
-- Alphabetically sorted grid of country names (3 columns on desktop, 2 on tablet, 1 on mobile)
-- Each country name is a clickable link to `/country/:slug`
-- Footer included
-
-### Country Details Page (`/country/:slug`)
-- Header with logo
-- Breadcrumb: Home > All Countries > [Country Name]
-- Hero section with country name + flag emoji
-- Categorized sections:
-  - **Cities** - Top 6 popular cities with images
-  - **Restaurants** - Top 4 popular restaurants
-  - **Amenities** - Top 4 popular amenities (parks, beaches, etc.)
-  - **Museums** - Top 4 popular museums
-  - **Historical Sites** - Top 4 landmarks and heritage sites
-  - **Natural Attractions** - Top 4 natural wonders
-- Each category shows cards with name, image, and brief description
-- "View All" link for each category
-- Footer included
-
-## Data Structure
-
-New data file: `src/data/countriesData.ts`
+## Page Structure
 
 ```text
-Interface structure:
-- CountryPlace: { id, name, image, description?, rating? }
-- CountryData: {
-    slug: string,
-    name: string,
-    flag: string (emoji),
-    heroImage: string,
-    cities: CountryPlace[],
-    restaurants: CountryPlace[],
-    amenities: CountryPlace[],
-    museums: CountryPlace[],
-    historicalSites: CountryPlace[],
-    naturalAttractions: CountryPlace[]
-  }
-- allCountries: { slug, name, flag }[] (full list for listing page)
++------------------+------------------------------------------+
+|  Settings Menu   |          Settings Content Area           |
+|  (340px width)   |              (flexible)                  |
+|                  |                                          |
+|  [Profile]       |   Profile                                |
+|  [Notifications] |   +----------------------------------+   |
+|  [Subscription]  |   | Avatar  |  John Down            |   |
+|                  |   +----------------------------------+   |
+|                  |   | First Name        |    [John]   |   |
+|                  |   +----------------------------------+   |
+|                  |   | Last Name         |    [Down]   |   |
+|                  |   +----------------------------------+   |
+|                  |   | Email             | email@...   |   |
+|                  |   +----------------------------------+   |
+|                  |   | Currency          |    [USD]    |   |
+|                  |   +----------------------------------+   |
+|                  |   | Language          |    [EN]     |   |
+|                  |   +----------------------------------+   |
+|                  |                                          |
+|                  |   +----------------------------------+   |
+|                  |   | Delete account    | [Delete]    |   |
+|                  |   +----------------------------------+   |
++------------------+------------------------------------------+
 ```
 
-## File Changes
+## Files to Create
 
-### New Files
-1. `src/pages/Countries.tsx` - All countries listing page
-2. `src/pages/CountryDetails.tsx` - Individual country page
-3. `src/data/countriesData.ts` - Countries data with sample content
+### 1. `src/pages/Settings.tsx`
+Main settings page with two-column layout matching NewTripPlanner proportions.
 
-### Modified Files
-1. `src/App.tsx` - Add two new routes:
-   - `/countries` -> Countries
-   - `/country/:slug` -> CountryDetails
-2. `src/components/Footer.tsx` - Update country links to use `<Link>` components with proper routing
+### 2. `src/components/settings/SettingsSidebar.tsx`
+Left sidebar menu with navigation items:
+- Profile (User icon)
+- Notifications (Bell icon)  
+- Manage Subscription (Crown icon)
 
-## UI Components
+Matches the NewTripSidebar card styling:
+- `bg-card rounded-2xl border border-border shadow-lg`
+- `h-[calc(100vh-180px)] sticky top-24`
+- Header with icon and title similar to "Voyager AI Trip Planner"
 
-### Countries Page Layout
-```text
-+----------------------------------+
-| Header                           |
-+----------------------------------+
-| Breadcrumb: Home > All Countries |
-+----------------------------------+
-| All Countries                    |
-+----------------------------------+
-| Afghanistan  | Albania  | Algeria|
-| Andorra      | Angola   | ...    |
-| ...          | ...      | ...    |
-+----------------------------------+
-| Footer                           |
-+----------------------------------+
-```
+### 3. `src/components/settings/ProfileSettings.tsx`
+Profile content section containing:
+- User header card with avatar and full name
+- Editable fields (First Name, Last Name) with rounded input boxes
+- Read-only Email field (displayed as text, not editable)
+- Currency selector (opens SelectionDialog)
+- Language selector (opens SelectionDialog)
+- Delete account section (separate card at bottom)
 
-### Country Details Page Layout
-```text
-+----------------------------------+
-| Header                           |
-+----------------------------------+
-| Breadcrumb: Home > Countries > IT|
-+----------------------------------+
-| 🇮🇹 Italy                        |
-+----------------------------------+
-| Popular Cities          View All |
-| [Card] [Card] [Card] [Card]...  |
-+----------------------------------+
-| Top Restaurants         View All |
-| [Card] [Card] [Card] [Card]     |
-+----------------------------------+
-| Popular Amenities       View All |
-| [Card] [Card] [Card] [Card]     |
-+----------------------------------+
-| Museums                 View All |
-| [Card] [Card] [Card] [Card]     |
-+----------------------------------+
-| Historical Sites        View All |
-| [Card] [Card] [Card] [Card]     |
-+----------------------------------+
-| Natural Attractions     View All |
-| [Card] [Card] [Card] [Card]     |
-+----------------------------------+
-| Footer                           |
-+----------------------------------+
-```
+### 4. `src/components/settings/NotificationSettings.tsx`
+Placeholder for notification preferences with toggles for:
+- Email notifications
+- Push notifications
+- Trip reminders
+- Promotional offers
 
-### Place Card Component
-Each place card will include:
-- Image with aspect ratio 4:3
-- Name
-- Optional rating with star
-- Optional short description
-- Hover animation (scale + shadow)
+### 5. `src/components/settings/SubscriptionSettings.tsx`
+Subscription management section showing:
+- Current Plan card (Free/Premium with Upgrade button)
+- Payment Method card (with Add Payment Method button)
+- Billing History section
 
-## Sample Data
+## Files to Modify
 
-Will include sample data for 5 countries referenced in Footer:
-- Spain, Italy, Portugal, Indonesia, Germany
+### 1. `src/App.tsx`
+Add route for `/settings` page
 
-Plus a comprehensive list of ~200 countries for the All Countries page.
+### 2. `src/components/Header.tsx`
+Make Settings dropdown menu item link to `/settings` route
 
-Each country will have placeholder data for:
-- 6 cities (e.g., Rome, Milan, Florence, Venice, Naples, Turin for Italy)
-- 4 restaurants (famous local dining spots)
-- 4 amenities (parks, beaches, spas)
-- 4 museums (national/art museums)
-- 4 historical sites (ancient ruins, castles)
-- 4 natural attractions (mountains, lakes, coastlines)
+## Technical Details
 
-## Technical Implementation
+### Layout Implementation
+- Uses same grid layout as NewTripPlanner: `lg:grid-cols-[340px_1fr] gap-6`
+- Mobile: Stack layout with sidebar as horizontal tabs or accordion
+- Sticky sidebar with same height calculation: `h-[calc(100vh-180px)] sticky top-24`
 
-### Routing Updates (App.tsx)
+### State Management
+- Use React useState for form fields (firstName, lastName, currency, language)
+- Initialize with mock user data from Header.tsx pattern
+- Currency and Language use existing SelectionDialog component with languages/currencies data
+
+### Form Field Pattern
+Based on the reference screenshot, each field uses a row layout:
 ```tsx
-<Route path="/countries" element={<Countries />} />
-<Route path="/country/:slug" element={<CountryDetails />} />
+<div className="flex items-center justify-between py-4 border-b border-border">
+  <label className="text-foreground font-medium">First Name</label>
+  <Input 
+    value={firstName}
+    onChange={(e) => setFirstName(e.target.value)}
+    className="w-48 text-right rounded-full border-border"
+  />
+</div>
 ```
 
-### Footer Updates
-Convert static links to React Router `<Link>` components:
-```tsx
-<Link to={`/country/${countrySlug}`}>Spain</Link>
-<Link to="/countries">All Countries</Link>
-```
+### Email Field (Immutable)
+- Displayed as plain text without input styling
+- Shows the email address right-aligned
+- No edit capability
 
-### Animation
-- Use existing `framer-motion` and `StaggerContainer`/`StaggerItem` patterns
-- Cards have hover scale animation matching existing DestinationsSection style
-- Page transitions with fade-in effects
+### Currency/Language Selectors
+- Display current selection as a button/pill
+- On click, opens SelectionDialog (reusing existing component)
+- Updates local state on selection
 
-### Responsive Design
-- Countries grid: 1 col mobile, 2 cols tablet, 3 cols desktop
-- Place cards: 1 col mobile, 2 cols tablet, 3-4 cols desktop (depending on section)
-- Horizontal scroll option for place cards on mobile
+### Delete Account Section
+- Separate card at bottom
+- Destructive action button styled with red text
+- Consider adding confirmation dialog
 
-## Additional Categories Added
-Beyond what was requested, adding these for a richer experience:
-1. **Historical Sites** - Castles, ancient ruins, heritage buildings
-2. **Natural Attractions** - Mountains, lakes, beaches, national parks
+## Implementation Sequence
 
-These complement the requested categories and make the country page more comprehensive for travel planning.
+1. Create SettingsSidebar component with menu items
+2. Create ProfileSettings component with form fields
+3. Create NotificationSettings placeholder
+4. Create SubscriptionSettings placeholder  
+5. Create main Settings page combining components
+6. Add route to App.tsx
+7. Link Settings menu item in Header
+
+## Styling Notes
+
+- Match the rounded card aesthetic from reference screenshots
+- Use `rounded-2xl` or `rounded-3xl` for main cards
+- Form rows with `border-b border-border` separators
+- Input fields: `rounded-full` for the pill/rounded look shown in screenshots
+- Avatar: Use existing Avatar component with green background and initial
+- Consistent with existing app typography (font-serif for headings)
 
