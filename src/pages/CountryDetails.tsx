@@ -120,7 +120,9 @@ export default function CountryDetails() {
             <div className="container mx-auto">
               <FadeIn>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground flex items-center gap-4">
-                  <span className="text-5xl md:text-6xl">{country.flag}</span>
+                  <span className="bg-white rounded-lg p-2 shadow-sm text-5xl md:text-6xl">
+                    {country.flag}
+                  </span>
                   {country.name}
                 </h1>
               </FadeIn>
