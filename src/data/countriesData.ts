@@ -440,6 +440,7 @@ export function getCountryBySlug(slug: string): CountryData | undefined {
 }
 
 // Helper function to check if detailed data exists for a country
-export function hasDetailedData(slug: string): boolean {
-  return slug in countriesData;
+// Now returns true for all countries since API provides data
+export function hasDetailedData(_slug: string): boolean {
+  return true;
 }
