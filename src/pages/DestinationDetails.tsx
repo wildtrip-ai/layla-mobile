@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCountryBySlug, CountryPlace } from "@/data/countriesData";
 import { getDestinationExtras, TransportOption, BudgetInfo, PackingCategory, LocalPhrase } from "@/data/destinationExtras";
+import { ImageGallery, GalleryImage } from "@/components/trip/ImageGallery";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -1171,21 +1172,13 @@ export default function DestinationDetails() {
                       <Camera className="h-5 w-5 text-primary" />
                       Photo Gallery
                     </h2>
-                    <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 gap-3" staggerDelay={0.05}>
-                      {galleryImages.map((image, index) => (
-                        <StaggerItem key={index}>
-                          <ScaleOnHover scale={1.02}>
-                            <div className="aspect-[4/3] rounded-xl overflow-hidden">
-                              <img 
-                                src={image} 
-                                alt={`${destination.name} ${index + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          </ScaleOnHover>
-                        </StaggerItem>
-                      ))}
-                    </StaggerContainer>
+                    <ImageGallery 
+                      images={galleryImages.map((image, index) => ({
+                        src: image,
+                        title: `${destination.name}`,
+                        location: country.name,
+                      }))}
+                    />
                   </section>
                 </FadeIn>
               )}
