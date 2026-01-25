@@ -59,48 +59,48 @@ export default function Countries() {
         )}
 
         {/* Countries Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-2 sm:gap-y-3">
-          {isLoading ? (
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-2 sm:gap-y-3">
             <CountriesGridSkeleton />
-          ) : (
-            <StaggerContainer 
-              className="contents"
-              staggerDelay={0.02}
-            >
-              {countries.map((country) => (
-                <StaggerItem key={country.slug}>
-                  <LocalizedLink
-                    to={hasDetailedData(country.slug) ? `/country/${country.slug}` : "#"}
-                    className={`group flex items-center gap-2 py-2 px-3 rounded-lg transition-all duration-200 ${
-                      hasDetailedData(country.slug)
-                        ? "hover:bg-muted cursor-pointer"
-                        : "opacity-60 cursor-default"
-                    }`}
-                    onClick={(e) => {
-                      if (!hasDetailedData(country.slug)) {
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    <span className="text-xl">{country.flag_emoji || "🏳️"}</span>
-                    <span className={`text-foreground ${
-                      hasDetailedData(country.slug) 
-                        ? "group-hover:text-primary transition-colors" 
-                        : ""
-                    }`}>
-                      {country.name}
+          </div>
+        ) : (
+          <StaggerContainer
+            className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-2 sm:gap-y-3"
+            staggerDelay={0.02}
+          >
+            {countries.map((country) => (
+              <StaggerItem key={country.slug}>
+                <LocalizedLink
+                  to={hasDetailedData(country.slug) ? `/country/${country.slug}` : "#"}
+                  className={`group flex items-center gap-2 py-2 px-3 rounded-lg transition-all duration-200 ${
+                    hasDetailedData(country.slug)
+                      ? "hover:bg-muted cursor-pointer"
+                      : "opacity-60 cursor-default"
+                  }`}
+                  onClick={(e) => {
+                    if (!hasDetailedData(country.slug)) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <span className="text-xl">{country.flag_emoji || "🏳️"}</span>
+                  <span className={`text-foreground ${
+                    hasDetailedData(country.slug) 
+                      ? "group-hover:text-primary transition-colors" 
+                      : ""
+                  }`}>
+                    {country.name}
+                  </span>
+                  {hasDetailedData(country.slug) && (
+                    <span className="ml-auto text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                      View →
                     </span>
-                    {hasDetailedData(country.slug) && (
-                      <span className="ml-auto text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                        View →
-                      </span>
-                    )}
-                  </LocalizedLink>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          )}
-        </div>
+                  )}
+                </LocalizedLink>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        )}
       </main>
 
       <Footer />
