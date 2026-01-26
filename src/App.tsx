@@ -8,6 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { LanguageRedirect } from "@/components/LanguageRedirect";
 import { LoginDialogProvider, useLoginDialog } from "@/contexts/LoginDialogContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { LoginDialog } from "@/components/auth/LoginDialog";
 import Index from "./pages/Index";
 import TripDetails from "./pages/TripDetails";
@@ -23,6 +24,7 @@ import DestinationDetails from "./pages/DestinationDetails";
 import MyFavorites from "./pages/MyFavorites";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import MagicLinkCallback from "./pages/MagicLinkCallback";
 
 const queryClient = new QueryClient();
 
@@ -59,35 +61,40 @@ function LanguageRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <LoginDialogProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            {/* Root path redirects to detected language */}
-            <Route path="/" element={<LanguageRedirect />} />
+      <AuthProvider>
+        <LoginDialogProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              {/* Magic link callback - outside language routes */}
+              <Route path="/auth/magic-link" element={<MagicLinkCallback />} />
 
-            {/* All localized routes under /:lang */}
-            <Route path="/:lang/*" element={<LanguageRoutes />} />
+              {/* Root path redirects to detected language */}
+              <Route path="/" element={<LanguageRedirect />} />
 
-            {/* Fallback for non-localized paths - redirect to add language */}
-            <Route path="/my-trips" element={<LanguageRedirect />} />
-            <Route path="/my-favorites" element={<LanguageRedirect />} />
-            <Route path="/new-trip-planner" element={<LanguageRedirect />} />
-            <Route path="/trip/*" element={<LanguageRedirect />} />
-            <Route path="/countries" element={<LanguageRedirect />} />
-            <Route path="/country/*" element={<LanguageRedirect />} />
-            <Route path="/settings" element={<LanguageRedirect />} />
+              {/* All localized routes under /:lang */}
+              <Route path="/:lang/*" element={<LanguageRoutes />} />
 
-            {/* 404 for truly unknown paths */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-        <Analytics />
-        {/* Login Dialog - rendered at root level, outside header */}
-        <LoginDialogContainer />
-      </LoginDialogProvider>
+              {/* Fallback for non-localized paths - redirect to add language */}
+              <Route path="/my-trips" element={<LanguageRedirect />} />
+              <Route path="/my-favorites" element={<LanguageRedirect />} />
+              <Route path="/new-trip-planner" element={<LanguageRedirect />} />
+              <Route path="/trip/*" element={<LanguageRedirect />} />
+              <Route path="/countries" element={<LanguageRedirect />} />
+              <Route path="/country/*" element={<LanguageRedirect />} />
+              <Route path="/settings" element={<LanguageRedirect />} />
+
+              {/* 404 for truly unknown paths */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <Analytics />
+          {/* Login Dialog - rendered at root level, outside header */}
+          <LoginDialogContainer />
+        </LoginDialogProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
