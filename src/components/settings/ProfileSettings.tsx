@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { updateUserName, getStoredToken } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 
 interface ProfileSettingsProps {
@@ -27,10 +28,14 @@ interface ProfileSettingsProps {
 }
 
 export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [originalFirstName, setOriginalFirstName] = useState("");
+  const [originalLastName, setOriginalLastName] = useState("");
+  const [updatingFirstName, setUpdatingFirstName] = useState(false);
+  const [updatingLastName, setUpdatingLastName] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
@@ -54,8 +59,12 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
   // Update name fields from auth user
   useEffect(() => {
     if (user) {
-      setFirstName(user.first_name || "");
-      setLastName(user.last_name || "");
+      const firstName = user.first_name || "";
+      const lastName = user.last_name || "";
+      setFirstName(firstName);
+      setLastName(lastName);
+      setOriginalFirstName(firstName);
+      setOriginalLastName(lastName);
     }
   }, [user]);
 
@@ -121,6 +130,64 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
       title: "Photo removed",
       description: "Your profile photo has been removed.",
     });
+  };
+
+  const handleFirstNameBlur = async () => {
+    // Only update if the value has changed
+    if (firstName === originalFirstName) return;
+
+    const token = getStoredToken();
+    if (!token) return;
+
+    setUpdatingFirstName(true);
+    try {
+      await updateUserName(token, { first_name: firstName });
+      setOriginalFirstName(firstName);
+      await refreshUserProfile();
+      toast({
+        title: "Success",
+        description: "Your first name has been updated.",
+      });
+    } catch (error) {
+      // Revert to original value on error
+      setFirstName(originalFirstName);
+      toast({
+        title: "Error",
+        description: "Failed to update your first name. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingFirstName(false);
+    }
+  };
+
+  const handleLastNameBlur = async () => {
+    // Only update if the value has changed
+    if (lastName === originalLastName) return;
+
+    const token = getStoredToken();
+    if (!token) return;
+
+    setUpdatingLastName(true);
+    try {
+      await updateUserName(token, { last_name: lastName });
+      setOriginalLastName(lastName);
+      await refreshUserProfile();
+      toast({
+        title: "Success",
+        description: "Your last name has been updated.",
+      });
+    } catch (error) {
+      // Revert to original value on error
+      setLastName(originalLastName);
+      toast({
+        title: "Error",
+        description: "Failed to update your last name. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingLastName(false);
+    }
   };
 
   // Get initials from current name
@@ -217,21 +284,35 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
         {/* First Name */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <label className="text-foreground font-medium">First Name</label>
-          <Input
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="w-48 text-right rounded-full border-border bg-secondary/50"
-          />
+          <div className="relative">
+            <Input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              onBlur={handleFirstNameBlur}
+              disabled={updatingFirstName}
+              className="w-48 text-right rounded-full border-border bg-secondary/50"
+            />
+            {updatingFirstName && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
         </div>
 
         {/* Last Name */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <label className="text-foreground font-medium">Last Name</label>
-          <Input
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="w-48 text-right rounded-full border-border bg-secondary/50"
-          />
+          <div className="relative">
+            <Input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              onBlur={handleLastNameBlur}
+              disabled={updatingLastName}
+              className="w-48 text-right rounded-full border-border bg-secondary/50"
+            />
+            {updatingLastName && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
         </div>
 
         {/* Email (Read-only) */}

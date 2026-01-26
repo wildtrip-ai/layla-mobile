@@ -122,6 +122,26 @@ export async function fetchUserProfile(
   return response.json();
 }
 
+export async function updateUserName(
+  accessToken: string,
+  data: { first_name?: string; last_name?: string }
+): Promise<FetchCurrentUserResponse> {
+  const response = await fetch(`${API_BASE}/users/me`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update user name");
+  }
+
+  return response.json();
+}
+
 // Google OAuth functions
 export async function getGoogleAuthUrl(): Promise<string> {
   const response = await fetch(`${API_BASE}/auth/google/authorize`, {
