@@ -4,6 +4,7 @@ import { X, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { getGoogleAuthUrl } from "@/lib/auth";
 
 interface LoginDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleClose = () => {
     onOpenChange(false);
@@ -49,14 +51,14 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       toast.error("Please enter your email address");
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       const response = await fetch("https://internal-api.emiratesescape.com/v1.0/signin", {
         method: "POST",
@@ -78,6 +80,20 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+
+    try {
+      const authUrl = await getGoogleAuthUrl();
+      // Redirect to Google OAuth consent screen
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      toast.error("Failed to initiate Google sign-in. Please try again.");
+      setIsGoogleLoading(false);
     }
   };
 
@@ -190,10 +206,20 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                           type="button"
                           variant="outline"
                           className="w-full rounded-full py-6 gap-3 justify-start px-5"
-                          disabled={isLoading}
+                          disabled={isLoading || isGoogleLoading}
+                          onClick={handleGoogleSignIn}
                         >
-                          <GoogleIcon />
-                          <span>Continue with Google</span>
+                          {isGoogleLoading ? (
+                            <>
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              <span>Connecting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <GoogleIcon />
+                              <span>Continue with Google</span>
+                            </>
+                          )}
                         </Button>
                         <Button
                           type="button"

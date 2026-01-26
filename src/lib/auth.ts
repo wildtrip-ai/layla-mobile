@@ -30,6 +30,20 @@ interface FetchCurrentUserResponse {
   default_account_id: string;
 }
 
+interface GoogleAuthURLResponse {
+  authorization_url: string;
+}
+
+interface GoogleCallbackResponse {
+  access_token: string;
+  token_type: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+}
+
 export async function confirmMagicLink(
   email: string,
   token: string
@@ -64,6 +78,48 @@ export async function fetchCurrentUser(
 
   if (!response.ok) {
     throw new Error("Failed to fetch user profile");
+  }
+
+  return response.json();
+}
+
+// Google OAuth functions
+export async function getGoogleAuthUrl(): Promise<string> {
+  const response = await fetch(`${API_BASE}/auth/google/authorize`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to get Google authorization URL");
+  }
+
+  const data: GoogleAuthURLResponse = await response.json();
+  return data.authorization_url;
+}
+
+export async function handleGoogleCallback(
+  code: string,
+  state?: string | null
+): Promise<GoogleCallbackResponse> {
+  const response = await fetch(`${API_BASE}/auth/google/callback`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      code,
+      ...(state && { state })
+    }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Google authentication failed. Please try again.");
+    }
+    throw new Error("Failed to complete Google sign-in");
   }
 
   return response.json();
