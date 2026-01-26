@@ -7,6 +7,8 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { Analytics } from "@vercel/analytics/react";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { LanguageRedirect } from "@/components/LanguageRedirect";
+import { LoginDialogProvider, useLoginDialog } from "@/contexts/LoginDialogContext";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 import Index from "./pages/Index";
 import TripDetails from "./pages/TripDetails";
 import BookingReview from "./pages/BookingReview";
@@ -23,6 +25,12 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Component that renders LoginDialog using context
+function LoginDialogContainer() {
+  const { loginDialogOpen, setLoginDialogOpen } = useLoginDialog();
+  return <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />;
+}
 
 // Wrapper component that provides language context for routes with :lang param
 function LanguageRoutes() {
@@ -51,31 +59,35 @@ function LanguageRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
-          {/* Root path redirects to detected language */}
-          <Route path="/" element={<LanguageRedirect />} />
-          
-          {/* All localized routes under /:lang */}
-          <Route path="/:lang/*" element={<LanguageRoutes />} />
-          
-          {/* Fallback for non-localized paths - redirect to add language */}
-          <Route path="/my-trips" element={<LanguageRedirect />} />
-          <Route path="/my-favorites" element={<LanguageRedirect />} />
-          <Route path="/new-trip-planner" element={<LanguageRedirect />} />
-          <Route path="/trip/*" element={<LanguageRedirect />} />
-          <Route path="/countries" element={<LanguageRedirect />} />
-          <Route path="/country/*" element={<LanguageRedirect />} />
-          <Route path="/settings" element={<LanguageRedirect />} />
-          
-          {/* 404 for truly unknown paths */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-      <Analytics />
+      <LoginDialogProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
+            {/* Root path redirects to detected language */}
+            <Route path="/" element={<LanguageRedirect />} />
+
+            {/* All localized routes under /:lang */}
+            <Route path="/:lang/*" element={<LanguageRoutes />} />
+
+            {/* Fallback for non-localized paths - redirect to add language */}
+            <Route path="/my-trips" element={<LanguageRedirect />} />
+            <Route path="/my-favorites" element={<LanguageRedirect />} />
+            <Route path="/new-trip-planner" element={<LanguageRedirect />} />
+            <Route path="/trip/*" element={<LanguageRedirect />} />
+            <Route path="/countries" element={<LanguageRedirect />} />
+            <Route path="/country/*" element={<LanguageRedirect />} />
+            <Route path="/settings" element={<LanguageRedirect />} />
+
+            {/* 404 for truly unknown paths */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+        <Analytics />
+        {/* Login Dialog - rendered at root level, outside header */}
+        <LoginDialogContainer />
+      </LoginDialogProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
