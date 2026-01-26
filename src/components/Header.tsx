@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown, Heart } from "lucide-react";
 import { languages, currencies } from "@/components/SelectionDialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLanguage, SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
 import { useLoginDialog } from "@/contexts/LoginDialogContext";
@@ -18,7 +19,7 @@ export function Header() {
   const { lang, setLanguage } = useLanguage();
   const { openLoginDialog } = useLoginDialog();
   const { setCurrencyDialogOpen, setLanguageDialogOpen, selectedCurrency } = useSelectionDialogs();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isProfileLoading, logout } = useAuth();
 
   // Derive display name and initials from auth user
   const displayName = user?.first_name || user?.name || user?.email?.split("@")[0] || "User";
@@ -67,18 +68,27 @@ export function Header() {
         <div className="flex items-center gap-2">
           {/* Settings pills */}
           <div className="hidden sm:flex items-center bg-card/90 backdrop-blur-sm rounded-full px-1 py-1 shadow-lg">
-            <button 
-              className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors" 
-              onClick={() => setCurrencyDialogOpen(true)}
-            >
-              {currentCurrency?.icon || "$"}
-            </button>
-            <button 
-              className="px-3 py-1.5 text-sm bg-secondary text-foreground rounded-full transition-colors" 
-              onClick={() => setLanguageDialogOpen(true)}
-            >
-              {currentLanguage?.icon || "🇺🇸"}
-            </button>
+            {isAuthenticated && isProfileLoading ? (
+              <>
+                <Skeleton className="w-10 h-8 rounded-full" />
+                <Skeleton className="w-10 h-8 rounded-full" />
+              </>
+            ) : (
+              <>
+                <button
+                  className="px-3 py-1.5 text-sm text-foreground hover:bg-secondary rounded-full transition-colors"
+                  onClick={() => setCurrencyDialogOpen(true)}
+                >
+                  {currentCurrency?.icon || "$"}
+                </button>
+                <button
+                  className="px-3 py-1.5 text-sm bg-secondary text-foreground rounded-full transition-colors"
+                  onClick={() => setLanguageDialogOpen(true)}
+                >
+                  {currentLanguage?.icon || "🇺🇸"}
+                </button>
+              </>
+            )}
           </div>
 
           {/* User menu */}
