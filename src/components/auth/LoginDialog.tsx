@@ -129,13 +129,13 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                   
                   <p className="text-center text-muted-foreground mb-6">
                     {isSignUp ? "Already have an account? " : "New to Voyager? "}
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => setIsSignUp(!isSignUp)}
                       className="underline text-foreground hover:text-primary transition-colors"
                     >
                       {isSignUp ? "Sign in" : "Sign up"}
-                    </button>
+                    </button> */}
                   </p>
 
                   {isSuccess ? (
@@ -221,7 +221,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                             </>
                           )}
                         </Button>
-                        <Button
+                        {/* <Button
                           type="button"
                           variant="outline"
                           className="w-full rounded-full py-6 gap-3 justify-start px-5"
@@ -238,7 +238,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         >
                           <FacebookIcon />
                           <span>Continue with Facebook</span>
-                        </Button>
+                        </Button> */}
                       </div>
 
                       {/* Terms */}
