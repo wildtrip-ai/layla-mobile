@@ -1,23 +1,19 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  ChevronRight, 
-  Star, 
-  SlidersHorizontal, 
-  Map, 
-  List,
+import {
+  ArrowLeft,
+  ChevronRight,
+  SlidersHorizontal,
+  Map,
   ArrowUpDown,
   ChevronDown,
   Plus,
-  Check,
-  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
-import { Badge } from "@/components/ui/badge";
 import { AccommodationMap } from "@/components/trip/AccommodationMap";
+import { HotelCard } from "@/components/trip/HotelCard";
 import { sampleTrip, type Accommodation } from "@/data/tripData";
 
 // Extended accommodation data for the results page
@@ -72,155 +68,6 @@ const filterOptions = [
   "Gym",
 ];
 
-function getRatingLabel(rating: number): string {
-  if (rating >= 9.5) return "Wonderful";
-  if (rating >= 9.0) return "Excellent";
-  if (rating >= 8.5) return "Very Good";
-  if (rating >= 8.0) return "Good";
-  return "Pleasant";
-}
-
-interface AccommodationResultCardProps {
-  accommodation: Accommodation;
-  isAdded?: boolean;
-  isFeatured?: boolean;
-  onViewDetails: () => void;
-}
-
-function AccommodationResultCard({ 
-  accommodation, 
-  isAdded = false,
-  isFeatured = false,
-  onViewDetails
-}: AccommodationResultCardProps) {
-  const [added, setAdded] = useState(isAdded);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className={`bg-card rounded-xl border overflow-hidden ${
-        isFeatured ? "border-primary border-2" : "border-border"
-      }`}
-    >
-      {/* AI Insight for featured */}
-      {isFeatured && (
-        <div className="bg-accent px-4 py-3 flex items-start gap-2">
-          <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-          <p className="text-sm text-foreground">
-            This <span className="font-semibold text-primary">luxury 5-star hotel</span> perfectly aligns with your request for a{" "}
-            <span className="font-semibold">high-end stay in Amman</span> following your visit to the Dead Sea and prior to your departure.
-          </p>
-        </div>
-      )}
-
-      <div className="p-4 md:p-6">
-        <div className="grid grid-cols-1 md:grid-cols-[200px_1fr_200px] gap-4 md:gap-6">
-          {/* Image */}
-          <div className="aspect-[4/3] md:aspect-square rounded-lg overflow-hidden">
-            <img
-              src={accommodation.image}
-              alt={accommodation.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Info */}
-          <div className="flex flex-col justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-1 mb-1">
-                {Array.from({ length: accommodation.stars }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <h3 className="text-xl font-serif font-medium text-foreground mb-2">
-                {accommodation.name}
-              </h3>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="bg-teal-500 text-white px-2 py-0.5 rounded text-sm font-medium">
-                  {accommodation.rating}
-                </span>
-                <span className="text-sm text-foreground font-medium">
-                  {getRatingLabel(accommodation.rating)}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {accommodation.reviews.toLocaleString()} reviews
-                </span>
-              </div>
-            </div>
-
-            {/* Price options */}
-            <div className="space-y-2">
-              <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                <span className="text-xs px-1.5 py-0.5 bg-muted rounded">agoda</span>
-                <span>UAH {(parseInt(accommodation.price.replace(/\D/g, "")) - 50).toLocaleString()}</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                <span className="text-xs px-1.5 py-0.5 bg-muted rounded">Expedia</span>
-                <span>UAH {(parseInt(accommodation.price.replace(/\D/g, "")) + 10).toLocaleString()}</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
-                More deals
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col justify-between items-stretch md:items-end gap-4">
-            {/* Special badges */}
-            {!isFeatured && accommodation.id === "a2" && (
-              <div className="flex gap-2 flex-wrap">
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
-                  Only on Layla
-                </Badge>
-                <Badge variant="secondary" className="bg-primary/20 text-primary border-0">
-                  -UAH 3,882
-                </Badge>
-              </div>
-            )}
-
-            <div className="text-right flex-1 flex flex-col justify-center">
-              <p className="text-teal-500 font-semibold">{accommodation.provider}</p>
-              {accommodation.id === "a2" && (
-                <p className="text-sm text-teal-600">Free cancellation · Breakfast included</p>
-              )}
-              <p className="text-2xl font-bold text-foreground">{accommodation.price}</p>
-              <p className="text-sm text-muted-foreground">Includes taxes and fees</p>
-            </div>
-
-            <div className="flex flex-col gap-2 w-full md:w-auto">
-              <Button 
-                variant={added ? "secondary" : "outline"}
-                className={`w-full md:w-40 ${added ? "bg-muted" : ""}`}
-                onClick={() => setAdded(!added)}
-              >
-                {added ? (
-                  <>
-                    <Check className="h-4 w-4 mr-1" />
-                    Added to Trip
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add to Trip
-                  </>
-                )}
-              </Button>
-              <Button className="w-full md:w-40" onClick={onViewDetails}>
-                View Details
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
 
 export default function AccommodationResults() {
   const { id } = useParams();
@@ -343,15 +190,37 @@ export default function AccommodationResults() {
 
           {/* Results */}
           <div className="space-y-4">
-            {moreAccommodations.map((accommodation, index) => (
-              <AccommodationResultCard
-                key={accommodation.id}
-                accommodation={accommodation}
-                isAdded={index === 0}
-                isFeatured={index === 0}
-                onViewDetails={() => handleViewDetails(accommodation.id)}
-              />
-            ))}
+            {moreAccommodations.map((accommodation, index) => {
+              const isFeatured = index === 0;
+              const price = parseInt(accommodation.price.replace(/\D/g, ""));
+              const priceOptions = [
+                { provider: "agoda", price: `UAH ${(price - 50).toLocaleString()}` },
+                { provider: "Expedia", price: `UAH ${(price + 10).toLocaleString()}` },
+              ];
+              const specialBadges = !isFeatured && accommodation.id === "a2"
+                ? [
+                    { label: "Only on Layla" },
+                    { label: "-UAH 3,882" },
+                  ]
+                : undefined;
+              const additionalInfo = accommodation.id === "a2"
+                ? "Free cancellation · Breakfast included"
+                : undefined;
+
+              return (
+                <HotelCard
+                  key={accommodation.id}
+                  accommodation={accommodation}
+                  isFeatured={isFeatured}
+                  showAIInsight={isFeatured}
+                  showAddToTrip={true}
+                  isAddedToTrip={index === 0}
+                  priceOptions={priceOptions}
+                  specialBadges={specialBadges}
+                  additionalInfo={additionalInfo}
+                />
+              );
+            })}
           </div>
         </div>
       </main>

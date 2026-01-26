@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Building2, MapPinOff } from "lucide-react";
-import { AccommodationCard } from "./AccommodationCard";
+import { HotelCard } from "./HotelCard";
 import type { Accommodation } from "@/data/tripData";
 
 interface AccommodationSectionProps {
@@ -33,7 +33,7 @@ export function AccommodationSection({ accommodations, dates, cityName }: Accomm
       {accommodations.length > 0 ? (
         <div className="space-y-4">
           {accommodations.map((accommodation) => (
-            <AccommodationCard key={accommodation.id} accommodation={accommodation} />
+            <HotelCard key={accommodation.id} accommodation={accommodation} showRemove={true} />
           ))}
         </div>
       ) : (
