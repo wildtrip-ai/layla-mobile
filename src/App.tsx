@@ -26,10 +26,7 @@ import Countries from "./pages/Countries";
 import CountryDetails from "./pages/CountryDetails";
 import DestinationDetails from "./pages/DestinationDetails";
 import MyFavorites from "./pages/MyFavorites";
-import Settings from "./pages/Settings";
-import ProfilePage from "./pages/settings/ProfilePage";
-import NotificationsPage from "./pages/settings/NotificationsPage";
-import SubscriptionPage from "./pages/settings/SubscriptionPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import MagicLinkCallback from "./pages/MagicLinkCallback";
 import GoogleCallback from "./pages/GoogleCallback";
@@ -91,10 +88,10 @@ function LanguageRoutes() {
       <Route path="/countries" element={<Countries />} />
       <Route path="/country/:slug" element={<CountryDetails />} />
       <Route path="/country/:countrySlug/destination/:destinationId" element={<DestinationDetails />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/settings/profile" element={<ProfilePage />} />
-      <Route path="/settings/notifications" element={<NotificationsPage />} />
-      <Route path="/settings/subscription" element={<SubscriptionPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/settings/profile" element={<SettingsPage />} />
+      <Route path="/settings/notifications" element={<SettingsPage />} />
+      <Route path="/settings/subscription" element={<SettingsPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
