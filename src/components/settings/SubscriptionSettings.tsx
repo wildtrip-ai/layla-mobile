@@ -52,7 +52,7 @@ export function SubscriptionSettings({ profile, isLoading }: SubscriptionSetting
 
       {/* Current Plan Card */}
       <div className="bg-card rounded-2xl border border-border p-6">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-0">
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl ${isPremium ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-primary/10"} flex items-center justify-center`}>
               <Crown className={`h-6 w-6 ${isPremium ? "text-white" : "text-primary"}`} />
@@ -122,7 +122,7 @@ export function SubscriptionSettings({ profile, isLoading }: SubscriptionSetting
 
       {/* Payment Method Card */}
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0 px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
               <CreditCard className="h-5 w-5 text-muted-foreground" />
