@@ -73,21 +73,26 @@ export function AccommodationCard({ accommodation }: AccommodationCardProps) {
 
           {/* Actions */}
           <div className="flex flex-col items-end justify-between">
-            <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-destructive"
+              onClick={() => {/* Remove handler */}}
+            >
               <Trash2 className="h-4 w-4" />
               Remove
-            </button>
+            </Button>
 
             <div className="text-right">
               <p className="text-teal-500 font-semibold">{accommodation.provider}</p>
               <p className="text-2xl font-bold text-foreground">{accommodation.price}</p>
               <p className="text-sm text-muted-foreground">Includes taxes and fees</p>
 
-              <div className="flex flex-col gap-2 mt-3">
-                <Button className="bg-primary hover:bg-primary/90" onClick={handleViewDetails}>
+              <div className="flex flex-col gap-2 mt-3 w-full">
+                <Button size="lg" onClick={handleViewDetails}>
                   View Details
                 </Button>
-                <Button variant="outline" onClick={handleMoreStays}>
+                <Button variant="outline" size="lg" onClick={handleMoreStays}>
                   More stays
                 </Button>
               </div>

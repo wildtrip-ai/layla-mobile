@@ -38,38 +38,38 @@ export function TripDescription({ title, description, tripId }: TripDescriptionP
       </p>
       
       {/* Action Buttons */}
-      <motion.div 
-        className="mt-6 flex flex-wrap items-center justify-center gap-3"
+      <motion.div
+        className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3"
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: 0.3 }}
       >
-        <Button variant="hero" size="lg" className="gap-2">
+        <Button variant="hero" size="lg" className="gap-2 flex-1 sm:flex-initial">
           Customize this trip
           <ArrowRight className="h-4 w-4" />
         </Button>
-        
-        <ShareButton 
-          title={title} 
+
+        <ShareButton
+          title={title}
           text={description}
           className="!bg-card !border !border-border !shadow-none hover:!bg-secondary/50"
         />
-        
-        <Button 
-          variant="outline" 
-          size="lg" 
-          className="gap-2"
+
+        <Button
+          variant="outline"
+          size="lg"
+          className="gap-2 flex-1 sm:flex-initial"
           onClick={handleDownload}
         >
           <Download className="h-4 w-4" />
           <span className="hidden sm:inline">Download</span>
         </Button>
-        
-        <Button 
-          variant="default" 
-          size="lg" 
-          className="gap-2"
+
+        <Button
+          variant="default"
+          size="lg"
+          className="gap-2 flex-1 sm:flex-initial"
           onClick={handleBook}
         >
           <ShoppingCart className="h-4 w-4" />
