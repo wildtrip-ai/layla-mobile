@@ -30,6 +30,28 @@ interface FetchCurrentUserResponse {
   default_account_id: string;
 }
 
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  profile_photo_url: string | null;
+  profile_photo_thumbnail_url: string | null;
+  language: string;
+  currency: string;
+  timezone: string;
+  bio: string | null;
+  phone: string | null;
+  date_of_birth: string | null;
+  notifications_enabled: boolean;
+  email_notifications: boolean;
+  push_notifications: boolean;
+  marketing_notifications: boolean;
+  trip_reminders: boolean;
+  subscription_tier: string;
+  subscription_expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface GoogleAuthURLResponse {
   authorization_url: string;
 }
@@ -70,6 +92,23 @@ export async function fetchCurrentUser(
   accessToken: string
 ): Promise<FetchCurrentUserResponse> {
   const response = await fetch(`${API_BASE}/users/me`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch user profile");
+  }
+
+  return response.json();
+}
+
+export async function fetchUserProfile(
+  accessToken: string
+): Promise<UserProfile> {
+  const response = await fetch(`${API_BASE}/users/me/profile`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,

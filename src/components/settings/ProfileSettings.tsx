@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Trash2, Camera, User } from "lucide-react";
+import { ChevronRight, Trash2, Camera, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,28 +18,42 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-
-// Mock user data - replace with real auth later
-const mockUser = {
-  firstName: "Cooper",
-  lastName: "Al",
-  email: "cooper@gmail.com",
-  initials: "C"
-};
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function ProfileSettings() {
-  const [firstName, setFirstName] = useState(mockUser.firstName);
-  const [lastName, setLastName] = useState(mockUser.lastName);
+  const { profile, isLoading } = useUserProfile();
+  const { user } = useAuth();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
-  
+
   // Profile photo state
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update local state when profile data is loaded
+  useEffect(() => {
+    if (profile) {
+      setSelectedLanguage(profile.language || "en");
+      setSelectedCurrency(profile.currency || "usd");
+      setProfilePhoto(profile.profile_photo_url);
+    }
+  }, [profile]);
+
+  // Update name fields from auth user
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name || "");
+      setLastName(user.last_name || "");
+    }
+  }, [user]);
 
   const currentLanguage = languages.find(l => l.code === selectedLanguage);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
@@ -106,7 +120,16 @@ export function ProfileSettings() {
   };
 
   // Get initials from current name
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || mockUser.initials;
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "U";
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -157,7 +180,7 @@ export function ProfileSettings() {
             <h2 className="text-xl font-semibold text-foreground">
               {firstName} {lastName}
             </h2>
-            <p className="text-muted-foreground">{mockUser.email}</p>
+            <p className="text-muted-foreground">{user?.email}</p>
             
             {/* Photo action buttons */}
             <div className="flex gap-2 mt-2">
@@ -210,7 +233,7 @@ export function ProfileSettings() {
         {/* Email (Read-only) */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <label className="text-foreground font-medium">Email</label>
-          <span className="text-muted-foreground">{mockUser.email}</span>
+          <span className="text-muted-foreground">{user?.email}</span>
         </div>
 
         {/* Currency Selector */}

@@ -1,8 +1,38 @@
 import { motion } from "framer-motion";
-import { Crown, CreditCard, Receipt } from "lucide-react";
+import { Crown, CreditCard, Receipt, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export function SubscriptionSettings() {
+  const { profile, isLoading } = useUserProfile();
+
+  // Format subscription tier for display
+  const formatTier = (tier: string) => {
+    return tier.charAt(0).toUpperCase() + tier.slice(1);
+  };
+
+  // Check if subscription is premium
+  const isPremium = profile?.subscription_tier !== "free";
+
+  // Format expiration date
+  const formatExpirationDate = (date: string | null) => {
+    if (!date) return null;
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -20,34 +50,68 @@ export function SubscriptionSettings() {
       <div className="bg-card rounded-2xl border border-border p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Crown className="h-6 w-6 text-primary" />
+            <div className={`w-12 h-12 rounded-xl ${isPremium ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-primary/10"} flex items-center justify-center`}>
+              <Crown className={`h-6 w-6 ${isPremium ? "text-white" : "text-primary"}`} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Free Plan</h2>
-              <p className="text-muted-foreground">Basic features included</p>
+              <h2 className="text-lg font-semibold text-foreground">
+                {profile ? formatTier(profile.subscription_tier) : "Free"} Plan
+              </h2>
+              <p className="text-muted-foreground">
+                {isPremium ? "Premium features unlocked" : "Basic features included"}
+              </p>
+              {isPremium && profile?.subscription_expires_at && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Expires {formatExpirationDate(profile.subscription_expires_at)}
+                </p>
+              )}
             </div>
           </div>
-          <Button className="rounded-full">
-            Upgrade to Premium
-          </Button>
+          {!isPremium && (
+            <Button className="rounded-full">
+              Upgrade to Premium
+            </Button>
+          )}
         </div>
 
         <div className="mt-6 pt-6 border-t border-border">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">What's included:</h3>
           <ul className="space-y-2 text-foreground">
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Up to 3 trips per month
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Basic AI trip suggestions
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Email support
-            </li>
+            {isPremium ? (
+              <>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  Unlimited trips
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  Advanced AI trip planning
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  Priority support
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  Exclusive deals and offers
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  Up to 3 trips per month
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  Basic AI trip suggestions
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  Email support
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>
