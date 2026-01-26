@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -8,12 +8,17 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripCard } from "@/components/trips/TripCard";
 import { EmptyTripsState } from "@/components/trips/EmptyTripsState";
 import { savedTrips as initialTrips, type SavedTrip } from "@/data/savedTripsData";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLoginDialog } from "@/contexts/LoginDialogContext";
 
 type TabValue = "all" | "upcoming" | "past" | "drafts";
 
 export default function MyTrips() {
   const [activeTab, setActiveTab] = useState<TabValue>("all");
   const [trips, setTrips] = useState<SavedTrip[]>(initialTrips);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { openLoginDialog } = useLoginDialog();
 
   const filteredTrips = useMemo(() => {
     if (activeTab === "all") return trips;
@@ -23,6 +28,14 @@ export default function MyTrips() {
 
   const handleDeleteTrip = (tripId: string) => {
     setTrips((prev) => prev.filter((t) => t.id !== tripId));
+  };
+
+  const handleNewTrip = () => {
+    if (isAuthenticated) {
+      navigate("/new-trip-planner");
+    } else {
+      openLoginDialog();
+    }
   };
 
   return (
@@ -42,12 +55,10 @@ export default function MyTrips() {
             <h1 className="text-2xl font-serif font-medium text-foreground">
               My Trips
             </h1>
-            <Link to="/new-trip-planner">
-              <Button variant="hero" className="w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4" />
-                New Trip
-              </Button>
-            </Link>
+            <Button variant="hero" className="w-full sm:w-auto" onClick={handleNewTrip}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Trip
+            </Button>
           </motion.div>
 
           {/* Status Tabs */}
