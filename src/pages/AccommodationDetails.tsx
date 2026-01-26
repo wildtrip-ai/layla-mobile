@@ -887,14 +887,14 @@ export default function AccommodationDetails() {
       {/* Sticky Bottom Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border z-50">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="min-w-0">
               <p className="text-xl font-bold text-foreground">{hotel.price}</p>
               <p className="text-sm text-muted-foreground">
                 {hotel.dates} • {sampleTrip.travelers} travellers
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2">
