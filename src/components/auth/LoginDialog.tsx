@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface LoginDialogProps {
   open: boolean;
@@ -34,15 +35,50 @@ const FacebookIcon = () => (
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [email, setEmail] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleClose = () => {
     onOpenChange(false);
+    // Reset state when closing
+    setTimeout(() => {
+      setIsSuccess(false);
+      setEmail("");
+    }, 300);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle magic link submission - would connect to auth later
-    console.log("Magic link sent to:", email);
+    
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch("https://internal-api.emiratesescape.com/v1.0/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      if (response.status === 201) {
+        setIsSuccess(true);
+        toast.success("Magic link sent! Check your email.");
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.message || "Failed to send magic link. Please try again.");
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -86,69 +122,108 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                     </button>
                   </p>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <Input
-                      type="email"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="rounded-full px-5 py-6 border-border"
-                    />
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full rounded-full py-6"
-                      variant="hero"
-                    >
-                      Send Magic Link
-                    </Button>
-                  </form>
-
-                  {/* Divider */}
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border" />
+                  {isSuccess ? (
+                    <div className="text-center py-8 space-y-4">
+                      <div className="flex justify-center">
+                        <CheckCircle className="h-16 w-16 text-green-500" />
+                      </div>
+                      <h3 className="text-xl font-medium">Check your email</h3>
+                      <p className="text-muted-foreground">
+                        We've sent a magic link to <strong>{email}</strong>
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={() => {
+                          setIsSuccess(false);
+                          setEmail("");
+                        }}
+                      >
+                        Use a different email
+                      </Button>
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">or</span>
-                    </div>
-                  </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <Input
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="rounded-full px-5 py-6 border-border"
+                        disabled={isLoading}
+                      />
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full rounded-full py-6"
+                        variant="hero"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Send Magic Link"
+                        )}
+                      </Button>
+                    </form>
+                  )}
 
-                  {/* Social Login Buttons */}
-                  <div className="space-y-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full rounded-full py-6 gap-3 justify-start px-5"
-                    >
-                      <GoogleIcon />
-                      <span>Continue with Google</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full rounded-full py-6 gap-3 justify-start px-5"
-                    >
-                      <AppleIcon />
-                      <span>Continue with Apple</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full rounded-full py-6 gap-3 justify-start px-5"
-                    >
-                      <FacebookIcon />
-                      <span>Continue with Facebook</span>
-                    </Button>
-                  </div>
+                  {!isSuccess && (
+                    <>
+                      {/* Divider */}
+                      <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-border" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-card px-2 text-muted-foreground">or</span>
+                        </div>
+                      </div>
 
-                  {/* Terms */}
-                  <p className="text-center text-xs text-muted-foreground mt-6">
-                    By signing up, you agree to our{" "}
-                    <a href="#" className="underline hover:text-foreground">Terms of service</a>
-                    {" "}and{" "}
-                    <a href="#" className="underline hover:text-foreground">Privacy Policy</a>.
-                  </p>
+                      {/* Social Login Buttons */}
+                      <div className="space-y-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full rounded-full py-6 gap-3 justify-start px-5"
+                          disabled={isLoading}
+                        >
+                          <GoogleIcon />
+                          <span>Continue with Google</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full rounded-full py-6 gap-3 justify-start px-5"
+                          disabled={isLoading}
+                        >
+                          <AppleIcon />
+                          <span>Continue with Apple</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full rounded-full py-6 gap-3 justify-start px-5"
+                          disabled={isLoading}
+                        >
+                          <FacebookIcon />
+                          <span>Continue with Facebook</span>
+                        </Button>
+                      </div>
+
+                      {/* Terms */}
+                      <p className="text-center text-xs text-muted-foreground mt-6">
+                        By signing up, you agree to our{" "}
+                        <a href="#" className="underline hover:text-foreground">Terms of service</a>
+                        {" "}and{" "}
+                        <a href="#" className="underline hover:text-foreground">Privacy Policy</a>.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
