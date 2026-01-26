@@ -162,6 +162,33 @@ export async function updateUserProfile(
   return response.json();
 }
 
+// Unified language/currency update service function
+// This ensures consistent behavior when changing language or currency from any part of the app
+export async function updateLanguageOrCurrency(
+  accessToken: string,
+  data: { language?: string; currency?: string },
+  onSuccess?: (updatedProfile: UserProfile) => void,
+  onError?: (error: Error) => void
+): Promise<UserProfile> {
+  try {
+    // Update on the server
+    const updatedProfile = await updateUserProfile(accessToken, data);
+
+    // Call success callback if provided
+    if (onSuccess) {
+      onSuccess(updatedProfile);
+    }
+
+    return updatedProfile;
+  } catch (error) {
+    // Call error callback if provided
+    if (onError && error instanceof Error) {
+      onError(error);
+    }
+    throw error;
+  }
+}
+
 // Google OAuth functions
 export async function getGoogleAuthUrl(): Promise<string> {
   const response = await fetch(`${API_BASE}/auth/google/authorize`, {

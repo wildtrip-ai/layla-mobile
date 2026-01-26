@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { updateUserName, updateUserProfile, getStoredToken } from "@/lib/auth";
+import { updateUserName, updateLanguageOrCurrency, getStoredToken } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
-import { updateStoredProfileData } from "@/lib/profileStorage";
+import { updateLanguageOrCurrencyInStorage } from "@/lib/profileStorage";
 
 interface ProfileSettingsProps {
   profile: UserProfile | null;
@@ -205,19 +205,38 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
 
     setUpdatingLanguage(true);
     try {
-      await updateUserProfile(token, { language: newLanguage });
-      setSelectedLanguage(newLanguage);
+      // Use unified language/currency update service
+      await updateLanguageOrCurrency(
+        token,
+        { language: newLanguage },
+        async (updatedProfile) => {
+          // Update local state
+          setSelectedLanguage(newLanguage);
 
-      // Update session storage with new language
-      updateStoredProfileData({ language: newLanguage });
+          // Update session storage with new language
+          updateLanguageOrCurrencyInStorage({ language: newLanguage }, true);
 
-      await refreshUserProfile();
-      setLanguageDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Your language preference has been updated.",
-      });
+          // Refresh user profile to sync all data
+          await refreshUserProfile();
+
+          // Close dialog and show success
+          setLanguageDialogOpen(false);
+          toast({
+            title: "Success",
+            description: "Your language preference has been updated.",
+          });
+        },
+        (error) => {
+          // Show error message
+          toast({
+            title: "Error",
+            description: "Failed to update your language preference. Please try again.",
+            variant: "destructive",
+          });
+        }
+      );
     } catch (error) {
+      // Catch any uncaught errors
       toast({
         title: "Error",
         description: "Failed to update your language preference. Please try again.",
@@ -240,19 +259,38 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
 
     setUpdatingCurrency(true);
     try {
-      await updateUserProfile(token, { currency: newCurrency });
-      setSelectedCurrency(newCurrency);
+      // Use unified language/currency update service
+      await updateLanguageOrCurrency(
+        token,
+        { currency: newCurrency },
+        async (updatedProfile) => {
+          // Update local state
+          setSelectedCurrency(newCurrency);
 
-      // Update session storage with new currency
-      updateStoredProfileData({ currency: newCurrency });
+          // Update session storage with new currency
+          updateLanguageOrCurrencyInStorage({ currency: newCurrency }, true);
 
-      await refreshUserProfile();
-      setCurrencyDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Your currency preference has been updated.",
-      });
+          // Refresh user profile to sync all data
+          await refreshUserProfile();
+
+          // Close dialog and show success
+          setCurrencyDialogOpen(false);
+          toast({
+            title: "Success",
+            description: "Your currency preference has been updated.",
+          });
+        },
+        (error) => {
+          // Show error message
+          toast({
+            title: "Error",
+            description: "Failed to update your currency preference. Please try again.",
+            variant: "destructive",
+          });
+        }
+      );
     } catch (error) {
+      // Catch any uncaught errors
       toast({
         title: "Error",
         description: "Failed to update your currency preference. Please try again.",

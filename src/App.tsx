@@ -41,13 +41,41 @@ function LoginDialogContainer() {
 
 // Component that renders SelectionDialogs using context
 function SelectionDialogsContainer() {
-  const { languageDialogOpen, setLanguageDialogOpen, currencyDialogOpen, setCurrencyDialogOpen, selectedCurrency, setSelectedCurrency } = useSelectionDialogs();
+  const { languageDialogOpen, setLanguageDialogOpen, currencyDialogOpen, setCurrencyDialogOpen, selectedCurrency, updateCurrencyWithAuth, updateLanguageWithAuth } = useSelectionDialogs();
   const { lang, setLanguage } = useLanguage();
 
   const handleLanguageSelect = (langCode: string) => {
     if (SUPPORTED_LANGUAGES.includes(langCode as SupportedLanguage)) {
+      // First update the URL routing
       setLanguage(langCode as SupportedLanguage);
+
+      // Then update backend and storage if authenticated
+      updateLanguageWithAuth(
+        langCode,
+        () => {
+          // Success - language updated
+          setLanguageDialogOpen(false);
+        },
+        (error) => {
+          // Error - language update failed, but URL was already changed
+          console.error("Failed to update language preference:", error);
+        }
+      );
     }
+  };
+
+  const handleCurrencySelect = (currencyCode: string) => {
+    updateCurrencyWithAuth(
+      currencyCode,
+      () => {
+        // Success - currency updated
+        setCurrencyDialogOpen(false);
+      },
+      (error) => {
+        // Error - currency update failed
+        console.error("Failed to update currency preference:", error);
+      }
+    );
   };
 
   return (
@@ -66,7 +94,7 @@ function SelectionDialogsContainer() {
         title="Choose currency"
         items={currencies}
         selectedValue={selectedCurrency}
-        onSelect={setSelectedCurrency}
+        onSelect={handleCurrencySelect}
       />
     </>
   );

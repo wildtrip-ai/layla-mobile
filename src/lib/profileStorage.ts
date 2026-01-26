@@ -103,3 +103,20 @@ export const clearAnonymousPreferences = (): void => {
     console.error('Error clearing anonymous preferences from session storage:', error);
   }
 };
+
+/**
+ * Unified function to update language/currency in session storage
+ * Handles both authenticated users (updates profile data) and anonymous users (updates preferences)
+ */
+export const updateLanguageOrCurrencyInStorage = (
+  updates: Partial<StoredProfileData>,
+  isAuthenticated: boolean
+): void => {
+  if (isAuthenticated) {
+    // Update authenticated user's profile data
+    updateStoredProfileData(updates);
+  } else {
+    // Update anonymous user's preferences
+    updateAnonymousPreferences(updates);
+  }
+};

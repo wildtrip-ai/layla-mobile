@@ -3,8 +3,9 @@ import {
   getStoredProfileData,
   getAnonymousPreferences,
   updateAnonymousPreferences,
-  updateStoredProfileData,
+  updateLanguageOrCurrencyInStorage,
 } from "@/lib/profileStorage";
+import { getStoredToken } from "@/lib/auth";
 import { useAuth } from "./AuthContext";
 
 interface SelectionDialogsContextType {
@@ -15,12 +16,14 @@ interface SelectionDialogsContextType {
   selectedCurrency: string;
   setSelectedCurrency: (currency: string) => void;
   updateCurrency: (currency: string) => void;
+  updateCurrencyWithAuth: (currency: string, onSuccess?: () => void, onError?: (error: Error) => void) => Promise<void>;
+  updateLanguageWithAuth: (language: string, onSuccess?: () => void, onError?: (error: Error) => void) => Promise<void>;
 }
 
 const SelectionDialogsContext = createContext<SelectionDialogsContextType | undefined>(undefined);
 
 export function SelectionDialogsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, refreshUserProfile } = useAuth();
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
 
@@ -49,14 +52,97 @@ export function SelectionDialogsProvider({ children }: { children: ReactNode }) 
     setSelectedCurrency(currency);
 
     // Update session storage based on authentication status
-    if (isAuthenticated) {
-      // Update logged-in user's profile data in session storage
-      updateStoredProfileData({ currency });
-    } else {
-      // Update anonymous user's preferences
-      updateAnonymousPreferences({ currency });
-    }
+    updateLanguageOrCurrencyInStorage({ currency }, isAuthenticated);
   }, [isAuthenticated]);
+
+  // Unified currency update for authenticated users
+  const updateCurrencyWithAuth = useCallback(
+    async (currency: string, onSuccess?: () => void, onError?: (error: Error) => void) => {
+      const token = getStoredToken();
+      if (!token || !isAuthenticated) {
+        // For anonymous users, just update local state and storage
+        updateCurrency(currency);
+        onSuccess?.();
+        return;
+      }
+
+      try {
+        // Import here to avoid circular dependencies
+        const { updateLanguageOrCurrency } = await import("@/lib/auth");
+
+        // Update on the server and get the response
+        await updateLanguageOrCurrency(
+          token,
+          { currency },
+          (updatedProfile) => {
+            // Update local state
+            setSelectedCurrency(currency);
+
+            // Update session storage
+            updateLanguageOrCurrencyInStorage({ currency }, true);
+
+            // Refresh user profile to sync all data
+            refreshUserProfile();
+
+            // Call success callback
+            onSuccess?.();
+          },
+          (error) => {
+            // Call error callback
+            onError?.(error);
+          }
+        );
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error("Failed to update currency");
+        onError?.(err);
+        throw err;
+      }
+    },
+    [isAuthenticated, updateCurrency, refreshUserProfile]
+  );
+
+  // Unified language update for authenticated users
+  const updateLanguageWithAuth = useCallback(
+    async (language: string, onSuccess?: () => void, onError?: (error: Error) => void) => {
+      const token = getStoredToken();
+      if (!token || !isAuthenticated) {
+        // For anonymous users, just update storage
+        updateLanguageOrCurrencyInStorage({ language }, false);
+        onSuccess?.();
+        return;
+      }
+
+      try {
+        // Import here to avoid circular dependencies
+        const { updateLanguageOrCurrency } = await import("@/lib/auth");
+
+        // Update on the server
+        await updateLanguageOrCurrency(
+          token,
+          { language },
+          (updatedProfile) => {
+            // Update session storage
+            updateLanguageOrCurrencyInStorage({ language }, true);
+
+            // Refresh user profile to sync all data
+            refreshUserProfile();
+
+            // Call success callback
+            onSuccess?.();
+          },
+          (error) => {
+            // Call error callback
+            onError?.(error);
+          }
+        );
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error("Failed to update language");
+        onError?.(err);
+        throw err;
+      }
+    },
+    [isAuthenticated, refreshUserProfile]
+  );
 
   // Sync currency from session storage when profile loads or changes
   useEffect(() => {
@@ -76,6 +162,8 @@ export function SelectionDialogsProvider({ children }: { children: ReactNode }) 
         selectedCurrency,
         setSelectedCurrency,
         updateCurrency,
+        updateCurrencyWithAuth,
+        updateLanguageWithAuth,
       }}
     >
       {children}
