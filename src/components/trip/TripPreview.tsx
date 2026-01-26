@@ -330,7 +330,7 @@ export function TripPreview({ trip }: TripPreviewProps) {
                 View Full Itinerary
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="flex-1">
+            <Button variant="outline" size="lg" className="flex-1 w-full">
               Save Draft
             </Button>
           </motion.div>
