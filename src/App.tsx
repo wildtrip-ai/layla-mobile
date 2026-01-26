@@ -25,6 +25,7 @@ import MyFavorites from "./pages/MyFavorites";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import MagicLinkCallback from "./pages/MagicLinkCallback";
+import GoogleCallback from "./pages/GoogleCallback";
 
 const queryClient = new QueryClient();
 
@@ -68,8 +69,9 @@ const App = () => (
           <BrowserRouter>
             <ScrollToTop />
             <Routes>
-              {/* Magic link callback - outside language routes */}
+              {/* Auth callbacks - outside language routes */}
               <Route path="/auth/magic-link" element={<MagicLinkCallback />} />
+              <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
               {/* Root path redirects to detected language */}
               <Route path="/" element={<LanguageRedirect />} />
