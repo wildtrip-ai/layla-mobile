@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown, Heart } from "lucide-react";
@@ -15,6 +16,7 @@ export function Header() {
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
 
+  const navigate = useNavigate();
   const { lang, setLanguage } = useLanguage();
   const { openLoginDialog } = useLoginDialog();
   const { user, isAuthenticated, logout } = useAuth();
@@ -31,9 +33,18 @@ export function Header() {
     logout();
     setIsOpen(false);
   };
-  
+
   const handleLogin = () => {
     openLoginDialog();
+    setIsOpen(false);
+  };
+
+  const handleNewTrip = () => {
+    if (isAuthenticated) {
+      navigate("/new-trip-planner");
+    } else {
+      openLoginDialog();
+    }
     setIsOpen(false);
   };
 
@@ -160,12 +171,10 @@ export function Header() {
                     <LogIn className="h-4 w-4" />
                     <span>Login</span>
                   </DropdownMenuItem>
-                  <LocalizedLink to="/new-trip-planner">
-                    <DropdownMenuItem className="gap-3 py-3">
-                      <Plus className="h-4 w-4" />
-                      <span>New Trip</span>
-                    </DropdownMenuItem>
-                  </LocalizedLink>
+                  <DropdownMenuItem className="gap-3 py-3" onClick={handleNewTrip}>
+                    <Plus className="h-4 w-4" />
+                    <span>New Trip</span>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="gap-3 py-3">
                     <HelpCircle className="h-4 w-4" />
