@@ -10,6 +10,10 @@ import { LanguageRedirect } from "@/components/LanguageRedirect";
 import { LoginDialogProvider, useLoginDialog } from "@/contexts/LoginDialogContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoginDialog } from "@/components/auth/LoginDialog";
+import { SelectionDialogsProvider, useSelectionDialogs } from "@/contexts/SelectionDialogsContext";
+import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
+import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
+import { useLanguage } from "@/hooks/useLanguage";
 import Index from "./pages/Index";
 import TripDetails from "./pages/TripDetails";
 import BookingReview from "./pages/BookingReview";
@@ -33,6 +37,39 @@ const queryClient = new QueryClient();
 function LoginDialogContainer() {
   const { loginDialogOpen, setLoginDialogOpen } = useLoginDialog();
   return <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />;
+}
+
+// Component that renders SelectionDialogs using context
+function SelectionDialogsContainer() {
+  const { languageDialogOpen, setLanguageDialogOpen, currencyDialogOpen, setCurrencyDialogOpen, selectedCurrency, setSelectedCurrency } = useSelectionDialogs();
+  const { lang, setLanguage } = useLanguage();
+
+  const handleLanguageSelect = (langCode: string) => {
+    if (SUPPORTED_LANGUAGES.includes(langCode as SupportedLanguage)) {
+      setLanguage(langCode as SupportedLanguage);
+    }
+  };
+
+  return (
+    <>
+      <SelectionDialog
+        open={languageDialogOpen}
+        onOpenChange={setLanguageDialogOpen}
+        title="Choose language"
+        items={languages}
+        selectedValue={lang}
+        onSelect={handleLanguageSelect}
+      />
+      <SelectionDialog
+        open={currencyDialogOpen}
+        onOpenChange={setCurrencyDialogOpen}
+        title="Choose currency"
+        items={currencies}
+        selectedValue={selectedCurrency}
+        onSelect={setSelectedCurrency}
+      />
+    </>
+  );
 }
 
 // Wrapper component that provides language context for routes with :lang param
@@ -64,37 +101,40 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <LoginDialogProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              {/* Auth callbacks - outside language routes */}
-              <Route path="/auth/magic-link" element={<MagicLinkCallback />} />
-              <Route path="/auth/google/callback" element={<GoogleCallback />} />
+          <SelectionDialogsProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                {/* Auth callbacks - outside language routes */}
+                <Route path="/auth/magic-link" element={<MagicLinkCallback />} />
+                <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
-              {/* Root path redirects to detected language */}
-              <Route path="/" element={<LanguageRedirect />} />
+                {/* Root path redirects to detected language */}
+                <Route path="/" element={<LanguageRedirect />} />
 
-              {/* All localized routes under /:lang */}
-              <Route path="/:lang/*" element={<LanguageRoutes />} />
+                {/* All localized routes under /:lang */}
+                <Route path="/:lang/*" element={<LanguageRoutes />} />
 
-              {/* Fallback for non-localized paths - redirect to add language */}
-              <Route path="/my-trips" element={<LanguageRedirect />} />
-              <Route path="/my-favorites" element={<LanguageRedirect />} />
-              <Route path="/new-trip-planner" element={<LanguageRedirect />} />
-              <Route path="/trip/*" element={<LanguageRedirect />} />
-              <Route path="/countries" element={<LanguageRedirect />} />
-              <Route path="/country/*" element={<LanguageRedirect />} />
-              <Route path="/settings" element={<LanguageRedirect />} />
+                {/* Fallback for non-localized paths - redirect to add language */}
+                <Route path="/my-trips" element={<LanguageRedirect />} />
+                <Route path="/my-favorites" element={<LanguageRedirect />} />
+                <Route path="/new-trip-planner" element={<LanguageRedirect />} />
+                <Route path="/trip/*" element={<LanguageRedirect />} />
+                <Route path="/countries" element={<LanguageRedirect />} />
+                <Route path="/country/*" element={<LanguageRedirect />} />
+                <Route path="/settings" element={<LanguageRedirect />} />
 
-              {/* 404 for truly unknown paths */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          <Analytics />
-          {/* Login Dialog - rendered at root level, outside header */}
-          <LoginDialogContainer />
+                {/* 404 for truly unknown paths */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+            <Analytics />
+            {/* Dialogs - rendered at root level, outside header */}
+            <LoginDialogContainer />
+            <SelectionDialogsContainer />
+          </SelectionDialogsProvider>
         </LoginDialogProvider>
       </AuthProvider>
     </TooltipProvider>

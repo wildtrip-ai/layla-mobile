@@ -3,22 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown, Heart } from "lucide-react";
-import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
+import { languages, currencies } from "@/components/SelectionDialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLanguage, SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
 import { useLoginDialog } from "@/contexts/LoginDialogContext";
+import { useSelectionDialogs } from "@/contexts/SelectionDialogsContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
-  const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("usd");
 
   const navigate = useNavigate();
   const { lang, setLanguage } = useLanguage();
   const { openLoginDialog } = useLoginDialog();
+  const { setCurrencyDialogOpen, setLanguageDialogOpen, selectedCurrency } = useSelectionDialogs();
   const { user, isAuthenticated, logout } = useAuth();
 
   // Derive display name and initials from auth user
@@ -194,26 +193,6 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
-
-      {/* Language Dialog */}
-      <SelectionDialog 
-        open={languageDialogOpen} 
-        onOpenChange={setLanguageDialogOpen} 
-        title="Choose language" 
-        items={languages} 
-        selectedValue={lang} 
-        onSelect={handleLanguageSelect} 
-      />
-
-      {/* Currency Dialog */}
-      <SelectionDialog 
-        open={currencyDialogOpen} 
-        onOpenChange={setCurrencyDialogOpen} 
-        title="Choose currency" 
-        items={currencies} 
-        selectedValue={selectedCurrency} 
-        onSelect={setSelectedCurrency} 
-      />
     </header>
   );
 }
