@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { updateUserName, getStoredToken } from "@/lib/auth";
+import { updateUserName, updateUserProfile, getStoredToken } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 
 interface ProfileSettingsProps {
@@ -40,6 +40,8 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
+  const [updatingLanguage, setUpdatingLanguage] = useState(false);
+  const [updatingCurrency, setUpdatingCurrency] = useState(false);
 
   // Profile photo state
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -187,6 +189,68 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
       });
     } finally {
       setUpdatingLastName(false);
+    }
+  };
+
+  const handleLanguageChange = async (newLanguage: string) => {
+    // Only update if the value has changed
+    if (newLanguage === selectedLanguage) {
+      setLanguageDialogOpen(false);
+      return;
+    }
+
+    const token = getStoredToken();
+    if (!token) return;
+
+    setUpdatingLanguage(true);
+    try {
+      await updateUserProfile(token, { language: newLanguage });
+      setSelectedLanguage(newLanguage);
+      await refreshUserProfile();
+      setLanguageDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Your language preference has been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update your language preference. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingLanguage(false);
+    }
+  };
+
+  const handleCurrencyChange = async (newCurrency: string) => {
+    // Only update if the value has changed
+    if (newCurrency === selectedCurrency) {
+      setCurrencyDialogOpen(false);
+      return;
+    }
+
+    const token = getStoredToken();
+    if (!token) return;
+
+    setUpdatingCurrency(true);
+    try {
+      await updateUserProfile(token, { currency: newCurrency });
+      setSelectedCurrency(newCurrency);
+      await refreshUserProfile();
+      setCurrencyDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Your currency preference has been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update your currency preference. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingCurrency(false);
     }
   };
 
@@ -395,7 +459,8 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
         title="Choose language"
         items={languages}
         selectedValue={selectedLanguage}
-        onSelect={setSelectedLanguage}
+        onSelect={handleLanguageChange}
+        isLoading={updatingLanguage}
       />
 
       {/* Currency Dialog */}
@@ -405,7 +470,8 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
         title="Choose currency"
         items={currencies}
         selectedValue={selectedCurrency}
-        onSelect={setSelectedCurrency}
+        onSelect={handleCurrencyChange}
+        isLoading={updatingCurrency}
       />
 
       {/* Image Crop Dialog */}
