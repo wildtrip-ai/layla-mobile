@@ -326,13 +326,15 @@ export function TripPreview({ trip }: TripPreviewProps) {
             transition={{ duration: 0.4 }}
           >
             <Link to={`/trip/${trip.id}`} className="flex-1">
-              <Button variant="hero" size="lg" className="w-full">
+              <Button variant="hero" size="lg" className="w-full h-full">
                 View Full Itinerary
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="flex-1 w-full">
-              Save Draft
-            </Button>
+            <div className="flex-1">
+              <Button variant="outline" size="lg" className="w-full h-full">
+                Save Draft
+              </Button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
