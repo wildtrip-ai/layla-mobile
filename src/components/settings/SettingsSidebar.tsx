@@ -1,20 +1,34 @@
 import { motion } from "framer-motion";
 import { User, Bell, Crown, Settings } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type SettingsSection = "profile" | "notifications" | "subscription";
 
-interface SettingsSidebarProps {
-  activeSection: SettingsSection;
-  onSectionChange: (section: SettingsSection) => void;
-}
-
-const menuItems: { id: SettingsSection; label: string; icon: React.ElementType }[] = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "subscription", label: "Manage Subscription", icon: Crown },
+const menuItems: { id: SettingsSection; label: string; icon: React.ElementType; path: string }[] = [
+  { id: "profile", label: "Profile", icon: User, path: "/settings/profile" },
+  { id: "notifications", label: "Notifications", icon: Bell, path: "/settings/notifications" },
+  { id: "subscription", label: "Manage Subscription", icon: Crown, path: "/settings/subscription" },
 ];
 
-export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSidebarProps) {
+export function SettingsSidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { lang } = useLanguage();
+
+  const getActiveSection = (): SettingsSection => {
+    if (location.pathname.includes("/settings/profile")) return "profile";
+    if (location.pathname.includes("/settings/notifications")) return "notifications";
+    if (location.pathname.includes("/settings/subscription")) return "subscription";
+    return "profile";
+  };
+
+  const activeSection = getActiveSection();
+
+  const handleNavigate = (path: string) => {
+    navigate(`/${lang}${path}`);
+  };
+
   return (
     <motion.aside
       initial={{ opacity: 0, x: -20 }}
@@ -41,11 +55,11 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.id;
-            
+
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => onSectionChange(item.id)}
+                  onClick={() => handleNavigate(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     isActive
                       ? "bg-primary text-primary-foreground"
