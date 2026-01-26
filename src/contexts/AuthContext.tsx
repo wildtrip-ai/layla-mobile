@@ -7,12 +7,19 @@ import {
   setStoredUser,
   clearAuthData,
   fetchCurrentUser,
+  fetchUserProfile,
 } from "@/lib/auth";
+import {
+  setStoredProfileData,
+  clearStoredProfileData,
+  getStoredProfileData,
+} from "@/lib/profileStorage";
 
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isProfileLoading: boolean;
   login: (accessToken: string, user: AuthUser) => void;
   logout: () => void;
   refreshUserProfile: () => Promise<void>;
@@ -23,26 +30,82 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+
+  // Fetch and store profile data
+  const fetchAndStoreProfile = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) return;
+
+    try {
+      setIsProfileLoading(true);
+      const profile = await fetchUserProfile(token);
+
+      // Store relevant profile data in session storage
+      setStoredProfileData({
+        language: profile.language,
+        currency: profile.currency,
+        profile_photo_url: profile.profile_photo_url || undefined,
+        first_name: profile.user_id, // We'll update this if we have the user data
+        last_name: profile.user_id, // We'll update this if we have the user data
+      });
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setIsProfileLoading(false);
+    }
+  }, []);
 
   // Initialize auth state from localStorage
   useEffect(() => {
-    const token = getStoredToken();
-    const storedUser = getStoredUser();
-    
-    if (token && storedUser) {
-      setUser(storedUser);
-    }
-    setIsLoading(false);
-  }, []);
+    const initAuth = async () => {
+      const token = getStoredToken();
+      const storedUser = getStoredUser();
+
+      if (token && storedUser) {
+        setUser(storedUser);
+
+        // Check if we already have profile data in session storage
+        const storedProfile = getStoredProfileData();
+        if (!storedProfile) {
+          // Fetch profile data if not already in session storage
+          await fetchAndStoreProfile();
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
+  }, [fetchAndStoreProfile]);
 
   const login = useCallback((accessToken: string, userData: AuthUser) => {
     setStoredToken(accessToken);
     setStoredUser(userData);
     setUser(userData);
+
+    // Fetch and store profile data after login (in background)
+    (async () => {
+      try {
+        setIsProfileLoading(true);
+        const profile = await fetchUserProfile(accessToken);
+        setStoredProfileData({
+          language: profile.language,
+          currency: profile.currency,
+          profile_photo_url: profile.profile_photo_url || undefined,
+          first_name: userData.first_name,
+          last_name: userData.last_name || undefined,
+        });
+      } catch (error) {
+        console.error("Failed to fetch profile on login:", error);
+      } finally {
+        setIsProfileLoading(false);
+      }
+    })();
   }, []);
 
   const logout = useCallback(() => {
     clearAuthData();
+    clearStoredProfileData();
     setUser(null);
   }, []);
 
@@ -75,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        isProfileLoading,
         login,
         logout,
         refreshUserProfile,

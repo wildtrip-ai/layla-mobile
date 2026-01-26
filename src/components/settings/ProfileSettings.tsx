@@ -21,6 +21,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateUserName, updateUserProfile, getStoredToken } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
+import { updateStoredProfileData } from "@/lib/profileStorage";
 
 interface ProfileSettingsProps {
   profile: UserProfile | null;
@@ -206,6 +207,10 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
     try {
       await updateUserProfile(token, { language: newLanguage });
       setSelectedLanguage(newLanguage);
+
+      // Update session storage with new language
+      updateStoredProfileData({ language: newLanguage });
+
       await refreshUserProfile();
       setLanguageDialogOpen(false);
       toast({
@@ -237,6 +242,10 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
     try {
       await updateUserProfile(token, { currency: newCurrency });
       setSelectedCurrency(newCurrency);
+
+      // Update session storage with new currency
+      updateStoredProfileData({ currency: newCurrency });
+
       await refreshUserProfile();
       setCurrencyDialogOpen(false);
       toast({
