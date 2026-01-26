@@ -25,7 +25,7 @@ export function MobileChatDrawer({
   onTripGenerated,
   onGeneratingChange,
 }: MobileChatDrawerProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const haptics = useHapticFeedback();
 
   // Haptic feedback on drawer open/close
