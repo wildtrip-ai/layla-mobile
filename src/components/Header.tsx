@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown, Heart } from "lucide-react";
@@ -8,29 +7,28 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLanguage, SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
 import { useLoginDialog } from "@/contexts/LoginDialogContext";
-
-// Mock user state - replace with real auth later
-const mockUser = {
-  name: "Cooper Al",
-  email: "cooper@gmail.com",
-  initials: "C"
-};
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Toggle for demo
 
   const { lang, setLanguage } = useLanguage();
   const { openLoginDialog } = useLoginDialog();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  // Derive display name and initials from auth user
+  const displayName = user?.first_name || user?.name || user?.email?.split("@")[0] || "User";
+  const userEmail = user?.email || "";
+  const initials = displayName.charAt(0).toUpperCase();
 
   const currentLanguage = languages.find(l => l.code === lang);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
   
   const handleSignOut = () => {
-    setIsLoggedIn(false);
+    logout();
     setIsOpen(false);
   };
   
@@ -76,11 +74,11 @@ export function Header() {
           {/* User menu */}
           <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
-              {isLoggedIn ? (
+              {isAuthenticated ? (
                 <Button variant="ghost" className="rounded-full h-10 px-1 gap-1 bg-primary hover:bg-primary/90">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                      {mockUser.initials}
+                      {initials}
                     </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-4 w-4 text-primary-foreground" />
@@ -92,18 +90,18 @@ export function Header() {
               )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 mt-2">
-              {isLoggedIn ? (
+              {isAuthenticated ? (
                 <>
                   {/* User info header */}
                   <div className="flex items-center gap-3 px-3 py-4">
                     <Avatar className="h-12 w-12">
                       <AvatarFallback className="bg-primary text-primary-foreground text-lg font-medium">
-                        {mockUser.initials}
+                        {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <span className="font-medium text-foreground">{mockUser.name}</span>
-                      <span className="text-sm text-muted-foreground">{mockUser.email}</span>
+                      <span className="font-medium text-foreground">{displayName}</span>
+                      <span className="text-sm text-muted-foreground">{userEmail}</span>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
