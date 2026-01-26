@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogIn, Plus, Crown, Settings, HelpCircle, MessageSquare, FileText, MapPin, LogOut, ChevronDown, Heart } from "lucide-react";
-import { LoginDialog } from "@/components/auth/LoginDialog";
 import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLanguage, SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
+import { useLoginDialog } from "@/contexts/LoginDialogContext";
 
 // Mock user state - replace with real auth later
 const mockUser = {
@@ -18,13 +18,13 @@ const mockUser = {
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("usd");
   const [isLoggedIn, setIsLoggedIn] = useState(true); // Toggle for demo
-  
+
   const { lang, setLanguage } = useLanguage();
+  const { openLoginDialog } = useLoginDialog();
 
   const currentLanguage = languages.find(l => l.code === lang);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
@@ -35,7 +35,7 @@ export function Header() {
   };
   
   const handleLogin = () => {
-    setLoginDialogOpen(true);
+    openLoginDialog();
     setIsOpen(false);
   };
 
@@ -187,9 +187,6 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
-
-      {/* Login Dialog */}
-      <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
 
       {/* Language Dialog */}
       <SelectionDialog 
