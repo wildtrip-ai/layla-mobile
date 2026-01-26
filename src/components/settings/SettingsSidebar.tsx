@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { User, Bell, Crown, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useRef } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export type SettingsSection = "profile" | "notifications" | "subscription";
@@ -12,6 +13,7 @@ const menuItems: { id: SettingsSection; label: string; icon: React.ElementType; 
 ];
 
 export function SettingsSidebar() {
+  const hasAnimated = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { lang } = useLanguage();
@@ -31,9 +33,12 @@ export function SettingsSidebar() {
 
   return (
     <motion.aside
-      initial={{ opacity: 0, x: -20 }}
+      initial={hasAnimated.current ? false : { opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
+      onAnimationComplete={() => {
+        hasAnimated.current = true;
+      }}
       className="bg-card rounded-2xl border border-border shadow-lg h-[calc(100vh-180px)] sticky top-24 overflow-hidden flex flex-col"
     >
       {/* Header */}
