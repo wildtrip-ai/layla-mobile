@@ -18,11 +18,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import type { UserProfile } from "@/lib/auth";
 
-export function ProfileSettings() {
-  const { profile, isLoading } = useUserProfile();
+interface ProfileSettingsProps {
+  profile: UserProfile | null;
+  isLoading: boolean;
+}
+
+export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
   const { user } = useAuth();
 
   const [firstName, setFirstName] = useState("");

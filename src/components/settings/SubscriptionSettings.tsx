@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 import { Crown, CreditCard, Receipt, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import type { UserProfile } from "@/lib/auth";
 
-export function SubscriptionSettings() {
-  const { profile, isLoading } = useUserProfile();
+interface SubscriptionSettingsProps {
+  profile: UserProfile | null;
+  isLoading: boolean;
+}
+
+export function SubscriptionSettings({ profile, isLoading }: SubscriptionSettingsProps) {
 
   // Format subscription tier for display
   const formatTier = (tier: string) => {

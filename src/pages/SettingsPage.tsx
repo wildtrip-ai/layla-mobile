@@ -7,6 +7,7 @@ import { NotificationSettings } from "@/components/settings/NotificationSettings
 import { SubscriptionSettings } from "@/components/settings/SubscriptionSettings";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Crown } from "lucide-react";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const tabItems: Array<{ id: SettingsSection; label: string; icon: React.ElementType }> = [
   { id: "profile", label: "Profile", icon: User },
@@ -17,6 +18,7 @@ const tabItems: Array<{ id: SettingsSection; label: string; icon: React.ElementT
 export default function SettingsPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<SettingsSection>("profile");
+  const { profile, isLoading } = useUserProfile();
 
   useEffect(() => {
     // Determine active tab based on URL path
@@ -32,13 +34,13 @@ export default function SettingsPage() {
   const renderContent = () => {
     switch (activeTab) {
       case "profile":
-        return <ProfileSettings />;
+        return <ProfileSettings profile={profile} isLoading={isLoading} />;
       case "notifications":
-        return <NotificationSettings />;
+        return <NotificationSettings profile={profile} isLoading={isLoading} />;
       case "subscription":
-        return <SubscriptionSettings />;
+        return <SubscriptionSettings profile={profile} isLoading={isLoading} />;
       default:
-        return <ProfileSettings />;
+        return <ProfileSettings profile={profile} isLoading={isLoading} />;
     }
   };
 

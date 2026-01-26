@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import type { UserProfile } from "@/lib/auth";
 
 interface NotificationSetting {
   id: string;
@@ -11,8 +11,12 @@ interface NotificationSetting {
   enabled: boolean;
 }
 
-export function NotificationSettings() {
-  const { profile, isLoading } = useUserProfile();
+interface NotificationSettingsProps {
+  profile: UserProfile | null;
+  isLoading: boolean;
+}
+
+export function NotificationSettings({ profile, isLoading }: NotificationSettingsProps) {
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
 
   // Update settings when profile data is loaded
