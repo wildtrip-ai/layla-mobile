@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 
 interface SelectionItem {
   code: string;
@@ -14,6 +14,7 @@ interface SelectionDialogProps {
   items: SelectionItem[];
   selectedValue: string;
   onSelect: (value: string) => void;
+  isLoading?: boolean;
 }
 
 export function SelectionDialog({
@@ -23,14 +24,18 @@ export function SelectionDialog({
   items,
   selectedValue,
   onSelect,
+  isLoading = false,
 }: SelectionDialogProps) {
   const handleClose = () => {
-    onOpenChange(false);
+    if (!isLoading) {
+      onOpenChange(false);
+    }
   };
 
   const handleSelect = (code: string) => {
-    onSelect(code);
-    onOpenChange(false);
+    if (!isLoading) {
+      onSelect(code);
+    }
   };
 
   return (
@@ -70,21 +75,27 @@ export function SelectionDialog({
               </h2>
 
               {/* Items grid */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 relative">
                 {items.map((item) => (
                   <button
                     key={item.code}
                     onClick={() => handleSelect(item.code)}
+                    disabled={isLoading}
                     className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${
                       selectedValue === item.code
                         ? "border-2 border-foreground bg-secondary/50"
                         : "border border-transparent hover:bg-secondary/50"
-                    }`}
+                    } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <span className="text-2xl">{item.icon}</span>
                     <span className="font-medium text-foreground">{item.name}</span>
                   </button>
                 ))}
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
