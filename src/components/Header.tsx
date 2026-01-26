@@ -133,13 +133,13 @@ export function Header() {
                       <span>My Favorites</span>
                     </DropdownMenuItem>
                   </LocalizedLink>
-                  <LocalizedLink to="/settings">
+                  <LocalizedLink to="/settings/subscription">
                     <DropdownMenuItem className="gap-3 py-3">
                       <Crown className="h-4 w-4" />
                       <span>Manage Subscription</span>
                     </DropdownMenuItem>
                   </LocalizedLink>
-                  <LocalizedLink to="/settings">
+                  <LocalizedLink to="/settings/profile">
                     <DropdownMenuItem className="gap-3 py-3">
                       <Settings className="h-4 w-4" />
                       <span>Settings</span>
