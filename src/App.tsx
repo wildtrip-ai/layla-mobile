@@ -72,27 +72,25 @@ function SelectionDialogsContainer() {
   );
 }
 
-// Wrapper component that provides language context for routes with :lang param
+// Wrapper component for routes with :lang param
 function LanguageRoutes() {
   return (
-    <LanguageProvider>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/my-trips" element={<MyTrips />} />
-        <Route path="/my-favorites" element={<MyFavorites />} />
-        <Route path="/new-trip-planner" element={<NewTripPlanner />} />
-        <Route path="/trip/:id" element={<TripDetails />} />
-        <Route path="/trip/:id/booking" element={<BookingReview />} />
-        <Route path="/trip/:id/accommodations" element={<AccommodationResults />} />
-        <Route path="/trip/:id/accommodation/:accommodationId" element={<AccommodationDetails />} />
-        <Route path="/trip/:id/activity/:activityId" element={<ActivityDetails />} />
-        <Route path="/countries" element={<Countries />} />
-        <Route path="/country/:slug" element={<CountryDetails />} />
-        <Route path="/country/:countrySlug/destination/:destinationId" element={<DestinationDetails />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </LanguageProvider>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/my-trips" element={<MyTrips />} />
+      <Route path="/my-favorites" element={<MyFavorites />} />
+      <Route path="/new-trip-planner" element={<NewTripPlanner />} />
+      <Route path="/trip/:id" element={<TripDetails />} />
+      <Route path="/trip/:id/booking" element={<BookingReview />} />
+      <Route path="/trip/:id/accommodations" element={<AccommodationResults />} />
+      <Route path="/trip/:id/accommodation/:accommodationId" element={<AccommodationDetails />} />
+      <Route path="/trip/:id/activity/:activityId" element={<ActivityDetails />} />
+      <Route path="/countries" element={<Countries />} />
+      <Route path="/country/:slug" element={<CountryDetails />} />
+      <Route path="/country/:countrySlug/destination/:destinationId" element={<DestinationDetails />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
@@ -105,35 +103,37 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <ScrollToTop />
-              <Routes>
-                {/* Auth callbacks - outside language routes */}
-                <Route path="/auth/magic-link" element={<MagicLinkCallback />} />
-                <Route path="/auth/google/callback" element={<GoogleCallback />} />
+              <LanguageProvider>
+                <ScrollToTop />
+                <Routes>
+                  {/* Auth callbacks - outside language routes */}
+                  <Route path="/auth/magic-link" element={<MagicLinkCallback />} />
+                  <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
-                {/* Root path redirects to detected language */}
-                <Route path="/" element={<LanguageRedirect />} />
+                  {/* Root path redirects to detected language */}
+                  <Route path="/" element={<LanguageRedirect />} />
 
-                {/* All localized routes under /:lang */}
-                <Route path="/:lang/*" element={<LanguageRoutes />} />
+                  {/* All localized routes under /:lang */}
+                  <Route path="/:lang/*" element={<LanguageRoutes />} />
 
-                {/* Fallback for non-localized paths - redirect to add language */}
-                <Route path="/my-trips" element={<LanguageRedirect />} />
-                <Route path="/my-favorites" element={<LanguageRedirect />} />
-                <Route path="/new-trip-planner" element={<LanguageRedirect />} />
-                <Route path="/trip/*" element={<LanguageRedirect />} />
-                <Route path="/countries" element={<LanguageRedirect />} />
-                <Route path="/country/*" element={<LanguageRedirect />} />
-                <Route path="/settings" element={<LanguageRedirect />} />
+                  {/* Fallback for non-localized paths - redirect to add language */}
+                  <Route path="/my-trips" element={<LanguageRedirect />} />
+                  <Route path="/my-favorites" element={<LanguageRedirect />} />
+                  <Route path="/new-trip-planner" element={<LanguageRedirect />} />
+                  <Route path="/trip/*" element={<LanguageRedirect />} />
+                  <Route path="/countries" element={<LanguageRedirect />} />
+                  <Route path="/country/*" element={<LanguageRedirect />} />
+                  <Route path="/settings" element={<LanguageRedirect />} />
 
-                {/* 404 for truly unknown paths */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                  {/* 404 for truly unknown paths */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                {/* Dialogs - rendered inside LanguageProvider */}
+                <LoginDialogContainer />
+                <SelectionDialogsContainer />
+              </LanguageProvider>
             </BrowserRouter>
             <Analytics />
-            {/* Dialogs - rendered at root level, outside header */}
-            <LoginDialogContainer />
-            <SelectionDialogsContainer />
           </SelectionDialogsProvider>
         </LoginDialogProvider>
       </AuthProvider>
