@@ -1,35 +1,22 @@
 import { motion } from "framer-motion";
 import { User, Bell, Crown, Settings } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { useRef } from "react";
-import { useLanguage } from "@/hooks/useLanguage";
 
 export type SettingsSection = "profile" | "notifications" | "subscription";
 
-const menuItems: { id: SettingsSection; label: string; icon: React.ElementType; path: string }[] = [
-  { id: "profile", label: "Profile", icon: User, path: "/settings/profile" },
-  { id: "notifications", label: "Notifications", icon: Bell, path: "/settings/notifications" },
-  { id: "subscription", label: "Manage Subscription", icon: Crown, path: "/settings/subscription" },
+const menuItems: { id: SettingsSection; label: string; icon: React.ElementType }[] = [
+  { id: "profile", label: "Profile", icon: User },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "subscription", label: "Manage Subscription", icon: Crown },
 ];
 
-export function SettingsSidebar() {
+interface SettingsSidebarProps {
+  activeTab: SettingsSection;
+  onTabChange: (tab: SettingsSection) => void;
+}
+
+export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps) {
   const hasAnimated = useRef(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { lang } = useLanguage();
-
-  const getActiveSection = (): SettingsSection => {
-    if (location.pathname.includes("/settings/profile")) return "profile";
-    if (location.pathname.includes("/settings/notifications")) return "notifications";
-    if (location.pathname.includes("/settings/subscription")) return "subscription";
-    return "profile";
-  };
-
-  const activeSection = getActiveSection();
-
-  const handleNavigate = (path: string) => {
-    navigate(`/${lang}${path}`);
-  };
 
   return (
     <motion.aside
@@ -59,12 +46,12 @@ export function SettingsSidebar() {
         <ul className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeSection === item.id;
+            const isActive = activeTab === item.id;
 
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => handleNavigate(item.path)}
+                  onClick={() => onTabChange(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     isActive
                       ? "bg-primary text-primary-foreground"
