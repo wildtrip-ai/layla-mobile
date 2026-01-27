@@ -25,8 +25,21 @@ export function MobileChatDrawer({
   onTripGenerated,
   onGeneratingChange,
 }: MobileChatDrawerProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const haptics = useHapticFeedback();
+
+  // Open drawer by default only on mobile phones (below 768px), not tablets
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsOpen(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Haptic feedback on drawer open/close
   useEffect(() => {
