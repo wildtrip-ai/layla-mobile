@@ -16,7 +16,7 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navigate = useNavigate();
-  const { lang, setLanguage } = useLanguage();
+  const { effectiveLanguage, setLanguage } = useLanguage();
   const { openLoginDialog } = useLoginDialog();
   const { setCurrencyDialogOpen, setLanguageDialogOpen, selectedCurrency } = useSelectionDialogs();
   const { user, isAuthenticated, isProfileLoading, logout } = useAuth();
@@ -26,7 +26,7 @@ export function Header() {
   const userEmail = user?.email || "";
   const initials = displayName.charAt(0).toUpperCase();
 
-  const currentLanguage = languages.find(l => l.code === lang);
+  const currentLanguage = languages.find(l => l.code === effectiveLanguage);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
   
   const handleSignOut = () => {
