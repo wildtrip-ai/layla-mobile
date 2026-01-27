@@ -183,7 +183,7 @@ export default function TripDetails() {
             </div>
 
             {/* Main Content */}
-            <div className="space-y-8">
+            <div className="">
               {/* Trip Header */}
               <TripHeader 
                 trip={tripData} 
