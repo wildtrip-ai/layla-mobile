@@ -8,11 +8,14 @@ import {
   clearAuthData,
   fetchCurrentUser,
   fetchUserProfile,
+  updateUserProfile,
 } from "@/lib/auth";
 import {
   setStoredProfileData,
   clearStoredProfileData,
   getStoredProfileData,
+  getAnonymousPreferences,
+  clearAnonymousPreferences,
 } from "@/lib/profileStorage";
 
 interface AuthContextType {
@@ -88,13 +91,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setIsProfileLoading(true);
         const profile = await fetchUserProfile(accessToken);
-        setStoredProfileData({
-          language: profile.language,
-          currency: profile.currency,
-          profile_photo_url: profile.profile_photo_url || undefined,
-          first_name: userData.first_name,
-          last_name: userData.last_name || undefined,
-        });
+
+        // Check for anonymous preferences and migrate them
+        const anonPreferences = getAnonymousPreferences();
+        if (anonPreferences) {
+          const updates: { language?: string; currency?: string } = {};
+
+          // Compare anonymous preferences with profile
+          if (anonPreferences.language && anonPreferences.language !== profile.language) {
+            updates.language = anonPreferences.language;
+          }
+          if (anonPreferences.currency && anonPreferences.currency !== profile.currency) {
+            updates.currency = anonPreferences.currency;
+          }
+
+          // Update profile if there are mismatches
+          if (Object.keys(updates).length > 0) {
+            try {
+              const updatedProfile = await updateUserProfile(accessToken, updates);
+              // Store the updated profile data
+              setStoredProfileData({
+                language: updatedProfile.language,
+                currency: updatedProfile.currency,
+                profile_photo_url: updatedProfile.profile_photo_url || undefined,
+                first_name: userData.first_name,
+                last_name: userData.last_name || undefined,
+              });
+            } catch (error) {
+              console.error("Failed to migrate anonymous preferences:", error);
+              // Fall back to storing the original profile data
+              setStoredProfileData({
+                language: profile.language,
+                currency: profile.currency,
+                profile_photo_url: profile.profile_photo_url || undefined,
+                first_name: userData.first_name,
+                last_name: userData.last_name || undefined,
+              });
+            }
+          } else {
+            // No updates needed, store the original profile data
+            setStoredProfileData({
+              language: profile.language,
+              currency: profile.currency,
+              profile_photo_url: profile.profile_photo_url || undefined,
+              first_name: userData.first_name,
+              last_name: userData.last_name || undefined,
+            });
+          }
+
+          // Clear anonymous preferences after migration attempt
+          clearAnonymousPreferences();
+        } else {
+          // No anonymous preferences, just store the profile data
+          setStoredProfileData({
+            language: profile.language,
+            currency: profile.currency,
+            profile_photo_url: profile.profile_photo_url || undefined,
+            first_name: userData.first_name,
+            last_name: userData.last_name || undefined,
+          });
+        }
       } catch (error) {
         console.error("Failed to fetch profile on login:", error);
       } finally {
