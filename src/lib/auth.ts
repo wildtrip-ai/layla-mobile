@@ -102,6 +102,7 @@ export async function fetchCurrentUser(
 ): Promise<FetchCurrentUserResponse> {
   const response = await authenticatedFetch(`${API_BASE}/users/me`, {
     method: "GET",
+    token: accessToken,
   });
 
   if (!response.ok) {
@@ -116,6 +117,7 @@ export async function fetchUserProfile(
 ): Promise<UserProfile> {
   const response = await authenticatedFetch(`${API_BASE}/users/me/profile`, {
     method: "GET",
+    token: accessToken,
   });
 
   if (!response.ok) {
@@ -135,6 +137,7 @@ export async function updateUserName(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+    token: accessToken,
   });
 
   if (!response.ok) {
@@ -154,6 +157,7 @@ export async function updateUserProfile(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+    token: accessToken,
   });
 
   if (!response.ok) {
@@ -178,6 +182,7 @@ export async function updateNotificationSettings(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+    token: accessToken,
   });
 
   if (!response.ok) {
@@ -240,6 +245,7 @@ export async function addFavorite(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ place_id: placeId }),
+    token: accessToken,
   });
 
   if (!response.ok) {
@@ -255,6 +261,7 @@ export async function removeFavorite(
 ): Promise<void> {
   const response = await authenticatedFetch(`${API_BASE}/favorites/${placeId}`, {
     method: "DELETE",
+    token: accessToken,
   });
 
   if (!response.ok) {
@@ -303,6 +310,7 @@ export async function deleteAccount(
     headers: {
       "Content-Type": "application/json",
     },
+    token: accessToken,
   });
 
   if (!response.ok) {

@@ -29,6 +29,7 @@ export function handleUnauthorizedResponse() {
 
 interface FetchOptions extends RequestInit {
   skipAuthCheck?: boolean;
+  token?: string;
 }
 
 /**
@@ -39,8 +40,8 @@ export async function authenticatedFetch(
   url: string,
   options: FetchOptions = {}
 ): Promise<Response> {
-  const { skipAuthCheck, ...fetchOptions } = options;
-  const token = getStoredToken();
+  const { skipAuthCheck, token: providedToken, ...fetchOptions } = options;
+  const token = providedToken || getStoredToken();
 
   // Add authorization header if token exists
   const headers: HeadersInit = {
