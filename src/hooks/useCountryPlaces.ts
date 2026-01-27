@@ -74,6 +74,7 @@ const setCachedPlaces = (slug: string, data: ApiPlace[]): void => {
 
 const transformApiPlace = (apiPlace: ApiPlace): CountryPlace => ({
   id: apiPlace.slug || apiPlace.id,
+  placeId: apiPlace.id,
   name: apiPlace.name,
   image: apiPlace.image_url,
   description: apiPlace.description || apiPlace.short_description || "",

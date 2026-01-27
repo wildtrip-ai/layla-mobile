@@ -23,7 +23,7 @@ export function FavoriteButton({
   itemName,
   className,
   size = "default",
-  placeId = itemId,
+  placeId,
 }: FavoriteButtonProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isAuthenticated } = useAuth();
