@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { addFavorite, removeFavorite, getStoredToken } from "@/lib/auth";
 
 export type FavoriteCategory = 'destinations' | 'cities' | 'restaurants' | 'museums' | 'historicalSites' | 'naturalAttractions' | 'amenities';
 
@@ -63,28 +64,51 @@ export function useFavorites() {
     return favorites.includes(getFavoriteKeyString(key));
   }, [favorites]);
 
-  const toggleFavorite = useCallback((key: FavoriteKey, itemName: string) => {
-    const keyString = getFavoriteKeyString(key);
-    const isCurrentlyFavorite = favorites.includes(keyString);
-    
-    let newFavorites: string[];
-    if (isCurrentlyFavorite) {
-      newFavorites = favorites.filter(f => f !== keyString);
-      toast({
-        title: "Removed from favorites",
-        description: `${itemName} has been removed from your favorites.`,
-      });
-    } else {
-      newFavorites = [...favorites, keyString];
-      toast({
-        title: "Added to favorites",
-        description: `${itemName} has been saved to your favorites.`,
-      });
-    }
-    
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newFavorites));
-    setFavorites(newFavorites);
-  }, [favorites, toast]);
+  const toggleFavorite = useCallback(
+    async (key: FavoriteKey, itemName: string, placeId?: string) => {
+      const keyString = getFavoriteKeyString(key);
+      const isCurrentlyFavorite = favorites.includes(keyString);
+      const token = getStoredToken();
+
+      try {
+        if (isCurrentlyFavorite) {
+          // Remove from favorites
+          if (token && placeId) {
+            // Call API to remove favorite
+            await removeFavorite(token, placeId);
+          }
+          const newFavorites = favorites.filter(f => f !== keyString);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(newFavorites));
+          setFavorites(newFavorites);
+          toast({
+            title: "Removed from favorites",
+            description: `${itemName} has been removed from your favorites.`,
+          });
+        } else {
+          // Add to favorites
+          if (token && placeId) {
+            // Call API to add favorite
+            await addFavorite(token, placeId);
+          }
+          const newFavorites = [...favorites, keyString];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(newFavorites));
+          setFavorites(newFavorites);
+          toast({
+            title: "Added to favorites",
+            description: `${itemName} has been saved to your favorites.`,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to toggle favorite:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update favorite. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    [favorites, toast]
+  );
 
   const getFavoritesByCategory = useCallback((category: FavoriteCategory): FavoriteKey[] => {
     return favorites

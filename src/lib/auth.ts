@@ -66,6 +66,13 @@ interface GoogleCallbackResponse {
   };
 }
 
+export interface Favorite {
+  id: string;
+  user_id: string;
+  place_id: string;
+  created_at: string;
+}
+
 export async function confirmMagicLink(
   email: string,
   token: string
@@ -227,6 +234,43 @@ export async function handleGoogleCallback(
   }
 
   return response.json();
+}
+
+// Favorites management
+export async function addFavorite(
+  accessToken: string,
+  placeId: string
+): Promise<Favorite> {
+  const response = await fetch(`${API_BASE}/favorites`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ place_id: placeId }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to add favorite");
+  }
+
+  return response.json();
+}
+
+export async function removeFavorite(
+  accessToken: string,
+  placeId: string
+): Promise<void> {
+  const response = await fetch(`${API_BASE}/favorites/${placeId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to remove favorite");
+  }
 }
 
 // Token management
