@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, ReactNode } from "react";
+import { createContext, useContext, useMemo, ReactNode, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { getStoredProfileData, getAnonymousPreferences } from "@/lib/profileStorage";
 
 // Supported languages
 export const SUPPORTED_LANGUAGES = ["en", "uk", "de", "es", "fr", "it", "pt", "ja", "zh"] as const;
@@ -20,6 +21,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const { lang: langParam } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const hasCheckedProfile = useRef(false);
 
   const isValidLanguage = (lang: string): lang is SupportedLanguage => {
     return SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage);
@@ -31,6 +33,32 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
     return DEFAULT_LANGUAGE;
   }, [langParam]);
+
+  // Sync URL language with user's profile language preference on mount
+  useEffect(() => {
+    // Only check once per session to avoid redirect loops
+    if (hasCheckedProfile.current) return;
+
+    // Get user's preferred language from profile or anonymous preferences
+    const profileData = getStoredProfileData();
+    const anonPrefs = getAnonymousPreferences();
+    const preferredLanguage = profileData?.language || anonPrefs?.language;
+
+    // If user has a preferred language that differs from current URL, redirect to it
+    if (preferredLanguage && isValidLanguage(preferredLanguage) && preferredLanguage !== lang) {
+      hasCheckedProfile.current = true;
+
+      // Build new path with preferred language
+      const pathParts = location.pathname.split("/").filter(Boolean);
+      if (pathParts.length > 0 && isValidLanguage(pathParts[0])) {
+        pathParts.shift(); // Remove current language
+      }
+      const newPath = `/${preferredLanguage}/${pathParts.join("/")}${location.search}`;
+      navigate(newPath, { replace: true });
+    } else {
+      hasCheckedProfile.current = true;
+    }
+  }, [lang, location.pathname, location.search, navigate]);
 
   const setLanguage = (newLang: SupportedLanguage) => {
     // Get current path without language prefix

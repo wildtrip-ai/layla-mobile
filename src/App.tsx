@@ -78,6 +78,9 @@ function SelectionDialogsContainer() {
           });
         }
       }
+    } else {
+      // For non-authenticated users, save to anonymous preferences
+      updateAnonymousPreferences({ language: langCode });
     }
 
     // Always update the URL language parameter
