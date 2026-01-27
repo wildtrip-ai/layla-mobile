@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { updateNotificationSettings, getStoredToken } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 
 interface NotificationSetting {
@@ -18,6 +21,16 @@ interface NotificationSettingsProps {
 
 export function NotificationSettings({ profile, isLoading }: NotificationSettingsProps) {
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const { refreshUserProfile } = useAuth();
+
+  // Mapping from setting id to API field name
+  const settingToApiField: Record<string, keyof typeof updateNotificationSettings> = {
+    email: "email_notifications",
+    push: "push_notifications",
+    reminders: "trip_reminders",
+    promo: "marketing_notifications",
+  };
 
   // Update settings when profile data is loaded
   useEffect(() => {
@@ -51,12 +64,57 @@ export function NotificationSettings({ profile, isLoading }: NotificationSetting
     }
   }, [profile]);
 
-  const toggleSetting = (id: string) => {
+  const toggleSetting = async (id: string) => {
+    const setting = settings.find((s) => s.id === id);
+    if (!setting) return;
+
+    // Update local state optimistically
     setSettings((prev) =>
-      prev.map((setting) =>
-        setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
+      prev.map((s) =>
+        s.id === id ? { ...s, enabled: !s.enabled } : s
       )
     );
+
+    // Mark as updating
+    setUpdatingIds((prev) => new Set(prev).add(id));
+
+    try {
+      const token = getStoredToken();
+      if (!token) {
+        toast.error("Authentication required. Please log in again.");
+        // Revert local state on auth error
+        setSettings((prev) =>
+          prev.map((s) =>
+            s.id === id ? { ...s, enabled: !s.enabled } : s
+          )
+        );
+        return;
+      }
+
+      const apiField = settingToApiField[id] as keyof Parameters<typeof updateNotificationSettings>[1];
+      const newValue = !setting.enabled;
+
+      await updateNotificationSettings(token, {
+        [apiField]: newValue,
+      });
+
+      toast.success("Notification settings updated");
+      await refreshUserProfile();
+    } catch (error) {
+      toast.error("Failed to update notification settings");
+      // Revert local state on error
+      setSettings((prev) =>
+        prev.map((s) =>
+          s.id === id ? { ...s, enabled: !s.enabled } : s
+        )
+      );
+    } finally {
+      setUpdatingIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+    }
   };
 
   // Loading state
@@ -97,6 +155,7 @@ export function NotificationSettings({ profile, isLoading }: NotificationSetting
             <Switch
               checked={setting.enabled}
               onCheckedChange={() => toggleSetting(setting.id)}
+              disabled={updatingIds.has(setting.id)}
             />
           </div>
         ))}
