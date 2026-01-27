@@ -9,11 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useFavoritesApi, FavoriteCategory as ApiFavoriteCategory, FavoriteItem as ApiFavoriteItem } from "@/hooks/useFavoritesApi";
-import { useFavorites } from "@/hooks/useFavorites";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { FavoritesGridSkeleton } from "@/components/FavoriteCardSkeleton";
-import { getStoredToken } from "@/lib/auth";
+import { getStoredToken, removeFavorite as removeFavoriteApi } from "@/lib/auth";
 
 // Map API categories (snake_case) to display categories
 type LocalCategory = 'destinations' | 'cities' | 'restaurants' | 'museums' | 'historicalSites' | 'naturalAttractions' | 'amenities' | 'accommodations' | 'activities';
@@ -59,7 +58,6 @@ export default function MyFavorites() {
   const [activeTab, setActiveTab] = useState<'all' | LocalCategory>('all');
   const isMobile = useIsMobile();
   const { toast } = useToast();
-  const { toggleFavorite } = useFavorites();
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Get selected API category
@@ -102,19 +100,41 @@ export default function MyFavorites() {
     e.stopPropagation();
 
     try {
-      // Use the toggleFavorite from useFavorites which calls the API
-      await toggleFavorite(
-        {
-          category: apiCategoryToLocal(item.category) as any, // Type cast as the categories align
-          countrySlug: item.country_slug,
-          itemId: item.place_id,
-        },
-        item.item_name,
-        item.place_id
-      );
+      // Get auth token
+      const token = getStoredToken();
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to remove favorites.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call DELETE API endpoint directly with place_id
+      await removeFavoriteApi(token, item.place_id);
+
+      // Update localStorage to remove the favorite
+      const localCategory = apiCategoryToLocal(item.category);
+      const keyString = `${localCategory}:${item.country_slug}:${item.place_id}`;
+      const stored = localStorage.getItem('favorites');
+      if (stored) {
+        try {
+          const favorites = JSON.parse(stored);
+          const newFavorites = favorites.filter((f: string) => f !== keyString);
+          localStorage.setItem('favorites', JSON.stringify(newFavorites));
+        } catch {
+          // Ignore localStorage errors
+        }
+      }
 
       // Refresh the list after removing
       await refresh();
+
+      toast({
+        title: "Removed from favorites",
+        description: `${item.item_name} has been removed from your favorites.`,
+      });
     } catch (error) {
       console.error("Failed to remove favorite:", error);
       toast({
