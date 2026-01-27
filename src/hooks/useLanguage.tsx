@@ -11,6 +11,7 @@ export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
 
 interface LanguageContextType {
   lang: SupportedLanguage;
+  effectiveLanguage: SupportedLanguage;
   setLanguage: (lang: SupportedLanguage) => void;
   localizedPath: (path: string) => string;
   isValidLanguage: (lang: string) => lang is SupportedLanguage;
@@ -47,6 +48,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
     return DEFAULT_LANGUAGE;
   }, [langParam, isValidLanguage]);
+
+  const effectiveLanguage = preferredLanguage ?? lang;
 
   useEffect(() => {
     if (isAuthLoading || isProfileLoading) return;
@@ -116,8 +119,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ lang, setLanguage, localizedPath, isValidLanguage }),
-    [lang, location.pathname]
+    () => ({ lang, effectiveLanguage, setLanguage, localizedPath, isValidLanguage }),
+    [lang, effectiveLanguage, location.pathname]
   );
 
   return (

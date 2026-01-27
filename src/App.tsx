@@ -46,7 +46,7 @@ function LoginDialogContainer() {
 // Component that renders SelectionDialogs using context
 function SelectionDialogsContainer() {
   const { languageDialogOpen, setLanguageDialogOpen, currencyDialogOpen, setCurrencyDialogOpen, selectedCurrency, setSelectedCurrency } = useSelectionDialogs();
-  const { lang, setLanguage } = useLanguage();
+  const { effectiveLanguage, setLanguage } = useLanguage();
   const { isAuthenticated, refreshUserProfile } = useAuth();
 
   const handleLanguageSelect = async (langCode: string) => {
@@ -131,7 +131,7 @@ function SelectionDialogsContainer() {
         onOpenChange={setLanguageDialogOpen}
         title="Choose language"
         items={languages}
-        selectedValue={lang}
+        selectedValue={effectiveLanguage}
         onSelect={handleLanguageSelect}
       />
       <SelectionDialog
