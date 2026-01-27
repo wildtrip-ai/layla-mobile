@@ -26,6 +26,7 @@ import { useAuthInterceptor } from "@/hooks/useAuthInterceptor";
 import { toast } from "@/hooks/use-toast";
 import Index from "./pages/Index";
 import TripDetails from "./pages/TripDetails";
+import TripDetailsV2 from "./pages/TripDetailsV2";
 import BookingReview from "./pages/BookingReview";
 import AccommodationResults from "./pages/AccommodationResults";
 import AccommodationDetails from "./pages/AccommodationDetails";
@@ -168,6 +169,7 @@ function LanguageRoutes() {
       <Route path="/my-favorites" element={<MyFavorites />} />
       <Route path="/new-trip-planner" element={<NewTripPlanner />} />
       <Route path="/trip/:id" element={<TripDetails />} />
+      <Route path="/tripv2/tripDetails/:tripId" element={<TripDetailsV2 />} />
       <Route path="/trip/:id/booking" element={<BookingReview />} />
       <Route path="/trip/:id/accommodations" element={<AccommodationResults />} />
       <Route path="/trip/:id/accommodation/:accommodationId" element={<AccommodationDetails />} />
@@ -211,6 +213,7 @@ const App = () => (
                   <Route path="/my-favorites" element={<LanguageRedirect />} />
                   <Route path="/new-trip-planner" element={<LanguageRedirect />} />
                   <Route path="/trip/*" element={<LanguageRedirect />} />
+                  <Route path="/tripv2/*" element={<LanguageRedirect />} />
                   <Route path="/countries" element={<LanguageRedirect />} />
                   <Route path="/country/*" element={<LanguageRedirect />} />
                   <Route path="/settings" element={<LanguageRedirect />} />
