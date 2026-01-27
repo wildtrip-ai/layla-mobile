@@ -4,7 +4,7 @@ import { getStoredProfileData, getAnonymousPreferences } from "@/lib/profileStor
 import { useAuth } from "@/contexts/AuthContext";
 
 // Supported languages
-export const SUPPORTED_LANGUAGES = ["en", "uk", "de", "es", "fr", "it", "pt", "ja", "zh"] as const;
+export const SUPPORTED_LANGUAGES = ["en", "uk", "de", "es", "fr", "it", "pt", "ja", "zh", "ar", "pl"] as const;
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
 export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
