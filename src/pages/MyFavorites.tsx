@@ -84,7 +84,7 @@ export default function MyFavorites() {
   const removeFavorite = (item: FavoriteItem, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleFavorite(item.key, item.place.name);
+    toggleFavorite(item.key, item.place.name, item.place.id);
   };
 
   return (
