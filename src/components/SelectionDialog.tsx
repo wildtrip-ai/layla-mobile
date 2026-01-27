@@ -114,7 +114,7 @@ export const languages = [
   { code: "zh", name: "Chinese", icon: "🇨🇳" },
   { code: "de", name: "German", icon: "🇩🇪" },
   { code: "pt", name: "Portuguese", icon: "🇵🇹" },
-  { code: "ru", name: "Russian", icon: "🇷🇺" },
+  { code: "ja", name: "Japanese", icon: "🇯🇵" },
   { code: "ar", name: "Arabic", icon: "🇦🇪" },
   { code: "pl", name: "Polish", icon: "🇵🇱" },
 ];
