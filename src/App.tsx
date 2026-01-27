@@ -15,7 +15,7 @@ import { SelectionDialog, languages, currencies } from "@/components/SelectionDi
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
 import { useLanguage } from "@/hooks/useLanguage";
 import { updateUserProfile, getStoredToken } from "@/lib/auth";
-import { updateStoredProfileData } from "@/lib/profileStorage";
+import { updateStoredProfileData, updateAnonymousPreferences } from "@/lib/profileStorage";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import Index from "./pages/Index";
@@ -85,6 +85,42 @@ function SelectionDialogsContainer() {
     setLanguageDialogOpen(false);
   };
 
+  const handleCurrencySelect = async (currencyCode: string) => {
+    // If user is logged in, update their profile via API
+    if (isAuthenticated) {
+      const token = getStoredToken();
+      if (token) {
+        try {
+          await updateUserProfile(token, { currency: currencyCode });
+
+          // Update session storage with new currency
+          updateStoredProfileData({ currency: currencyCode });
+
+          await refreshUserProfile();
+
+          toast({
+            title: "Success",
+            description: "Your currency preference has been updated.",
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to update your currency preference. Please try again.",
+            variant: "destructive",
+          });
+          return; // Don't update state if API call failed
+        }
+      }
+    } else {
+      // For non-authenticated users, save to anonymous preferences
+      updateAnonymousPreferences({ currency: currencyCode });
+    }
+
+    // Update local state for both authenticated and non-authenticated users
+    setSelectedCurrency(currencyCode);
+    setCurrencyDialogOpen(false);
+  };
+
   return (
     <>
       <SelectionDialog
@@ -101,7 +137,7 @@ function SelectionDialogsContainer() {
         title="Choose currency"
         items={currencies}
         selectedValue={selectedCurrency}
-        onSelect={setSelectedCurrency}
+        onSelect={handleCurrencySelect}
       />
     </>
   );
