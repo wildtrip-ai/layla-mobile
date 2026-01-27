@@ -61,6 +61,7 @@ function PlaceCard({ place, showRating = true, href, countrySlug, category, coun
             countrySlug={countrySlug}
             itemId={place.id}
             itemName={place.name}
+            placeId={place.placeId}
             size="sm"
           />
         </div>

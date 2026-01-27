@@ -1,7 +1,7 @@
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, MapPin, Calendar, Clock, Users, ChevronRight, Camera, Info, Map, Thermometer, CloudSun, Compass, Plane, Train, Bus, Ship, Wallet, Bed, UtensilsCrossed, Ticket, Backpack, MessageCircle, Volume2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleOnHover } from "@/components/ui/scroll-animations";
@@ -22,6 +22,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { TripCostCalculator } from "@/components/destination/TripCostCalculator";
 import { BestTimeCalendar } from "@/components/destination/BestTimeCalendar";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { useCountryPlaces } from "@/hooks/useCountryPlaces";
 
 interface WeatherInfo {
   summer: { high: number; low: number };
@@ -1069,10 +1070,17 @@ function LocalPhrasesSection({ localPhrases }: { localPhrases: { language: strin
 export default function DestinationDetails() {
   const { countrySlug, destinationId } = useParams<{ countrySlug: string; destinationId: string }>();
   const { addItem } = useRecentlyViewed();
+  const { featuredPlaces, otherPlaces } = useCountryPlaces(countrySlug);
   
   const { country, destination } = countrySlug && destinationId 
     ? getDestinationFromCountry(countrySlug, destinationId)
     : { country: undefined, destination: undefined };
+
+  const apiPlaceId = useMemo(() => {
+    if (!destinationId) return undefined;
+    const allPlaces = [...featuredPlaces, ...otherPlaces];
+    return allPlaces.find((place) => place.id === destinationId)?.placeId;
+  }, [destinationId, featuredPlaces, otherPlaces]);
 
   // Track this destination as recently viewed
   useEffect(() => {
@@ -1139,6 +1147,7 @@ export default function DestinationDetails() {
                         countrySlug={countrySlug}
                         itemId={destinationId}
                         itemName={destination.name}
+                        placeId={apiPlaceId}
                         className="h-10 w-10 shrink-0"
                       />
                       <ShareButton

@@ -1,5 +1,6 @@
 export interface CountryPlace {
   id: string;
+  placeId?: string;
   name: string;
   image: string;
   description?: string;
