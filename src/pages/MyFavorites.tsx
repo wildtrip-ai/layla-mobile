@@ -49,7 +49,7 @@ function apiCategoryToLocal(apiCategory: ApiFavoriteCategory): LocalCategory {
 
 function getItemLink(item: ApiFavoriteItem): string | undefined {
   if (item.category === 'destinations') {
-    return `/country/${item.country_slug}/destination/${item.place_id}`;
+    return `/country/${item.country_slug}/destination/${item.place_slug}`;
   }
   return undefined;
 }
