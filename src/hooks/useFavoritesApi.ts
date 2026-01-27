@@ -9,6 +9,7 @@ export interface FavoriteItem {
   country_slug: string;
   country_name: string;
   place_id: string;
+  place_slug: string;
   item_name: string;
   item_image_url: string;
   item_rating: number | null;
