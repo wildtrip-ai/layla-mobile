@@ -15,7 +15,12 @@ import { SelectionDialog, languages, currencies } from "@/components/SelectionDi
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
 import { useLanguage } from "@/hooks/useLanguage";
 import { updateUserProfile, getStoredToken } from "@/lib/auth";
-import { updateStoredProfileData, updateAnonymousPreferences } from "@/lib/profileStorage";
+import {
+  updateStoredProfileData,
+  updateAnonymousPreferences,
+  getStoredProfileData,
+  getAnonymousPreferences,
+} from "@/lib/profileStorage";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import Index from "./pages/Index";
@@ -54,15 +59,22 @@ function SelectionDialogsContainer() {
       return;
     }
 
+    const newLanguage = langCode as SupportedLanguage;
+    const previousLanguage = effectiveLanguage;
+    const previousStoredLanguage = isAuthenticated
+      ? getStoredProfileData()?.language
+      : getAnonymousPreferences()?.language;
+
+    setLanguage(newLanguage);
+    setLanguageDialogOpen(false);
+
     // If user is logged in, update their profile via API
     if (isAuthenticated) {
+      updateStoredProfileData({ language: langCode });
       const token = getStoredToken();
       if (token) {
         try {
           await updateUserProfile(token, { language: langCode });
-
-          // Update session storage with new language
-          updateStoredProfileData({ language: langCode });
 
           await refreshUserProfile();
 
@@ -71,6 +83,8 @@ function SelectionDialogsContainer() {
             description: "Your language preference has been updated.",
           });
         } catch (error) {
+          updateStoredProfileData({ language: previousStoredLanguage });
+          setLanguage(previousLanguage);
           toast({
             title: "Error",
             description: "Failed to update your language preference. Please try again.",
@@ -82,10 +96,6 @@ function SelectionDialogsContainer() {
       // For non-authenticated users, save to anonymous preferences
       updateAnonymousPreferences({ language: langCode });
     }
-
-    // Always update the URL language parameter
-    setLanguage(langCode as SupportedLanguage);
-    setLanguageDialogOpen(false);
   };
 
   const handleCurrencySelect = async (currencyCode: string) => {
