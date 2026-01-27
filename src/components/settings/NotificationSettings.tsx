@@ -25,7 +25,7 @@ export function NotificationSettings({ profile, isLoading }: NotificationSetting
   const { refreshUserProfile } = useAuth();
 
   // Mapping from setting id to API field name
-  const settingToApiField: Record<string, keyof typeof updateNotificationSettings> = {
+  const settingToApiField: Record<string, string> = {
     email: "email_notifications",
     push: "push_notifications",
     reminders: "trip_reminders",

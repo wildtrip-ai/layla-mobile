@@ -62,7 +62,7 @@ export default function SettingsPage() {
           {/* Mobile Layout - Tabs navigation */}
           <div className="lg:hidden space-y-6">
             {/* Mobile Tab Navigation */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as SettingsSection)}>
               <TabsList className="w-full h-auto p-1 bg-secondary/50 rounded-full">
                 {tabItems.map((item) => (
                   <TabsTrigger
