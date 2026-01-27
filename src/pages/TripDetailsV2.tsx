@@ -1,118 +1,339 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { Header } from "@/components/Header";
-import { LocalizedLink } from "@/components/LocalizedLink";
+import { useEffect, useMemo, useState } from "react";
+import { Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { authenticatedFetch } from "@/lib/apiClient";
+import { Header } from "@/components/Header";
+import { TripHeader } from "@/components/trip/TripHeader";
+import { TripMap } from "@/components/trip/TripMap";
+import { TripDescription } from "@/components/trip/TripDescription";
+import { ImageGallery } from "@/components/trip/ImageGallery";
+import { TransportSection } from "@/components/trip/TransportSection";
+import { AccommodationSection } from "@/components/trip/AccommodationSection";
+import { DayPlanSection } from "@/components/trip/DayPlanSection";
+import { VoyagerChat } from "@/components/trip/VoyagerChat";
+import { TripDetailsDialog, type EditableTripData } from "@/components/trip/TripDetailsDialog";
+import { PremiumUpgradeDrawer } from "@/components/trip/PremiumUpgradeDrawer";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useTripDetails } from "@/hooks/useTripDetails";
+import { useParams } from "react-router-dom";
 
-const API_BASE = "https://internal-api.emiratesescape.com/v1.0";
+// Helper to parse city dates like "May 1 - May 3"
+function parseCityDateRange(dateString: string): { startDay: number; endDay: number } {
+  const match = dateString.match(/May (\d+) - May (\d+)/);
+  if (match) {
+    return { startDay: parseInt(match[1]), endDay: parseInt(match[2]) };
+  }
+  return { startDay: 1, endDay: 31 };
+}
 
-type TripDetailsResponse = {
-  id?: string;
-  name?: string;
-  title?: string;
-  status?: string;
-  start_date?: string;
-  end_date?: string;
-  description?: string;
-  [key: string]: unknown;
-};
+// Helper to parse day date like "May 1"
+function parseDayDate(dateString: string): number {
+  const match = dateString.match(/May (\d+)/);
+  return match ? parseInt(match[1]) : 0;
+}
+
+function TripDetailsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-64 w-full rounded-3xl" />
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+      <Skeleton className="h-72 w-full rounded-3xl" />
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-1/3" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+      </div>
+    </div>
+  );
+}
 
 export default function TripDetailsV2() {
   const { tripId } = useParams<{ tripId: string }>();
-  const [trip, setTrip] = useState<TripDetailsResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    tripData,
+    removeFlights,
+    addCity,
+    applyBudgetChanges,
+    undo,
+    canUndo,
+    isLoading,
+    error,
+    refetch,
+  } = useTripDetails(tripId);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [premiumDrawerOpen, setPremiumDrawerOpen] = useState(false);
+  const [isFreePlan] = useState(true);
+  const [tripSettings, setTripSettings] = useState({
+    travelers: 0,
+    dates: "",
+  });
+
+  // Map dialog state - lifted from TripMap for coordination
+  const [mapDialogOpen, setMapDialogOpen] = useState(false);
+  const [selectedCityIndex, setSelectedCityIndex] = useState<number | null>(null);
+  const [currentCityIndex, setCurrentCityIndex] = useState(0);
 
   useEffect(() => {
-    let isMounted = true;
+    if (tripData) {
+      setTripSettings({
+        travelers: tripData.travelers,
+        dates: tripData.dates,
+      });
+      setCurrentCityIndex(0);
+      setSelectedCityIndex(null);
+    }
+  }, [tripData]);
 
-    const fetchTripDetails = async () => {
-      if (!tripId) {
-        setError("Missing trip ID.");
-        setIsLoading(false);
-        return;
+  // Get current city info
+  const currentCity = tripData?.cityStops[currentCityIndex];
+  const currentCityName = currentCity?.name || "";
+  const currentCityDates = currentCity?.dates || "";
+  const cityDateRange = parseCityDateRange(currentCityDates);
+
+  // Filter day plans by current city
+  const filteredDayPlans = useMemo(() => {
+    if (!tripData) return [];
+    return tripData.dayPlans.filter((day) => {
+      const dayNum = parseDayDate(day.date);
+      // Include days that start within the city's date range (not including end day which is departure)
+      return dayNum >= cityDateRange.startDay && dayNum < cityDateRange.endDay;
+    });
+  }, [tripData, cityDateRange.startDay, cityDateRange.endDay]);
+
+  // Filter accommodations by current city dates
+  const filteredAccommodations = useMemo(() => {
+    if (!tripData) return [];
+    return tripData.accommodations.filter((acc) => {
+      // Parse accommodation dates like "May 1 - 3"
+      const match = acc.dates.match(/May (\d+) - (\d+)/);
+      if (match) {
+        const accStart = parseInt(match[1]);
+        const accEnd = parseInt(match[2]);
+        // Check if accommodation overlaps with city dates
+        return accStart < cityDateRange.endDay && accEnd > cityDateRange.startDay;
       }
+      return false;
+    });
+  }, [tripData, cityDateRange.startDay, cityDateRange.endDay]);
 
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await authenticatedFetch(`${API_BASE}/trips/${tripId}`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data: TripDetailsResponse = await response.json();
-        if (isMounted) {
-          setTrip(data);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : "Failed to load trip details.");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+  // Filter transports for current city
+  const filteredTransports = useMemo(() => {
+    if (!tripData) return [];
+    return tripData.transports.filter((transport) => {
+      // For first city, show flights/arrivals
+      if (currentCityIndex === 0) {
+        return transport.to === currentCityName || transport.toCode === "AMM";
       }
-    };
+      // For other cities, show transfers to that city
+      return (
+        transport.to === currentCityName ||
+        transport.title.toLowerCase().includes(currentCityName.toLowerCase())
+      );
+    });
+  }, [tripData, currentCityIndex, currentCityName]);
 
-    fetchTripDetails();
+  // Filter images from current city's day plans
+  const filteredImages = useMemo(() => {
+    return filteredDayPlans.flatMap((day) =>
+      day.items
+        .filter((item) => item.image)
+        .map((item) => ({
+          src: item.image!,
+          title: item.title,
+          location: item.location,
+        }))
+    );
+  }, [filteredDayPlans]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [tripId]);
+  const handleAddClick = () => {
+    if (isFreePlan) {
+      setPremiumDrawerOpen(true);
+    } else {
+      console.log("Adding item...");
+    }
+  };
 
-  const tripTitle = trip?.name ?? trip?.title ?? (tripId ? `Trip ${tripId}` : "Trip Details");
+  const handleApplyChanges = (data: EditableTripData) => {
+    const totalTravelers = data.adults + data.children;
+    setTripSettings((prev) => ({
+      ...prev,
+      travelers: totalTravelers,
+    }));
+  };
+
+  // Handle city click from timeline - zooms map, doesn't open dialog
+  const handleCityClick = (cityIndex: number) => {
+    setCurrentCityIndex(cityIndex);
+    setSelectedCityIndex(cityIndex);
+  };
+
+  // Handle Next City button - advances to next city
+  const handleNextCity = () => {
+    if (!tripData) return;
+    const nextIndex = currentCityIndex + 1;
+    if (nextIndex < tripData.cityStops.length) {
+      setCurrentCityIndex(nextIndex);
+      setSelectedCityIndex(nextIndex);
+    }
+  };
+
+  // Reset selected city when map closes
+  const handleMapDialogChange = (open: boolean) => {
+    setMapDialogOpen(open);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 pb-16 pt-24">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <Button variant="ghost" asChild>
-            <LocalizedLink to="/my-trips" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to My Trips
-            </LocalizedLink>
-          </Button>
-        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">{tripTitle}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {isLoading && (
-              <p className="text-muted-foreground">Loading trip details...</p>
-            )}
-            {!isLoading && error && (
-              <p className="text-destructive">{error}</p>
-            )}
-            {!isLoading && !error && trip && (
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                  {trip.status && <span>Status: {trip.status}</span>}
-                  {trip.start_date && <span>Start: {trip.start_date}</span>}
-                  {trip.end_date && <span>End: {trip.end_date}</span>}
-                </div>
-                {trip.description && <p>{trip.description}</p>}
-                <div className="rounded-lg border border-border bg-muted/30 p-4">
-                  <p className="text-sm font-medium text-foreground">Raw API Response</p>
-                  <pre className="mt-2 max-h-96 overflow-auto text-xs text-muted-foreground">
-                    {JSON.stringify(trip, null, 2)}
-                  </pre>
-                </div>
+      {/* Trip Date/Travelers Badge - Clickable */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 hidden md:block">
+        <button
+          onClick={() => setDialogOpen(true)}
+          className="bg-card border border-border rounded-full px-4 py-2 shadow-lg flex items-center gap-3 text-sm hover:bg-secondary/50 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-foreground">{tripSettings.dates}</span>
+          </div>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-1.5">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="text-foreground">{tripSettings.travelers} travellers</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Trip Details Dialog */}
+      {tripData && (
+        <TripDetailsDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          tripData={tripData}
+          onApply={handleApplyChanges}
+        />
+      )}
+
+      <main className="pt-20 pb-24">
+        <div className="container mx-auto px-4">
+          {error && !tripData && (
+            <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-destructive">
+              <p className="text-sm font-medium">{error}</p>
+              <Button variant="outline" className="mt-4" onClick={refetch}>
+                Try again
+              </Button>
+            </div>
+          )}
+
+          {isLoading && !tripData && (
+            <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+              <div className="hidden lg:block">
+                <Skeleton className="h-[520px] w-full rounded-2xl" />
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <TripDetailsSkeleton />
+            </div>
+          )}
+
+          {tripData && (
+            <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+              {/* Sidebar - Hidden on mobile */}
+              <div className="hidden lg:block">
+                <VoyagerChat
+                  mode="modify"
+                  onRemoveFlights={removeFlights}
+                  onAddCity={addCity}
+                  onApplyBudgetChanges={applyBudgetChanges}
+                  onUndo={undo}
+                  canUndo={canUndo}
+                />
+              </div>
+
+              {/* Main Content */}
+              <div className="">
+                {error && (
+                  <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+
+                {/* Trip Header */}
+                <TripHeader
+                  trip={tripData}
+                  onOpenDialog={() => setDialogOpen(true)}
+                  travelers={tripSettings.travelers}
+                  onCityClick={handleCityClick}
+                  selectedCityIndex={selectedCityIndex}
+                  currentCityIndex={currentCityIndex}
+                />
+
+                {/* Map */}
+                <TripMap
+                  cityStops={tripData.cityStops}
+                  activities={tripData.dayPlans.flatMap((day) =>
+                    day.items.filter((item) => item.type !== "note")
+                  )}
+                  dialogOpen={mapDialogOpen}
+                  onDialogOpenChange={handleMapDialogChange}
+                  targetCityIndex={selectedCityIndex}
+                  selectedCityIndex={selectedCityIndex}
+                />
+
+                {/* Description */}
+                <TripDescription
+                  title={`${currentCityName} Experience`}
+                  description={tripData.description}
+                  tripId={tripData.id}
+                />
+
+                {/* Image Gallery - Filtered */}
+                {filteredImages.length > 0 && <ImageGallery images={filteredImages} />}
+
+                {/* Transport - Filtered */}
+                <TransportSection
+                  transports={filteredTransports}
+                  cityName={currentCityName}
+                  isFirstCity={currentCityIndex === 0}
+                />
+
+                {/* Accommodation - Filtered */}
+                <AccommodationSection
+                  accommodations={filteredAccommodations}
+                  dates={currentCityDates}
+                  cityName={currentCityName}
+                />
+
+                {/* Day by Day Plan - Filtered */}
+                <DayPlanSection
+                  dayPlans={filteredDayPlans}
+                  dates={currentCityDates}
+                  onAddClick={handleAddClick}
+                  cityStops={tripData.cityStops}
+                  currentCityIndex={currentCityIndex}
+                  onNextCity={handleNextCity}
+                  cityName={currentCityName}
+                  tripId={tripData.id}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* Premium Upgrade Drawer */}
+      <PremiumUpgradeDrawer
+        open={premiumDrawerOpen}
+        onOpenChange={setPremiumDrawerOpen}
+      />
+
+      {/* Fixed CTA on Mobile */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border lg:hidden">
+        <Button variant="hero" size="lg" className="w-full">
+          Customize this trip
+        </Button>
+      </div>
     </div>
   );
 }
