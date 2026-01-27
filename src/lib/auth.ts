@@ -305,6 +305,25 @@ export function removeStoredUser(): void {
   localStorage.removeItem(AUTH_USER_KEY);
 }
 
+// Account deletion
+export async function deleteAccount(
+  accessToken: string
+): Promise<{ message: string }> {
+  const response = await fetch(`${API_BASE}/users/me`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete account");
+  }
+
+  return response.json();
+}
+
 // Clear all auth data
 export function clearAuthData(): void {
   removeStoredToken();
