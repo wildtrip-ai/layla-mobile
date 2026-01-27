@@ -31,7 +31,7 @@ import {
   ThumbsDown
 } from "lucide-react";
 import { Header } from "@/components/Header";
-import { ImageGallery, type GalleryImage } from "@/components/trip/ImageGallery";
+import { HotelBentoGallery, type GalleryImage } from "@/components/trip/HotelBentoGallery";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -584,20 +584,8 @@ export default function AccommodationDetails() {
               </div>
             </div>
 
-            {/* Hero Image */}
-            <div className="aspect-[16/9] rounded-xl overflow-hidden">
-              <img
-                src={hotel.image}
-                alt={hotel.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Photo Gallery */}
-            <div className="mt-4">
-              <h2 className="text-lg font-medium text-foreground mb-2">Photos</h2>
-              <ImageGallery images={hotelGalleryImages[hotel.id] || hotelGalleryImages["w-amman"]} />
-            </div>
+            {/* Bento Gallery */}
+            <HotelBentoGallery images={hotelGalleryImages[hotel.id] || hotelGalleryImages["w-amman"]} />
           </motion.section>
 
           {/* AI Insight Section */}

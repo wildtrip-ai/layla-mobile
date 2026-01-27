@@ -1,9 +1,10 @@
 import { Header } from "@/components/Header";
-import { SettingsSidebar } from "./SettingsSidebar";
+import { SettingsSidebar, type SettingsSection } from "./SettingsSidebar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { User, Bell, Crown } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface SettingsLayoutProps {
   children: React.ReactNode;
@@ -19,15 +20,14 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { lang } = useLanguage();
+  const [activeTab, setActiveTab] = useState<SettingsSection>("profile");
 
-  const getActiveTab = () => {
-    if (location.pathname.includes("/settings/profile")) return "profile";
-    if (location.pathname.includes("/settings/notifications")) return "notifications";
-    if (location.pathname.includes("/settings/subscription")) return "subscription";
-    return "profile";
-  };
-
-  const activeTab = getActiveTab();
+  useEffect(() => {
+    if (location.pathname.includes("/settings/profile")) setActiveTab("profile");
+    else if (location.pathname.includes("/settings/notifications")) setActiveTab("notifications");
+    else if (location.pathname.includes("/settings/subscription")) setActiveTab("subscription");
+    else setActiveTab("profile");
+  }, [location.pathname]);
 
   const handleTabChange = (path: string) => {
     navigate(`/${lang}${path}`);
@@ -42,7 +42,10 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
           {/* Two Column Layout - Desktop */}
           <div className="hidden lg:grid lg:grid-cols-[340px_1fr] gap-6">
             {/* Settings Sidebar */}
-            <SettingsSidebar />
+            <SettingsSidebar activeTab={activeTab} onTabChange={(tab) => {
+              const item = tabItems.find(t => t.id === tab);
+              if (item) handleTabChange(item.path);
+            }} />
 
             {/* Content Area */}
             <div>{children}</div>
