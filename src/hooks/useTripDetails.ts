@@ -1,58 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { authenticatedFetch } from "@/lib/apiClient";
 import { sampleTrip, type TripData, type CityStop, type DayPlan } from "@/data/tripData";
 import type { TripAction } from "@/hooks/useTripData";
+import { useTripDetailsApi } from "@/hooks/useTripDetailsApi";
 
-const API_BASE = "https://internal-api.emiratesescape.com/v1.0";
 const MAX_HISTORY = 10;
-
-export type TripDetailsApiResponse = Partial<TripData> & {
-  id?: string;
-  name?: string;
-  title?: string;
-  start_date?: string;
-  end_date?: string;
-  description?: string;
-};
-
-const normalizeTripData = (
-  apiData: TripDetailsApiResponse | null
-): TripData => {
-  if (!apiData) {
-    return structuredClone(sampleTrip);
-  }
-
-  const datesFromApi =
-    apiData.start_date && apiData.end_date
-      ? `${apiData.start_date} - ${apiData.end_date}`
-      : undefined;
-
-  return {
-    ...structuredClone(sampleTrip),
-    ...apiData,
-    id: apiData.id ?? sampleTrip.id,
-    title: apiData.title ?? apiData.name ?? sampleTrip.title,
-    dates: apiData.dates ?? datesFromApi ?? sampleTrip.dates,
-    travelers: apiData.travelers ?? sampleTrip.travelers,
-    description: apiData.description ?? sampleTrip.description,
-    cityStops:
-      apiData.cityStops && apiData.cityStops.length > 0
-        ? apiData.cityStops
-        : sampleTrip.cityStops,
-    transports:
-      apiData.transports && apiData.transports.length > 0
-        ? apiData.transports
-        : sampleTrip.transports,
-    accommodations:
-      apiData.accommodations && apiData.accommodations.length > 0
-        ? apiData.accommodations
-        : sampleTrip.accommodations,
-    dayPlans:
-      apiData.dayPlans && apiData.dayPlans.length > 0
-        ? apiData.dayPlans
-        : sampleTrip.dayPlans,
-  };
-};
 
 export function useTripDetails(tripId?: string) {
   const [tripData, setTripData] = useState<TripData | null>(null);
@@ -60,6 +11,7 @@ export function useTripDetails(tripId?: string) {
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const historyRef = useRef<TripData[]>([]);
+  const { fetchTripDetails: fetchTripDetailsApi } = useTripDetailsApi();
 
   const fetchTripDetails = useCallback(async () => {
     if (!tripId) {
@@ -72,23 +24,16 @@ export function useTripDetails(tripId?: string) {
     setError(null);
 
     try {
-      const response = await authenticatedFetch(`${API_BASE}/trips/${tripId}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to load trip details (status ${response.status}).`);
-      }
-
-      const data: TripDetailsApiResponse = await response.json();
-      const normalized = normalizeTripData(data);
+      const normalized = await fetchTripDetailsApi(tripId);
       historyRef.current = [];
       setTripData(normalized);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load trip details.");
-      setTripData((prev) => prev ?? normalizeTripData(null));
+      setTripData((prev) => prev ?? structuredClone(sampleTrip));
     } finally {
       setIsLoading(false);
     }
-  }, [tripId]);
+  }, [fetchTripDetailsApi, tripId]);
 
   useEffect(() => {
     let isMounted = true;
