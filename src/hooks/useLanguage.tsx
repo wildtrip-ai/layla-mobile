@@ -92,6 +92,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   ]);
 
   const setLanguage = (newLang: SupportedLanguage) => {
+    setPreferredLanguage(newLang);
     // Get current path without language prefix
     const pathParts = location.pathname.split("/").filter(Boolean);
     
