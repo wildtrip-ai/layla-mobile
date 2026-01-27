@@ -14,6 +14,10 @@ import { SelectionDialogsProvider, useSelectionDialogs } from "@/contexts/Select
 import { SelectionDialog, languages, currencies } from "@/components/SelectionDialog";
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/hooks/useLanguage";
 import { useLanguage } from "@/hooks/useLanguage";
+import { updateUserProfile, getStoredToken } from "@/lib/auth";
+import { updateStoredProfileData } from "@/lib/profileStorage";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 import Index from "./pages/Index";
 import TripDetails from "./pages/TripDetails";
 import BookingReview from "./pages/BookingReview";
@@ -43,11 +47,42 @@ function LoginDialogContainer() {
 function SelectionDialogsContainer() {
   const { languageDialogOpen, setLanguageDialogOpen, currencyDialogOpen, setCurrencyDialogOpen, selectedCurrency, setSelectedCurrency } = useSelectionDialogs();
   const { lang, setLanguage } = useLanguage();
+  const { isAuthenticated, refreshUserProfile } = useAuth();
 
-  const handleLanguageSelect = (langCode: string) => {
-    if (SUPPORTED_LANGUAGES.includes(langCode as SupportedLanguage)) {
-      setLanguage(langCode as SupportedLanguage);
+  const handleLanguageSelect = async (langCode: string) => {
+    if (!SUPPORTED_LANGUAGES.includes(langCode as SupportedLanguage)) {
+      return;
     }
+
+    // If user is logged in, update their profile via API
+    if (isAuthenticated) {
+      const token = getStoredToken();
+      if (token) {
+        try {
+          await updateUserProfile(token, { language: langCode });
+
+          // Update session storage with new language
+          updateStoredProfileData({ language: langCode });
+
+          await refreshUserProfile();
+
+          toast({
+            title: "Success",
+            description: "Your language preference has been updated.",
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to update your language preference. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+
+    // Always update the URL language parameter
+    setLanguage(langCode as SupportedLanguage);
+    setLanguageDialogOpen(false);
   };
 
   return (
