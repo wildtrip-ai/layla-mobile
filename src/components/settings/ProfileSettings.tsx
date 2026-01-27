@@ -19,9 +19,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { updateUserName, updateUserProfile, getStoredToken } from "@/lib/auth";
+import { updateUserName, updateUserProfile, getStoredToken, deleteAccount } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 import { updateStoredProfileData } from "@/lib/profileStorage";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileSettingsProps {
   profile: UserProfile | null;
@@ -29,7 +30,8 @@ interface ProfileSettingsProps {
 }
 
 export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
-  const { user, refreshUserProfile } = useAuth();
+  const { user, refreshUserProfile, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -43,6 +45,7 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false);
   const [updatingLanguage, setUpdatingLanguage] = useState(false);
   const [updatingCurrency, setUpdatingCurrency] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   // Profile photo state
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -74,9 +77,33 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
   const currentLanguage = languages.find(l => l.code === selectedLanguage);
   const currentCurrency = currencies.find(c => c.code === selectedCurrency);
 
-  const handleDeleteAccount = () => {
-    // Handle account deletion
-    console.log("Account deletion requested");
+  const handleDeleteAccount = async () => {
+    const token = getStoredToken();
+    if (!token) return;
+
+    setDeletingAccount(true);
+    try {
+      await deleteAccount(token);
+
+      // Clear auth data and redirect to home
+      logout();
+      toast({
+        title: "Account deleted",
+        description: "Your account has been permanently deleted.",
+      });
+
+      // Redirect to home after a brief delay
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch (error) {
+      setDeletingAccount(false);
+      toast({
+        title: "Error",
+        description: "Failed to delete your account. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePhotoClick = () => {
@@ -448,12 +475,20 @@ export function ProfileSettings({ profile, isLoading }: ProfileSettingsProps) {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel disabled={deletingAccount}>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDeleteAccount}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deletingAccount}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Delete Account
+                  {deletingAccount ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Account"
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
