@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, ReactNode, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getStoredProfileData, getAnonymousPreferences } from "@/lib/profileStorage";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Supported languages
 export const SUPPORTED_LANGUAGES = ["en", "uk", "de", "es", "fr", "it", "pt", "ja", "zh"] as const;
@@ -21,6 +22,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const { lang: langParam } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoading: isAuthLoading, isProfileLoading } = useAuth();
   const hasCheckedProfile = useRef(false);
 
   const isValidLanguage = (lang: string): lang is SupportedLanguage => {
@@ -36,7 +38,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Sync URL language with user's profile language preference on mount
   useEffect(() => {
-    // Only check once per session to avoid redirect loops
+    // Wait for auth and profile loading to complete before checking preferences
+    if (isAuthLoading || isProfileLoading) return;
+
+    // Only check once to avoid redirect loops
     if (hasCheckedProfile.current) return;
 
     // Get user's preferred language from profile or anonymous preferences
@@ -58,7 +63,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } else {
       hasCheckedProfile.current = true;
     }
-  }, [lang, location.pathname, location.search, navigate]);
+  }, [isAuthLoading, isProfileLoading, lang, location.pathname, location.search, navigate]);
 
   const setLanguage = (newLang: SupportedLanguage) => {
     // Get current path without language prefix

@@ -1,5 +1,5 @@
 /**
- * Session storage keys and utilities for user profile data
+ * Storage keys and utilities for user profile data
  */
 
 const PROFILE_DATA_KEY = 'user_profile_data';
@@ -19,26 +19,26 @@ export interface AnonymousPreferences {
 }
 
 /**
- * Get stored profile data from session storage
+ * Get stored profile data from local storage
  */
 export const getStoredProfileData = (): StoredProfileData | null => {
   try {
-    const data = sessionStorage.getItem(PROFILE_DATA_KEY);
+    const data = localStorage.getItem(PROFILE_DATA_KEY);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error reading profile data from session storage:', error);
+    console.error('Error reading profile data from local storage:', error);
     return null;
   }
 };
 
 /**
- * Save profile data to session storage
+ * Save profile data to local storage
  */
 export const setStoredProfileData = (data: StoredProfileData): void => {
   try {
-    sessionStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
+    localStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error('Error saving profile data to session storage:', error);
+    console.error('Error saving profile data to local storage:', error);
   }
 };
 
@@ -51,13 +51,13 @@ export const updateStoredProfileData = (updates: Partial<StoredProfileData>): vo
 };
 
 /**
- * Clear profile data from session storage
+ * Clear profile data from local storage
  */
 export const clearStoredProfileData = (): void => {
   try {
-    sessionStorage.removeItem(PROFILE_DATA_KEY);
+    localStorage.removeItem(PROFILE_DATA_KEY);
   } catch (error) {
-    console.error('Error clearing profile data from session storage:', error);
+    console.error('Error clearing profile data from local storage:', error);
   }
 };
 
