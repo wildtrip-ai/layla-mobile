@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, ReactNode, useEffect, useRef } from "react";
+import { createContext, useContext, useMemo, ReactNode, useEffect, useCallback, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getStoredProfileData, getAnonymousPreferences } from "@/lib/profileStorage";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,36 +23,52 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoading: isAuthLoading, isProfileLoading } = useAuth();
-  const hasCheckedProfile = useRef(false);
+  const [preferredLanguage, setPreferredLanguage] = useState<SupportedLanguage | null>(null);
 
-  const isValidLanguage = (lang: string): lang is SupportedLanguage => {
+  const isValidLanguage = useCallback((lang: string): lang is SupportedLanguage => {
     return SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage);
-  };
+  }, []);
+
+  const resolvePreferredLanguage = useCallback((): SupportedLanguage | null => {
+    const profileData = getStoredProfileData();
+    const anonPrefs = getAnonymousPreferences();
+    const storedLanguage = profileData?.language || anonPrefs?.language;
+
+    if (storedLanguage && isValidLanguage(storedLanguage)) {
+      return storedLanguage;
+    }
+
+    return null;
+  }, [isValidLanguage]);
 
   const lang: SupportedLanguage = useMemo(() => {
     if (langParam && isValidLanguage(langParam)) {
       return langParam;
     }
     return DEFAULT_LANGUAGE;
-  }, [langParam]);
+  }, [langParam, isValidLanguage]);
 
-  // Sync URL language with user's profile language preference on mount
+  useEffect(() => {
+    if (isAuthLoading || isProfileLoading) return;
+    setPreferredLanguage(resolvePreferredLanguage());
+  }, [isAuthLoading, isProfileLoading, resolvePreferredLanguage]);
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setPreferredLanguage(resolvePreferredLanguage());
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [resolvePreferredLanguage]);
+
+  // Sync URL language with user's profile language preference
   useEffect(() => {
     // Wait for auth and profile loading to complete before checking preferences
     if (isAuthLoading || isProfileLoading) return;
 
-    // Only check once to avoid redirect loops
-    if (hasCheckedProfile.current) return;
-
-    // Get user's preferred language from profile or anonymous preferences
-    const profileData = getStoredProfileData();
-    const anonPrefs = getAnonymousPreferences();
-    const preferredLanguage = profileData?.language || anonPrefs?.language;
-
     // If user has a preferred language that differs from current URL, redirect to it
-    if (preferredLanguage && isValidLanguage(preferredLanguage) && preferredLanguage !== lang) {
-      hasCheckedProfile.current = true;
-
+    if (preferredLanguage && preferredLanguage !== lang) {
       // Build new path with preferred language
       const pathParts = location.pathname.split("/").filter(Boolean);
       if (pathParts.length > 0 && isValidLanguage(pathParts[0])) {
@@ -60,10 +76,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
       const newPath = `/${preferredLanguage}/${pathParts.join("/")}${location.search}`;
       navigate(newPath, { replace: true });
-    } else {
-      hasCheckedProfile.current = true;
     }
-  }, [isAuthLoading, isProfileLoading, lang, location.pathname, location.search, navigate]);
+  }, [
+    isAuthLoading,
+    isProfileLoading,
+    preferredLanguage,
+    lang,
+    location.pathname,
+    location.search,
+    navigate,
+    isValidLanguage,
+  ]);
 
   const setLanguage = (newLang: SupportedLanguage) => {
     // Get current path without language prefix
