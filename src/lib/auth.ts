@@ -162,6 +162,31 @@ export async function updateUserProfile(
   return response.json();
 }
 
+export async function updateNotificationSettings(
+  accessToken: string,
+  data: {
+    email_notifications?: boolean;
+    push_notifications?: boolean;
+    marketing_notifications?: boolean;
+    trip_reminders?: boolean;
+  }
+): Promise<UserProfile> {
+  const response = await fetch(`${API_BASE}/users/me/profile`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update notification settings");
+  }
+
+  return response.json();
+}
+
 // Google OAuth functions
 export async function getGoogleAuthUrl(): Promise<string> {
   const response = await fetch(`${API_BASE}/auth/google/authorize`, {
