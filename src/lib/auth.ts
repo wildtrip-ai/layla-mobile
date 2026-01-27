@@ -1,3 +1,5 @@
+import { authenticatedFetch } from "./apiClient";
+
 const API_BASE = "https://internal-api.emiratesescape.com/v1.0";
 
 const AUTH_TOKEN_KEY = "auth_token";
@@ -98,11 +100,8 @@ export async function confirmMagicLink(
 export async function fetchCurrentUser(
   accessToken: string
 ): Promise<FetchCurrentUserResponse> {
-  const response = await fetch(`${API_BASE}/users/me`, {
+  const response = await authenticatedFetch(`${API_BASE}/users/me`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
   });
 
   if (!response.ok) {
@@ -115,11 +114,8 @@ export async function fetchCurrentUser(
 export async function fetchUserProfile(
   accessToken: string
 ): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE}/users/me/profile`, {
+  const response = await authenticatedFetch(`${API_BASE}/users/me/profile`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
   });
 
   if (!response.ok) {
@@ -133,10 +129,9 @@ export async function updateUserName(
   accessToken: string,
   data: { first_name?: string; last_name?: string }
 ): Promise<FetchCurrentUserResponse> {
-  const response = await fetch(`${API_BASE}/users/me`, {
+  const response = await authenticatedFetch(`${API_BASE}/users/me`, {
     method: "PATCH",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
@@ -153,10 +148,9 @@ export async function updateUserProfile(
   accessToken: string,
   data: { language?: string; currency?: string }
 ): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE}/users/me/profile`, {
+  const response = await authenticatedFetch(`${API_BASE}/users/me/profile`, {
     method: "PATCH",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
@@ -178,10 +172,9 @@ export async function updateNotificationSettings(
     trip_reminders?: boolean;
   }
 ): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE}/users/me/profile`, {
+  const response = await authenticatedFetch(`${API_BASE}/users/me/profile`, {
     method: "PATCH",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
@@ -241,10 +234,9 @@ export async function addFavorite(
   accessToken: string,
   placeId: string
 ): Promise<Favorite> {
-  const response = await fetch(`${API_BASE}/favorites`, {
+  const response = await authenticatedFetch(`${API_BASE}/favorites`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ place_id: placeId }),
@@ -261,11 +253,8 @@ export async function removeFavorite(
   accessToken: string,
   placeId: string
 ): Promise<void> {
-  const response = await fetch(`${API_BASE}/favorites/${placeId}`, {
+  const response = await authenticatedFetch(`${API_BASE}/favorites/${placeId}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
   });
 
   if (!response.ok) {
@@ -309,10 +298,9 @@ export function removeStoredUser(): void {
 export async function deleteAccount(
   accessToken: string
 ): Promise<{ message: string }> {
-  const response = await fetch(`${API_BASE}/users/me`, {
+  const response = await authenticatedFetch(`${API_BASE}/users/me`, {
     method: "DELETE",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
   });

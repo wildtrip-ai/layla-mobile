@@ -22,6 +22,7 @@ import {
   getAnonymousPreferences,
 } from "@/lib/profileStorage";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthInterceptor } from "@/hooks/useAuthInterceptor";
 import { toast } from "@/hooks/use-toast";
 import Index from "./pages/Index";
 import TripDetails from "./pages/TripDetails";
@@ -45,6 +46,8 @@ const queryClient = new QueryClient();
 // Component that renders LoginDialog using context
 function LoginDialogContainer() {
   const { loginDialogOpen, setLoginDialogOpen } = useLoginDialog();
+  // Initialize the auth interceptor to handle 401 responses
+  useAuthInterceptor();
   return <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />;
 }
 
