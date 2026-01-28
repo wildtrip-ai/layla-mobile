@@ -59,7 +59,7 @@ export function TripMap({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="bg-card rounded-2xl overflow-hidden border border-border"
+        className="relative z-0 isolate bg-card rounded-2xl overflow-hidden border border-border"
       >
         {/* Static Leaflet Map Preview */}
         <div className="relative h-64 md:h-80 overflow-hidden">
