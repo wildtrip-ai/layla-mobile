@@ -6,8 +6,9 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripCard } from "@/components/trips/TripCard";
+import { TripCardSkeleton } from "@/components/trips/TripCardSkeleton";
 import { EmptyTripsState } from "@/components/trips/EmptyTripsState";
-import { savedTrips as initialTrips, type SavedTrip } from "@/data/savedTripsData";
+import { useTripsApi, type TripStatus } from "@/hooks/useTripsApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoginDialog } from "@/contexts/LoginDialogContext";
 
@@ -15,19 +16,24 @@ type TabValue = "all" | "upcoming" | "past" | "drafts";
 
 export default function MyTrips() {
   const [activeTab, setActiveTab] = useState<TabValue>("all");
-  const [trips, setTrips] = useState<SavedTrip[]>(initialTrips);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { openLoginDialog } = useLoginDialog();
 
-  const filteredTrips = useMemo(() => {
-    if (activeTab === "all") return trips;
-    if (activeTab === "drafts") return trips.filter((t) => t.status === "draft");
-    return trips.filter((t) => t.status === activeTab);
-  }, [activeTab, trips]);
+  // Map tab value to API status filter
+  const statusFilter = useMemo<TripStatus | undefined>(() => {
+    if (activeTab === "all") return undefined;
+    if (activeTab === "drafts") return "draft";
+    return activeTab as TripStatus;
+  }, [activeTab]);
 
-  const handleDeleteTrip = (tripId: string) => {
-    setTrips((prev) => prev.filter((t) => t.id !== tripId));
+  // Fetch trips from API with current filter
+  const { trips, isLoading, error, refresh } = useTripsApi(statusFilter);
+
+  const handleDeleteTrip = async (tripId: string) => {
+    // TODO: Call delete API endpoint
+    // For now, just refresh the list
+    await refresh();
   };
 
   const handleNewTrip = () => {
@@ -98,7 +104,36 @@ export default function MyTrips() {
           {/* Trip Grid */}
           <div className="mt-6 sm:mt-8">
             <AnimatePresence mode="wait">
-              {filteredTrips.length > 0 ? (
+              {isLoading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  {[...Array(6)].map((_, index) => (
+                    <TripCardSkeleton key={index} index={index} />
+                  ))}
+                </motion.div>
+              ) : error ? (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-center py-12"
+                >
+                  <p className="text-muted-foreground mb-4">
+                    Failed to load trips. Please try again.
+                  </p>
+                  <Button onClick={refresh} variant="outline">
+                    Retry
+                  </Button>
+                </motion.div>
+              ) : trips.length > 0 ? (
                 <motion.div
                   key={activeTab}
                   initial={{ opacity: 0 }}
@@ -108,7 +143,7 @@ export default function MyTrips() {
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                   <AnimatePresence>
-                    {filteredTrips.map((trip, index) => (
+                    {trips.map((trip, index) => (
                       <TripCard
                         key={trip.id}
                         trip={trip}
