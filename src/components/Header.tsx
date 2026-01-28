@@ -58,12 +58,12 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 pointer-events-none">
       <div className="container mx-auto flex items-center justify-between pointer-events-auto [&>*]:pointer-events-auto">
         {/* Logo */}
-        <div className="flex items-center gap-2">
-          <LocalizedLink to="/">
-            <img src="/apple-touch-icon.png" alt="Emirates Escape Logo" className="h-10 object-contain" />
-            <img src="/logo5.png" alt="Emirates Escape" className="h-10 object-contain" />
-          </LocalizedLink>
-        </div>
+        <LocalizedLink to="/">
+          <div class="flex flex-row items-center gap-2">
+            <img src="/apple-touch-icon.png" alt="Emirates Escape Logo" class="h-10 w-auto object-contain">
+            <img src="/logo5.png" alt="Emirates Escape" class="h-8 w-auto object-contain">
+          </div>
+        </LocalizedLink>
 
         {/* Right side controls */}
         <div className="flex items-center gap-2">
