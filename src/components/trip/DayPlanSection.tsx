@@ -34,7 +34,7 @@ export function DayPlanSection({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="space-y-6"
+      className="space-y-6 pt-4"
     >
       {/* Section Header */}
       <div className="flex items-center gap-3">
