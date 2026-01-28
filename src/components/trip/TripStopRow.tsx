@@ -37,73 +37,86 @@ export function TripStopRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 py-3 px-4 rounded-lg transition-colors",
+        "rounded-lg transition-colors",
         isSkipped
           ? "bg-muted/50 opacity-50"
           : "bg-secondary/50 hover:bg-secondary"
       )}
     >
-      {/* Stop Number */}
-      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-        <span className="text-sm font-medium text-primary">{index}</span>
-      </div>
+      {/* Mobile: Two-row layout, Desktop: Single-row layout */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 py-3 px-4">
+        {/* Top row on mobile: Stop number + locations + remove button */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          {/* Stop Number */}
+          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-sm font-medium text-primary">{index}</span>
+          </div>
 
-      {/* Origin */}
-      <div className="flex-1 min-w-0">
-        <span className="text-sm font-medium text-foreground truncate">
-          {origin}
-        </span>
-      </div>
+          {/* Origin */}
+          <div className="flex-shrink min-w-0 max-w-[80px] sm:flex-1">
+            <span className="text-sm font-medium text-foreground truncate block">
+              {origin}
+            </span>
+          </div>
 
-      {/* Transport Icon */}
-      <div className="flex-shrink-0 text-muted-foreground">
-        <TransportIcon className="h-4 w-4" />
-      </div>
+          {/* Transport Icon */}
+          <div className="flex-shrink-0 text-muted-foreground">
+            <TransportIcon className="h-4 w-4" />
+          </div>
 
-      {/* Destination */}
-      <div className="flex-1 min-w-0">
-        <span className="text-sm font-medium text-foreground truncate">
-          {destination}
-        </span>
-      </div>
+          {/* Destination */}
+          <div className="flex-shrink min-w-0 max-w-[80px] sm:flex-1">
+            <span className="text-sm font-medium text-foreground truncate block">
+              {destination}
+            </span>
+          </div>
 
-      {/* Date Picker */}
-      <Popover>
-        <PopoverTrigger asChild>
+          {/* Remove Button - visible on all screens */}
           <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "justify-start text-left font-normal min-w-[130px]",
-              !date && "text-muted-foreground"
-            )}
-            disabled={isSkipped}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-destructive sm:order-last"
+            onClick={onRemove}
+            disabled={!canRemove}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "MMM d, yyyy") : "Pick date"}
+            <X className="h-4 w-4" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 z-[60]" align="end">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(newDate) => newDate && onDateChange(newDate)}
-            initialFocus
-            className="pointer-events-auto"
-          />
-        </PopoverContent>
-      </Popover>
+        </div>
 
-      {/* Remove Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-        onClick={onRemove}
-        disabled={!canRemove}
-      >
-        <X className="h-4 w-4" />
-      </Button>
+        {/* Bottom row on mobile: Date picker */}
+        <div className="flex sm:flex-shrink-0 sm:ml-auto pl-9 sm:pl-0">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "justify-start text-left font-normal w-full sm:min-w-[130px]",
+                  !date && "text-muted-foreground"
+                )}
+                disabled={isSkipped}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                <span className="hidden xs:inline">
+                  {date ? format(date, "MMM d, yyyy") : "Pick date"}
+                </span>
+                <span className="inline xs:hidden">
+                  {date ? format(date, "MMM d") : "Pick date"}
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-[60]" align="end">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(newDate) => newDate && onDateChange(newDate)}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
     </div>
   );
 }
