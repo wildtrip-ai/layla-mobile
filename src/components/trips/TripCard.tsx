@@ -17,7 +17,7 @@ interface TripCardProps {
 }
 
 const statusStyles = {
-  upcoming: "bg-white/10 text-emerald-600 border-emerald-500/20",
+  upcoming: "bg-white text-emerald-600 border-emerald-500/20",
   past: "bg-secondary text-muted-foreground border-border",
   draft: "bg-amber-500/10 text-amber-600 border-amber-500/20",
 };
