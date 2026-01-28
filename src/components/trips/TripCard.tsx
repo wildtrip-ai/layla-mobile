@@ -146,14 +146,14 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <Badge
           variant="outline"
-          className={`absolute top-3 right-3 ${statusStyles[trip.status]} backdrop-blur-sm`}
+          className={`absolute top-3 left-3 ${statusStyles[trip.status]} backdrop-blur-sm`}
         >
           {statusLabels[trip.status]}
         </Badge>
 
         {/* Action buttons overlay - desktop: shown on hover */}
         {!isMobile && (
-          <div className="absolute top-3 left-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <Button
               variant="secondary"
               size="icon"
