@@ -60,8 +60,8 @@ export function Header() {
         {/* Logo */}
         <LocalizedLink to="/">
           <div class="flex flex-row items-center gap-2">
-            <img src="/apple-touch-icon.png" alt="Emirates Escape Logo" class="h-10 w-auto object-contain">
-            <img src="/logo5.png" alt="Emirates Escape" class="h-8 w-auto object-contain">
+            <img src="/apple-touch-icon.png" alt="Emirates Escape Logo" class="h-10 w-auto object-contain" />
+            <img src="/logo5.png" alt="Emirates Escape" class="h-8 w-auto object-contain" />
           </div>
         </LocalizedLink>
 
