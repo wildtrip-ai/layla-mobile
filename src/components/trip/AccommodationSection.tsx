@@ -16,7 +16,7 @@ export function AccommodationSection({ accommodations, dates, cityName }: Accomm
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="space-y-4"
+      className="space-y-4 pt-4"
     >
       {/* Section Header */}
       <div className="flex items-center gap-3">
@@ -31,7 +31,7 @@ export function AccommodationSection({ accommodations, dates, cityName }: Accomm
 
       {/* Accommodation Cards */}
       {accommodations.length > 0 ? (
-        <div className="space-y-4 pt-4">
+        <div className="space-y-4">
           {accommodations.map((accommodation) => (
             <HotelCard key={accommodation.id} accommodation={accommodation} showRemove={true} />
           ))}
