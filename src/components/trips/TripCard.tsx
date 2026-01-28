@@ -17,7 +17,7 @@ interface TripCardProps {
 }
 
 const statusStyles = {
-  upcoming: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  upcoming: "bg-white/10 text-emerald-600 border-emerald-500/20",
   past: "bg-secondary text-muted-foreground border-border",
   draft: "bg-amber-500/10 text-amber-600 border-amber-500/20",
 };
@@ -47,7 +47,8 @@ export function TripCard({ trip, index = 0, onDelete }: TripCardProps) {
   const deleteScale = useTransform(x, [-150, -80, 0], [1, 0.9, 0.8]);
 
   const isDraft = trip.status === "draft";
-  const linkTo = isDraft ? `/new-trip-planner?tripId=${trip.id}` : `/trip/${trip.id}`;
+  const linkTo = isDraft ? `/new-trip-planner?tripId=${trip.id}` : `/tripv2/tripDetails/${trip.id}`;
+  // const linkTo = isDraft ? `/new-trip-planner?tripId=${trip.id}` : `/trip/${trip.id}`;
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     setIsDragging(false);
