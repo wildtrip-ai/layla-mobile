@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Mic, Send } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
-import heroImage from "@/assets/hero-japan.jpg";
+import heroImage from "https://traveltipzone.com/wp-content/uploads/uae-7-day-itinerary-discover-the-united-arab-emirates-in-one-week-dubai-abu-dhabi-beyond-img-1190-1200x900.jpg";
 
 export function HeroSection() {
   const [tripQuery, setTripQuery] = useState("");
