@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Mic, Send } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
-import heroImage from "@/assets/hero-dune.avif";
+import heroImage from "@/assets/hero-dubai.avif";
 
 export function HeroSection() {
   const [tripQuery, setTripQuery] = useState("");
