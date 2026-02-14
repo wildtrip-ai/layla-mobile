@@ -243,9 +243,12 @@ export default function TripDetailsV2() {
               <div className="hidden lg:block">
                 <VoyagerChat
                   mode="modify"
-                  onRemoveFlights={removeFlights}
-                  onAddCity={addCity}
-                  onApplyBudgetChanges={applyBudgetChanges}
+                  tripId={tripData.id}
+                  tripData={tripData}
+                  onTripGenerated={(newTrip) => {
+                    // TODO: Apply AI-generated trip modifications
+                    console.log("AI modified trip:", newTrip);
+                  }}
                   onUndo={undo}
                   canUndo={canUndo}
                 />
