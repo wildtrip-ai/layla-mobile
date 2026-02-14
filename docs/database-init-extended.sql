@@ -731,29 +731,30 @@ CREATE TABLE trip_collaborators (
 -- AI CHAT & TRIP GENERATION
 -- =============================================================================
 
--- AI chat sessions
-CREATE TABLE ai_chat_sessions (
+-- AI chat conversations (one per trip)
+CREATE TABLE conversations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   trip_id UUID REFERENCES trips(id) ON DELETE SET NULL,
-  mode TEXT NOT NULL DEFAULT 'create', -- 'create', 'modify', 'inspire'
-  status TEXT NOT NULL DEFAULT 'active', -- 'active', 'completed', 'abandoned'
+  title TEXT,
+  status TEXT NOT NULL DEFAULT 'active', -- 'active', 'archived'
+  metadata JSONB DEFAULT '{}',           -- extracted preferences: destination, budget, dates, mode, etc.
   -- Auditing
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-  completed_at TIMESTAMPTZ
+  deleted_at TIMESTAMPTZ,
+  deleted_by UUID REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- AI chat messages
-CREATE TABLE ai_chat_messages (
+CREATE TABLE messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  session_id UUID NOT NULL REFERENCES ai_chat_sessions(id) ON DELETE CASCADE,
+  conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
   role TEXT NOT NULL, -- 'user', 'assistant', 'system'
   content TEXT NOT NULL,
-  metadata JSONB,
-  tokens_used INTEGER,
+  metadata JSONB DEFAULT '{}', -- chips, trip_data JSON, intent data, tokens_used
   -- Auditing
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -849,8 +850,10 @@ CREATE INDEX idx_trip_collaborators_trip ON trip_collaborators(trip_id) WHERE de
 CREATE INDEX idx_trip_collaborators_user ON trip_collaborators(user_id) WHERE deleted_at IS NULL;
 
 -- AI chat
-CREATE INDEX idx_ai_chat_sessions_user ON ai_chat_sessions(user_id, status);
-CREATE INDEX idx_ai_chat_messages_session ON ai_chat_messages(session_id, created_at);
+CREATE INDEX idx_conversations_user_id ON conversations(user_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_conversations_trip_id ON conversations(trip_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_conversations_status ON conversations(user_id, status) WHERE deleted_at IS NULL;
+CREATE INDEX idx_messages_conversation_id ON messages(conversation_id, created_at);
 
 -- Notifications
 CREATE INDEX idx_notifications_user ON notifications(user_id, is_read) WHERE deleted_at IS NULL;
@@ -890,7 +893,7 @@ CREATE TRIGGER update_transports_updated_at BEFORE UPDATE ON transports FOR EACH
 CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON reviews FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_trip_shares_updated_at BEFORE UPDATE ON trip_shares FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_trip_collaborators_updated_at BEFORE UPDATE ON trip_collaborators FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_ai_chat_sessions_updated_at BEFORE UPDATE ON ai_chat_sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON conversations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =============================================================================
 -- END OF SCHEMA

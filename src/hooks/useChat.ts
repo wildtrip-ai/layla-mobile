@@ -39,9 +39,11 @@ export interface UseChatReturn {
   isStreaming: boolean;
   streamingContent: string;
   error: string | null;
+  requiresAuth: boolean;
   sendMessage: (text: string) => Promise<void>;
   loadConversation: (tripId: string) => Promise<void>;
   isLoadingHistory: boolean;
+  checkAuth: () => boolean;
 }
 
 // ============================================
@@ -60,6 +62,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [requiresAuth, setRequiresAuth] = useState(!getStoredToken());
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -82,7 +85,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     if (conversationIdRef.current) return conversationIdRef.current;
 
     const token = getStoredToken();
-    if (!token) throw new Error("Not authenticated");
+    if (!token) {
+      setRequiresAuth(true);
+      throw new Error("AUTH_REQUIRED");
+    }
 
     const response = await fetch(`${API_BASE}/chat/conversations`, {
       method: "POST",
@@ -96,6 +102,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       }),
     });
 
+    if (response.status === 401) {
+      setRequiresAuth(true);
+      throw new Error("AUTH_REQUIRED");
+    }
     if (!response.ok) throw new Error("Failed to create conversation");
 
     const data = await response.json();
@@ -184,7 +194,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       try {
         const conversationId = await ensureConversation();
         const token = getStoredToken();
-        if (!token) throw new Error("Not authenticated");
+        if (!token) {
+          setRequiresAuth(true);
+          throw new Error("AUTH_REQUIRED");
+        }
 
         // Abort any previous in-flight stream
         abortControllerRef.current?.abort();
@@ -285,6 +298,16 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         setStreamingContent("");
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
+
+        // Auth error: roll back the optimistic user message, don't show error banner
+        if (err instanceof Error && err.message === "AUTH_REQUIRED") {
+          setConversation((prev) => ({
+            ...prev,
+            messages: prev.messages.filter((m) => m.id !== userMsg.id),
+          }));
+          return;
+        }
+
         const message =
           err instanceof Error ? err.message : "Failed to send message";
         setError(message);
@@ -302,13 +325,22 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     ]
   );
 
+  // Re-check auth state (e.g., after user logs in without remounting)
+  const checkAuth = useCallback(() => {
+    const hasToken = !!getStoredToken();
+    setRequiresAuth(!hasToken);
+    return hasToken;
+  }, []);
+
   return {
     messages: conversation.messages,
     isStreaming,
     streamingContent,
     error,
+    requiresAuth,
     sendMessage,
     loadConversation,
     isLoadingHistory,
+    checkAuth,
   };
 }
