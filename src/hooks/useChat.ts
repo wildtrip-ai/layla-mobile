@@ -264,31 +264,39 @@ export function useChat(options: UseChatOptions): UseChatReturn {
           }
         };
 
+        const processSSEChunk = (chunk: string) => {
+          // Normalize line endings to avoid platform/proxy-specific framing issues.
+          buffer += chunk.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine.startsWith("data:")) {
+              let dataValue = trimmedLine.slice(5);
+              if (dataValue.startsWith(" ")) {
+                dataValue = dataValue.slice(1);
+              }
+              currentEventData += dataValue;
+            } else if (trimmedLine === "" && currentEventData) {
+              processEvent(currentEventData);
+              currentEventData = "";
+            }
+          }
+        };
+
         while (true) {
           const { done, value } = await reader.read();
 
           if (value) {
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (trimmedLine.startsWith("data:")) {
-                let dataValue = trimmedLine.slice(5);
-                if (dataValue.startsWith(" ")) {
-                  dataValue = dataValue.slice(1);
-                }
-                currentEventData += dataValue;
-              } else if (trimmedLine === "" && currentEventData) {
-                processEvent(currentEventData);
-                currentEventData = "";
-              }
-            }
+            processSSEChunk(decoder.decode(value, { stream: true }));
           }
 
           if (done) {
-            // Finalize remaining buffer as a line if it doesn't end with newline
+            // Flush decoder and process any remaining buffered content.
+            processSSEChunk(decoder.decode());
+
+            // Finalize remaining buffer as a line if it doesn't end with newline.
             const trimmedBuffer = buffer.trim();
             if (trimmedBuffer.startsWith("data:")) {
               let dataValue = trimmedBuffer.slice(5);
@@ -297,7 +305,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               }
               currentEventData += dataValue;
             }
-            // Final dispatch if we have anything left
+            // Final dispatch if we have anything left.
             if (currentEventData) {
               processEvent(currentEventData);
             }
