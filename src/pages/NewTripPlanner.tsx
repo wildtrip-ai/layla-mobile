@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { VoyagerChat } from "@/components/trip/VoyagerChat";
 import { EmptyTripState } from "@/components/trip/EmptyTripState";
@@ -9,21 +9,66 @@ import { TripPreviewSkeleton } from "@/components/trip/TripPreviewSkeleton";
 import { MobileChatDrawer } from "@/components/trip/MobileChatDrawer";
 import type { TripData } from "@/data/tripData";
 
+// Default placeholder images for AI-generated trips
+import tripAmman from "@/assets/trip-amman.jpg";
+import heroDubai from "@/assets/hero-dubai.avif";
+import heroDune from "@/assets/hero-dune.avif";
+import heroJapan from "@/assets/hero-japan.jpg";
+
+const DEFAULT_TRIP_IMAGES = [tripAmman, heroDubai, heroDune, heroJapan];
+
+/**
+ * Hydrate AI-generated trip data with placeholder images where missing.
+ * The AI cannot produce local image paths, so we fill them in.
+ */
+function hydrateTripImages(trip: TripData): TripData {
+  const tripImage = trip.image || DEFAULT_TRIP_IMAGES[0];
+
+  const cityStops = trip.cityStops?.map((city, i) => ({
+    ...city,
+    image: city.image || DEFAULT_TRIP_IMAGES[i % DEFAULT_TRIP_IMAGES.length],
+  })) ?? [];
+
+  const dayPlans = trip.dayPlans?.map((day) => ({
+    ...day,
+    items: day.items.map((item) => ({
+      ...item,
+      image: item.image || undefined, // Leave undefined - the UI handles missing images
+    })),
+  })) ?? [];
+
+  const accommodations = trip.accommodations?.map((acc) => ({
+    ...acc,
+    image: acc.image || tripImage,
+  })) ?? [];
+
+  return {
+    ...trip,
+    id: trip.id || `trip-${Date.now()}`,
+    image: tripImage,
+    cityStops,
+    dayPlans,
+    accommodations,
+    transports: trip.transports ?? [],
+  };
+}
+
 export default function NewTripPlanner() {
   const [searchParams] = useSearchParams();
   const initialMessage = searchParams.get("message");
   const mode = searchParams.get("mode");
-  
+
   const [generatedTrip, setGeneratedTrip] = useState<TripData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleTripGenerated = (trip: TripData) => {
-    setGeneratedTrip(trip);
-  };
+  const handleTripGenerated = useCallback((trip: TripData) => {
+    const hydrated = hydrateTripImages(trip);
+    setGeneratedTrip(hydrated);
+  }, []);
 
-  const handleGeneratingChange = (generating: boolean) => {
+  const handleGeneratingChange = useCallback((generating: boolean) => {
     setIsGenerating(generating);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">

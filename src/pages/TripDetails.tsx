@@ -172,11 +172,14 @@ export default function TripDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
             {/* Sidebar - Hidden on mobile */}
             <div className="hidden lg:block">
-              <VoyagerChat 
+              <VoyagerChat
                 mode="modify"
-                onRemoveFlights={removeFlights}
-                onAddCity={addCity}
-                onApplyBudgetChanges={applyBudgetChanges}
+                tripId={tripData.id}
+                tripData={tripData}
+                onTripGenerated={(newTrip) => {
+                  // TODO: Apply AI-generated trip modifications
+                  console.log("AI modified trip:", newTrip);
+                }}
                 onUndo={undo}
                 canUndo={canUndo}
               />
