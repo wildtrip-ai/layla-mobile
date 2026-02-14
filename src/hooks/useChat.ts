@@ -231,55 +231,77 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         const decoder = new TextDecoder();
         let buffer = "";
         let accumulatedVisible = "";
+        let currentEventData = "";
+
+        const processEvent = (data: string) => {
+          try {
+            const event: SSEEvent = JSON.parse(data);
+            switch (event.type) {
+              case "token": {
+                const tokenText = event.content as string;
+                accumulatedVisible += tokenText;
+                setStreamingContent(accumulatedVisible);
+                break;
+              }
+              case "generating": {
+                onGeneratingChange?.(true);
+                break;
+              }
+              case "trip_data": {
+                const tripJson = event.content as unknown as TripData;
+                onTripGenerated?.(tripJson);
+                onGeneratingChange?.(false);
+                break;
+              }
+              case "error":
+                setError(event.content as string);
+                break;
+              case "done":
+                break;
+            }
+          } catch (e) {
+            console.error("Failed to parse SSE event data:", data, e);
+          }
+        };
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+          if (value) {
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
 
-          // Process complete SSE lines from buffer
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const jsonStr = line.slice(6).trim();
-            if (!jsonStr || jsonStr === "[DONE]") continue;
-
-            try {
-              const event: SSEEvent = JSON.parse(jsonStr);
-
-              switch (event.type) {
-                case "token": {
-                  const tokenText = event.content as string;
-                  accumulatedVisible += tokenText;
-                  setStreamingContent(accumulatedVisible);
-                  break;
+            for (const line of lines) {
+              const trimmedLine = line.trim();
+              if (trimmedLine.startsWith("data:")) {
+                let dataValue = trimmedLine.slice(5);
+                if (dataValue.startsWith(" ")) {
+                  dataValue = dataValue.slice(1);
                 }
-
-                case "generating": {
-                  onGeneratingChange?.(true);
-                  break;
-                }
-
-                case "trip_data": {
-                  const tripJson = event.content as unknown as TripData;
-                  onTripGenerated?.(tripJson);
-                  onGeneratingChange?.(false);
-                  break;
-                }
-
-                case "error":
-                  setError(event.content as string);
-                  break;
-
-                case "done":
-                  break;
+                currentEventData += dataValue;
+              } else if (trimmedLine === "" && currentEventData) {
+                processEvent(currentEventData);
+                currentEventData = "";
               }
-            } catch {
-              // Skip malformed SSE lines
             }
+          }
+
+          if (done) {
+            // Finalize remaining buffer as a line if it doesn't end with newline
+            const trimmedBuffer = buffer.trim();
+            if (trimmedBuffer.startsWith("data:")) {
+              let dataValue = trimmedBuffer.slice(5);
+              if (dataValue.startsWith(" ")) {
+                dataValue = dataValue.slice(1);
+              }
+              currentEventData += dataValue;
+            }
+            // Final dispatch if we have anything left
+            if (currentEventData) {
+              processEvent(currentEventData);
+            }
+            break;
           }
         }
 
