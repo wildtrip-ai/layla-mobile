@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, Sparkles, Undo2, AlertCircle } from "lucide-react";
+import { Send, Mic, Sparkles, Undo2, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TripData } from "@/data/tripData";
 import { useChat } from "@/hooks/useChat";
+import { useLoginDialog } from "@/contexts/LoginDialogContext";
 
 // ============================================
 // TYPES
@@ -83,13 +84,17 @@ export function VoyagerChat(props: VoyagerChatProps) {
   const onUndo = !isCreateMode ? (props as ModifyModeProps).onUndo : undefined;
   const canUndo = !isCreateMode ? (props as ModifyModeProps).canUndo : false;
 
+  const { openLoginDialog, loginDialogOpen } = useLoginDialog();
+
   // AI chat hook
   const {
     messages,
     isStreaming,
     streamingContent,
     error,
+    requiresAuth,
     sendMessage,
+    checkAuth,
   } = useChat({
     mode: isCreateMode ? "create" : "modify",
     tripId,
@@ -101,6 +106,13 @@ export function VoyagerChat(props: VoyagerChatProps) {
   const [inputValue, setInputValue] = useState("");
   const [hasProcessedInitial, setHasProcessedInitial] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Re-check auth when login dialog closes (user may have just logged in)
+  useEffect(() => {
+    if (!loginDialogOpen && requiresAuth) {
+      checkAuth();
+    }
+  }, [loginDialogOpen, requiresAuth, checkAuth]);
 
   const suggestions = isCreateMode ? createModeSuggestions : modifyModeSuggestions;
   const placeholderText = isCreateMode ? "Describe your dream trip..." : "Ask anything...";
@@ -114,9 +126,9 @@ export function VoyagerChat(props: VoyagerChatProps) {
     scrollToBottom();
   }, [messages, streamingContent, scrollToBottom]);
 
-  // Handle initial message for create mode
+  // Handle initial message for create mode (skip if not authenticated)
   useEffect(() => {
-    if (!isCreateMode || hasProcessedInitial) return;
+    if (!isCreateMode || hasProcessedInitial || requiresAuth) return;
 
     if (initialMessage) {
       setHasProcessedInitial(true);
@@ -129,7 +141,7 @@ export function VoyagerChat(props: VoyagerChatProps) {
         sendMessage("Inspire me! What are some amazing destinations I should consider?");
       }, 500);
     }
-  }, [isCreateMode, initialMessage, inspireMode, hasProcessedInitial, sendMessage]);
+  }, [isCreateMode, initialMessage, inspireMode, hasProcessedInitial, requiresAuth, sendMessage]);
 
   const handleUndo = useCallback(() => {
     if (onUndo && canUndo) {
@@ -211,6 +223,31 @@ export function VoyagerChat(props: VoyagerChatProps) {
           </motion.div>
         )}
 
+        {/* Sign-in Prompt */}
+        {requiresAuth && !hasMessages && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-3"
+          >
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-4">
+              <p className="text-foreground text-sm leading-relaxed mb-3">
+                Sign in to start planning your trip with Voyager AI.
+              </p>
+              <Button
+                variant="hero"
+                size="sm"
+                onClick={openLoginDialog}
+                className="gap-2"
+              >
+                <LogIn className="h-4 w-4" />
+                Sign in to start
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Error Banner */}
         {error && (
           <motion.div
@@ -276,7 +313,7 @@ export function VoyagerChat(props: VoyagerChatProps) {
       </div>
 
       {/* Quick Suggestions */}
-      {!hasMessages && !(isCreateMode && inspireMode) && (
+      {!hasMessages && !requiresAuth && !(isCreateMode && inspireMode) && (
         <div className="px-4 pb-3">
           <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion) => (
@@ -294,7 +331,7 @@ export function VoyagerChat(props: VoyagerChatProps) {
       )}
 
       {/* Input Area */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-border">
+      <form onSubmit={requiresAuth ? (e) => { e.preventDefault(); openLoginDialog(); } : handleSubmit} className="p-4 border-t border-border">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -306,16 +343,17 @@ export function VoyagerChat(props: VoyagerChatProps) {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={placeholderText}
+            placeholder={requiresAuth ? "Sign in to start chatting..." : placeholderText}
             className="flex-1 bg-secondary/50 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-            disabled={isStreaming}
+            disabled={isStreaming || requiresAuth}
+            onClick={requiresAuth ? openLoginDialog : undefined}
           />
           <Button
             type="submit"
             size="icon"
             variant="hero"
             className="rounded-full h-9 w-9"
-            disabled={!inputValue.trim() || isStreaming}
+            disabled={requiresAuth || !inputValue.trim() || isStreaming}
           >
             <Send className="h-4 w-4" />
           </Button>
